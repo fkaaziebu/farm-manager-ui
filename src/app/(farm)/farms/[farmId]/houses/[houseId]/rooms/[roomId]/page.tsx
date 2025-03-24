@@ -27,6 +27,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import Link from "next/link";
 
 export default function RoomDetailPage() {
   // Sample room data
@@ -241,7 +242,7 @@ export default function RoomDetailPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Function to get status color
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "operational":
         return "bg-green-100 text-green-800";
@@ -257,7 +258,7 @@ export default function RoomDetailPage() {
   };
 
   // Function to get alert color
-  const getAlertColor = (status) => {
+  const getAlertColor = (status: string) => {
     switch (status) {
       case "normal":
       case "good":
@@ -276,7 +277,7 @@ export default function RoomDetailPage() {
   };
 
   // Function to get animal status color
-  const getAnimalStatusColor = (status) => {
+  const getAnimalStatusColor = (status: string) => {
     switch (status) {
       case "Healthy":
         return "bg-green-100 text-green-800";
@@ -292,12 +293,12 @@ export default function RoomDetailPage() {
   };
 
   // Calculate occupancy percentage
-  const calculateOccupancy = (occupancy, capacity) => {
+  const calculateOccupancy = (occupancy: number, capacity: number) => {
     return ((occupancy / capacity) * 100).toFixed(0);
   };
 
   // Format date for display
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -312,12 +313,12 @@ export default function RoomDetailPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <a
+              <Link
                 href={`/farms/1/houses/${house.id}/rooms`}
                 className="mr-3 sm:mr-4"
               >
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </a>
+              </Link>
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center">
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
@@ -343,13 +344,13 @@ export default function RoomDetailPage() {
                 <Edit size={14} className="mr-1.5 sm:mr-2" />
                 Edit
               </button>
-              <a
+              <Link
                 href={`/farms/1/houses/${house.id}/rooms/${room.id}/animals`}
                 className="inline-flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700"
               >
                 <Users size={14} className="mr-1.5 sm:mr-2" />
                 View Animals
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -1286,12 +1287,12 @@ export default function RoomDetailPage() {
                           <div className="min-w-0 flex-1">
                             <div>
                               <div className="text-xs sm:text-sm">
-                                <a
+                                <Link
                                   href="#"
                                   className="font-medium text-gray-900"
                                 >
                                   High Humidity Alert
-                                </a>
+                                </Link>
                               </div>
                               <p className="mt-0.5 text-xs sm:text-sm text-gray-500">
                                 Humidity reached 72% (threshold: 70%)
@@ -1315,7 +1316,7 @@ export default function RoomDetailPage() {
                         <span
                           className="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200"
                           aria-hidden="true"
-                        ></span>
+                        />
                         <div className="relative flex items-start space-x-3">
                           <div className="relative">
                             <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-green-100 flex items-center justify-center ring-8 ring-white">
@@ -1325,12 +1326,12 @@ export default function RoomDetailPage() {
                           <div className="min-w-0 flex-1">
                             <div>
                               <div className="text-xs sm:text-sm">
-                                <a
+                                <Link
                                   href="#"
                                   className="font-medium text-gray-900"
                                 >
                                   Temperature Normalized
-                                </a>
+                                </Link>
                               </div>
                               <p className="mt-0.5 text-xs sm:text-sm text-gray-500">
                                 Temperature returned to target range: 18.2°C
@@ -1358,12 +1359,12 @@ export default function RoomDetailPage() {
                           <div className="min-w-0 flex-1">
                             <div>
                               <div className="text-xs sm:text-sm">
-                                <a
+                                <Link
                                   href="#"
                                   className="font-medium text-gray-900"
                                 >
                                   Low Temperature Alert
-                                </a>
+                                </Link>
                               </div>
                               <p className="mt-0.5 text-xs sm:text-sm text-gray-500">
                                 Temperature dropped to 17.1°C (threshold:
@@ -1406,12 +1407,12 @@ export default function RoomDetailPage() {
                           <div className="min-w-0 flex-1">
                             <div>
                               <div className="text-xs sm:text-sm">
-                                <a
+                                <Link
                                   href="#"
                                   className="font-medium text-gray-900"
                                 >
                                   Environmental Settings Updated
-                                </a>
+                                </Link>
                               </div>
                               <p className="mt-0.5 text-xs sm:text-sm text-gray-500">
                                 Weekly settings update applied
@@ -1755,19 +1756,22 @@ export default function RoomDetailPage() {
                         </td>
                         <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
                           <div className="flex justify-end space-x-2 sm:space-x-3">
-                            <a
+                            <Link
                               href={`/farms/1/animals/${animal.id}`}
                               className="text-green-600 hover:text-green-900"
                             >
                               View
-                            </a>
-                            <a
+                            </Link>
+                            <Link
                               href={`/farms/1/animals/${animal.id}/edit`}
                               className="text-indigo-600 hover:text-indigo-900"
                             >
                               Edit
-                            </a>
-                            <button className="text-red-600 hover:text-red-900">
+                            </Link>
+                            <button
+                              type="button"
+                              className="text-red-600 hover:text-red-900"
+                            >
                               Move
                             </button>
                           </div>
@@ -1779,18 +1783,18 @@ export default function RoomDetailPage() {
               </div>
               <div className="bg-white px-3 py-3 sm:px-4 sm:py-3 flex items-center justify-between border-t border-gray-200">
                 <div className="flex-1 flex justify-between sm:hidden">
-                  <a
+                  <Link
                     href="#"
                     className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
                     Previous
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="#"
                     className="ml-3 relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
                     Next
-                  </a>
+                  </Link>
                 </div>
                 <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                   <div>
@@ -1806,7 +1810,7 @@ export default function RoomDetailPage() {
                       className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
                       aria-label="Pagination"
                     >
-                      <a
+                      <Link
                         href="#"
                         className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-500 hover:bg-gray-50"
                       >
@@ -1824,15 +1828,15 @@ export default function RoomDetailPage() {
                             clipRule="evenodd"
                           />
                         </svg>
-                      </a>
-                      <a
+                      </Link>
+                      <Link
                         href="#"
                         aria-current="page"
                         className="z-10 bg-green-50 border-green-500 text-green-600 relative inline-flex items-center px-4 py-2 border text-xs sm:text-sm font-medium"
                       >
                         1
-                      </a>
-                      <a
+                      </Link>
+                      <Link
                         href="#"
                         className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-500 hover:bg-gray-50"
                       >
@@ -1850,7 +1854,7 @@ export default function RoomDetailPage() {
                             clipRule="evenodd"
                           />
                         </svg>
-                      </a>
+                      </Link>
                     </nav>
                   </div>
                 </div>
@@ -2078,20 +2082,20 @@ export default function RoomDetailPage() {
                 </div>
 
                 <div className="mt-6 flex flex-col sm:flex-row sm:space-x-3">
-                  <a
+                  <Link
                     href="#"
                     className="inline-flex items-center justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 mb-3 sm:mb-0"
                   >
                     <Download className="mr-1.5 h-3 w-3 sm:h-4 sm:w-4" />
                     Maintenance Manual
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="#"
                     className="inline-flex items-center justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                   >
                     <Download className="mr-1.5 h-3 w-3 sm:h-4 sm:w-4" />
                     Cleaning Protocols
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

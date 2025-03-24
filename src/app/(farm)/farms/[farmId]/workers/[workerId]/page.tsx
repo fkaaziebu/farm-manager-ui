@@ -5,7 +5,6 @@ import {
   Edit,
   Award,
   Clock,
-  Heart,
   Calendar,
   Phone,
   Mail,
@@ -29,6 +28,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import Link from "next/link";
+import ProfilePic from "@/../public/globe.svg";
+import Image from "next/image";
 
 export default function WorkerDetailsPage() {
   // Sample worker data
@@ -37,7 +39,7 @@ export default function WorkerDetailsPage() {
     name: "John Smith",
     role: "Farm Manager",
     joinDate: "2020-03-15",
-    image: "/api/placeholder/120/120",
+    image: "/public/globe.svg",
     rating: 92,
     specialization: "Dairy Management",
     status: "active",
@@ -152,7 +154,7 @@ export default function WorkerDetailsPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Function to format date
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -161,7 +163,7 @@ export default function WorkerDetailsPage() {
   };
 
   // Function to get task status color
-  const getTaskStatusColor = (status) => {
+  const getTaskStatusColor = (status: string) => {
     switch (status) {
       case "completed":
         return "bg-green-100 text-green-800";
@@ -181,9 +183,9 @@ export default function WorkerDetailsPage() {
         <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <a href="/farms/1/workers" className="mr-4">
+              <Link href="/farms/1/workers" className="mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </a>
+              </Link>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   {worker.name}
@@ -362,9 +364,9 @@ export default function WorkerDetailsPage() {
               <div className="lg:col-span-1">
                 <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                   <div className="px-4 py-5 sm:px-6 flex flex-col items-center">
-                    <img
+                    <Image
                       className="h-28 w-28 sm:h-32 sm:w-32 rounded-full"
-                      src={worker.image}
+                      src={ProfilePic}
                       alt={worker.name}
                     />
                     <h3 className="mt-4 text-lg leading-6 font-medium text-gray-900">
@@ -894,24 +896,24 @@ export default function WorkerDetailsPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex justify-end space-x-3">
-                              <a
+                              <Link
                                 href="#"
                                 className="text-green-600 hover:text-green-900"
                               >
                                 Edit
-                              </a>
-                              <a
+                              </Link>
+                              <Link
                                 href="#"
                                 className="text-indigo-600 hover:text-indigo-900"
                               >
                                 View
-                              </a>
-                              <a
+                              </Link>
+                              <Link
                                 href="#"
                                 className="text-red-600 hover:text-red-900"
                               >
                                 Delete
-                              </a>
+                              </Link>
                             </div>
                           </td>
                         </tr>
@@ -938,24 +940,24 @@ export default function WorkerDetailsPage() {
                           Due: {formatDate(task.dueDate)}
                         </p>
                         <div className="flex justify-end space-x-2">
-                          <a
+                          <Link
                             href="#"
                             className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
                           >
                             Edit
-                          </a>
-                          <a
+                          </Link>
+                          <Link
                             href="#"
                             className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
                           >
                             View
-                          </a>
-                          <a
+                          </Link>
+                          <Link
                             href="#"
                             className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-red-600 bg-white hover:bg-gray-50"
                           >
                             Delete
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     ))}
@@ -1011,13 +1013,13 @@ export default function WorkerDetailsPage() {
                   </ul>
                 </div>
                 <div className="mt-6 text-center">
-                  <a
+                  <Link
                     href="#"
                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
                     View All Activity
                     <ChevronRight className="ml-2 h-4 w-4" />
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -1090,7 +1092,7 @@ export default function WorkerDetailsPage() {
                     Assigned Areas
                   </h3>
                   <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                    Farm areas under this worker's responsibility
+                    Farm areas under this worker&apos;s responsibility
                   </p>
                 </div>
                 <button
@@ -1141,12 +1143,12 @@ export default function WorkerDetailsPage() {
                               <span className="text-gray-500">No animals</span>
                             )}
                           </div>
-                          <a
+                          <Link
                             href={`/farms/1/houses/${area.id}`}
                             className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                           >
                             View Details
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </div>

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function AuthRegister() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -76,12 +78,12 @@ export default function AuthRegister() {
           </div>
 
           <div className="text-center">
-            <a
+            <Link
               href="/auth/admin/login"
               className="font-medium text-green-600 hover:text-green-500"
             >
               Already have an account? Sign in
-            </a>
+            </Link>
           </div>
         </form>
       </div>

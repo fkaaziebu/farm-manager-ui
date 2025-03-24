@@ -16,6 +16,9 @@ import {
   Grid,
   List,
 } from "lucide-react";
+import Link from "next/link";
+import ProfilePic from "@/../public/globe.svg";
+import Image from "next/image";
 
 export default function HouseListingPage() {
   // Sample houses data
@@ -36,7 +39,7 @@ export default function HouseListingPage() {
       lastInspection: "2024-09-01",
       temperature: 18.5,
       humidity: 65,
-      image: "/api/placeholder/200/150",
+      image: "/public/globe.svg",
     },
     {
       id: 2,
@@ -54,7 +57,7 @@ export default function HouseListingPage() {
       lastInspection: "2024-08-25",
       temperature: 19.2,
       humidity: 78,
-      image: "/api/placeholder/200/150",
+      image: "/public/globe.svg",
     },
     {
       id: 3,
@@ -72,7 +75,7 @@ export default function HouseListingPage() {
       lastInspection: "2024-08-20",
       temperature: 24.5,
       humidity: 65,
-      image: "/api/placeholder/200/150",
+      image: "/public/globe.svg",
     },
     {
       id: 4,
@@ -90,7 +93,7 @@ export default function HouseListingPage() {
       lastInspection: "2024-09-05",
       temperature: 22.3,
       humidity: 60,
-      image: "/api/placeholder/200/150",
+      image: "/public/globe.svg",
     },
     {
       id: 5,
@@ -108,7 +111,7 @@ export default function HouseListingPage() {
       lastInspection: "2024-08-15",
       temperature: 17.8,
       humidity: 62,
-      image: "/api/placeholder/200/150",
+      image: "/public/globe.svg",
     },
     {
       id: 6,
@@ -126,7 +129,7 @@ export default function HouseListingPage() {
       lastInspection: "2024-08-30",
       temperature: 20.1,
       humidity: 68,
-      image: "/api/placeholder/200/150",
+      image: "/public/globe.svg",
     },
   ]);
 
@@ -175,7 +178,7 @@ export default function HouseListingPage() {
   const houseTypes = ["all", ...new Set(houses.map((house) => house.type))];
 
   // Function to get status color
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "operational":
         return "bg-green-100 text-green-800";
@@ -191,7 +194,7 @@ export default function HouseListingPage() {
   };
 
   // Function to get alert color
-  const getAlertColor = (status) => {
+  const getAlertColor = (status: string) => {
     switch (status) {
       case "normal":
         return "text-green-500";
@@ -210,7 +213,7 @@ export default function HouseListingPage() {
   };
 
   // Calculate occupancy percentage
-  const calculateOccupancy = (occupancy, capacity) => {
+  const calculateOccupancy = (occupancy: number, capacity: number) => {
     return ((occupancy / capacity) * 100).toFixed(0);
   };
 
@@ -238,19 +241,22 @@ export default function HouseListingPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <a href="/farms/1" className="mr-3 sm:mr-4">
+              <Link href="/farms/1" className="mr-3 sm:mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </a>
+              </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                   Farm Houses
                 </h1>
                 <p className="mt-1 text-xs sm:text-sm text-gray-500">
-                  Manage your farm's buildings and facilities
+                  Manage your farm&apos;s buildings and facilities
                 </p>
               </div>
             </div>
-            <button className="mt-3 sm:mt-0 sm:ml-auto bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <button
+              type="button"
+              className="mt-3 sm:mt-0 sm:ml-auto bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
+            >
               <Plus size={16} />
               <span>Add House</span>
             </button>
@@ -537,9 +543,9 @@ export default function HouseListingPage() {
                 className="bg-white overflow-hidden shadow rounded-lg"
               >
                 <div className="relative">
-                  <img
+                  <Image
                     className="h-36 sm:h-48 w-full object-cover"
-                    src={house.image}
+                    src={ProfilePic}
                     alt={house.name}
                   />
                   <div className="absolute top-0 right-0 m-2">
@@ -620,12 +626,12 @@ export default function HouseListingPage() {
                   </div>
 
                   <div className="mt-4 sm:mt-5">
-                    <a
+                    <Link
                       href={`/farms/1/houses/${house.id}`}
                       className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                     >
                       View Rooms
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -639,7 +645,7 @@ export default function HouseListingPage() {
             <ul className="divide-y divide-gray-200">
               {filteredHouses.map((house) => (
                 <li key={house.id}>
-                  <a
+                  <Link
                     href={`/farms/1/houses/${house.id}`}
                     className="block hover:bg-gray-50"
                   >
@@ -647,8 +653,8 @@ export default function HouseListingPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 sm:h-12 sm:w-12 bg-gray-200 rounded-md overflow-hidden">
-                            <img
-                              src={house.image}
+                            <Image
+                              src={ProfilePic}
                               alt={house.name}
                               className="h-10 w-10 sm:h-12 sm:w-12 object-cover"
                             />
@@ -729,7 +735,7 @@ export default function HouseListingPage() {
                         </div>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -740,7 +746,7 @@ export default function HouseListingPage() {
         <div className="mt-4 sm:mt-6">
           <nav className="flex items-center justify-between border-t border-gray-200 px-2 sm:px-4">
             <div className="-mt-px flex w-0 flex-1">
-              <a
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-transparent pt-4 pr-1 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
@@ -757,25 +763,25 @@ export default function HouseListingPage() {
                   />
                 </svg>
                 Previous
-              </a>
+              </Link>
             </div>
             <div className="hidden md:-mt-px md:flex">
-              <a
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-green-500 px-4 pt-4 text-sm font-medium text-green-600"
                 aria-current="page"
               >
                 1
-              </a>
-              <a
+              </Link>
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
                 2
-              </a>
+              </Link>
             </div>
             <div className="-mt-px flex w-0 flex-1 justify-end">
-              <a
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-transparent pt-4 pl-1 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
@@ -792,7 +798,7 @@ export default function HouseListingPage() {
                     clipRule="evenodd"
                   />
                 </svg>
-              </a>
+              </Link>
             </div>
           </nav>
         </div>
@@ -826,9 +832,9 @@ export default function HouseListingPage() {
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex items-center">
                         <div className="flex-shrink-0">
-                          <img
+                          <Image
                             className="h-8 w-8 sm:h-10 sm:w-10 object-cover rounded"
-                            src={house.image}
+                            src={ProfilePic}
                             alt={house.name}
                           />
                         </div>
@@ -900,12 +906,12 @@ export default function HouseListingPage() {
                       >
                         Resolve
                       </button>
-                      <a
+                      <Link
                         href={`/farms/1/houses/${house.id}`}
                         className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                       >
                         View Details
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 ))}
@@ -998,9 +1004,9 @@ export default function HouseListingPage() {
                     <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                          <img
+                          <Image
                             className="h-8 w-8 sm:h-10 sm:w-10 rounded object-cover"
-                            src={houses[0].image}
+                            src={ProfilePic}
                             alt={houses[0].name}
                           />
                         </div>
@@ -1029,21 +1035,21 @@ export default function HouseListingPage() {
                       John Smith
                     </td>
                     <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
-                      <a
+                      <Link
                         href="#"
                         className="text-green-600 hover:text-green-900"
                       >
                         Reschedule
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                   <tr>
                     <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                          <img
+                          <Image
                             className="h-8 w-8 sm:h-10 sm:w-10 rounded object-cover"
-                            src={houses[2].image}
+                            src={ProfilePic}
                             alt={houses[2].name}
                           />
                         </div>
@@ -1072,21 +1078,21 @@ export default function HouseListingPage() {
                       Robert Johnson
                     </td>
                     <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
-                      <a
+                      <Link
                         href="#"
                         className="text-green-600 hover:text-green-900"
                       >
                         Reschedule
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                   <tr>
                     <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                          <img
+                          <Image
                             className="h-8 w-8 sm:h-10 sm:w-10 rounded object-cover"
-                            src={houses[4].image}
+                            src={ProfilePic}
                             alt={houses[4].name}
                           />
                         </div>
@@ -1115,12 +1121,12 @@ export default function HouseListingPage() {
                       External Contractor
                     </td>
                     <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
-                      <a
+                      <Link
                         href="#"
                         className="text-green-600 hover:text-green-900"
                       >
                         Reschedule
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                 </tbody>
@@ -1128,13 +1134,13 @@ export default function HouseListingPage() {
             </div>
           </div>
           <div className="px-3 py-3 sm:px-4 sm:py-4 border-t border-gray-200">
-            <a
+            <Link
               href="#"
               className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
             >
               View full maintenance schedule{" "}
               <span aria-hidden="true">&rarr;</span>
-            </a>
+            </Link>
           </div>
         </div>
 

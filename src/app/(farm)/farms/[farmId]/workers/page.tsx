@@ -9,11 +9,13 @@ import {
   Calendar,
   ArrowLeft,
   Users,
-  Menu,
   X,
   Grid,
   List,
 } from "lucide-react";
+import Link from "next/link";
+import ProfilePic from "@/../public/globe.svg";
+import Image from "next/image";
 
 export default function WorkersListingPage() {
   // Sample workers data
@@ -23,7 +25,7 @@ export default function WorkersListingPage() {
       name: "John Smith",
       role: "Farm Manager",
       joinDate: "2020-03-15",
-      image: "/api/placeholder/40/40",
+      image: "/public/globe.svg",
       rating: 92,
       specialization: "Dairy Management",
       status: "active",
@@ -34,7 +36,7 @@ export default function WorkersListingPage() {
       name: "Emily Davis",
       role: "Veterinarian",
       joinDate: "2021-06-10",
-      image: "/api/placeholder/40/40",
+      image: "/public/globe.svg",
       rating: 95,
       specialization: "Animal Health",
       status: "active",
@@ -45,7 +47,7 @@ export default function WorkersListingPage() {
       name: "Michael Brown",
       role: "Feed Specialist",
       joinDate: "2019-11-22",
-      image: "/api/placeholder/40/40",
+      image: "/public/globe.svg",
       rating: 89,
       specialization: "Nutrition",
       status: "active",
@@ -56,7 +58,7 @@ export default function WorkersListingPage() {
       name: "Sarah Wilson",
       role: "Animal Caretaker",
       joinDate: "2022-01-15",
-      image: "/api/placeholder/40/40",
+      image: "/public/globe.svg",
       rating: 91,
       specialization: "Cattle Handling",
       status: "active",
@@ -67,7 +69,7 @@ export default function WorkersListingPage() {
       name: "Robert Johnson",
       role: "Farm Technician",
       joinDate: "2021-08-03",
-      image: "/api/placeholder/40/40",
+      image: "/public/globe.svg",
       rating: 87,
       specialization: "Equipment Maintenance",
       status: "active",
@@ -78,7 +80,7 @@ export default function WorkersListingPage() {
       name: "Jennifer Lee",
       role: "Record Keeper",
       joinDate: "2022-04-18",
-      image: "/api/placeholder/40/40",
+      image: "/public/globe.svg",
       rating: 94,
       specialization: "Data Management",
       status: "on leave",
@@ -89,7 +91,7 @@ export default function WorkersListingPage() {
       name: "David Martinez",
       role: "Field Worker",
       joinDate: "2020-05-12",
-      image: "/api/placeholder/40/40",
+      image: "/public/globe.svg",
       rating: 85,
       specialization: "Crop Management",
       status: "active",
@@ -100,7 +102,7 @@ export default function WorkersListingPage() {
       name: "Lisa Thompson",
       role: "Assistant Manager",
       joinDate: "2019-09-20",
-      image: "/api/placeholder/40/40",
+      image: "/public/globe.svg",
       rating: 93,
       specialization: "Operations",
       status: "active",
@@ -154,9 +156,9 @@ export default function WorkersListingPage() {
   const roles = ["all", ...new Set(workers.map((worker) => worker.role))];
 
   // Format relative time
-  const formatRelativeTime = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
+  const formatRelativeTime = (dateString: string) => {
+    const date = new Date(dateString).valueOf();
+    const now = new Date().valueOf();
     const diffInSeconds = Math.floor((now - date) / 1000);
 
     if (diffInSeconds < 60) {
@@ -198,19 +200,22 @@ export default function WorkersListingPage() {
         <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0">
             <div className="flex items-center">
-              <a href="/farms/1" className="mr-4">
+              <Link href="/farms/1" className="mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </a>
+              </Link>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   Farm Workers
                 </h1>
                 <p className="mt-1 text-sm text-gray-500">
-                  Manage your farm's team members
+                  Manage your farm&apos;s team members
                 </p>
               </div>
             </div>
-            <button className="sm:ml-auto w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2">
+            <button
+              type="button"
+              className="sm:ml-auto w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2"
+            >
               <Plus size={18} />
               <span>Add Worker</span>
             </button>
@@ -527,9 +532,9 @@ export default function WorkersListingPage() {
               >
                 <div className="p-4 sm:p-5">
                   <div className="flex items-center space-x-4 mb-4">
-                    <img
+                    <Image
                       className="h-10 w-10 sm:h-12 sm:w-12 rounded-full"
-                      src={worker.image}
+                      src={ProfilePic}
                       alt={worker.name}
                     />
                     <div className="flex-1 min-w-0">
@@ -577,12 +582,12 @@ export default function WorkersListingPage() {
                   </div>
 
                   <div className="mt-4">
-                    <a
+                    <Link
                       href={`/farms/1/workers/${worker.id}`}
                       className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                     >
                       View Profile
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -596,7 +601,7 @@ export default function WorkersListingPage() {
             <ul className="divide-y divide-gray-200">
               {filteredWorkers.map((worker) => (
                 <li key={worker.id}>
-                  <a
+                  <Link
                     href={`/farms/1/workers/${worker.id}`}
                     className="block hover:bg-gray-50"
                   >
@@ -604,9 +609,9 @@ export default function WorkersListingPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                         <div className="flex items-center">
                           <div className="flex-shrink-0">
-                            <img
+                            <Image
                               className="h-10 w-10 rounded-full"
-                              src={worker.image}
+                              src={ProfilePic}
                               alt={worker.name}
                             />
                           </div>
@@ -675,7 +680,7 @@ export default function WorkersListingPage() {
                         </div>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -686,7 +691,7 @@ export default function WorkersListingPage() {
         <div className="mt-6">
           <nav className="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0">
             <div className="-mt-px flex w-0 flex-1">
-              <a
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-transparent pt-4 pr-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
@@ -703,31 +708,31 @@ export default function WorkersListingPage() {
                   />
                 </svg>
                 Previous
-              </a>
+              </Link>
             </div>
             <div className="hidden md:-mt-px md:flex">
-              <a
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-green-500 px-4 pt-4 text-sm font-medium text-green-600"
                 aria-current="page"
               >
                 1
-              </a>
-              <a
+              </Link>
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
                 2
-              </a>
-              <a
+              </Link>
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
                 3
-              </a>
+              </Link>
             </div>
             <div className="-mt-px flex w-0 flex-1 justify-end">
-              <a
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-transparent pt-4 pl-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
@@ -744,7 +749,7 @@ export default function WorkersListingPage() {
                     clipRule="evenodd"
                   />
                 </svg>
-              </a>
+              </Link>
             </div>
           </nav>
         </div>
@@ -791,7 +796,7 @@ export default function WorkersListingPage() {
         <div className="mt-6 bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
             <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Today's Schedule
+              Today&apos;s Schedule
             </h3>
             <p className="mt-1 max-w-2xl text-sm text-gray-500">
               Worker shifts and assignments for today
@@ -836,9 +841,9 @@ export default function WorkersListingPage() {
               ].map((worker, idx) => (
                 <div key={idx} className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center">
-                    <img
+                    <Image
                       className="h-10 w-10 rounded-full mr-3"
-                      src="/api/placeholder/40/40"
+                      src={ProfilePic}
                       alt={worker.name}
                     />
                     <div>
@@ -864,9 +869,12 @@ export default function WorkersListingPage() {
                     <p className="text-xs text-gray-500">{worker.subtask}</p>
                   </div>
                   <div className="mt-3 text-right">
-                    <a href="#" className="text-xs font-medium text-green-600">
+                    <Link
+                      href="#"
+                      className="text-xs font-medium text-green-600"
+                    >
                       Details
-                    </a>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -911,9 +919,9 @@ export default function WorkersListingPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <img
+                          <Image
                             className="h-10 w-10 rounded-full"
-                            src="/api/placeholder/40/40"
+                            src={ProfilePic}
                             alt="John Smith"
                           />
                         </div>
@@ -942,21 +950,21 @@ export default function WorkersListingPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <a
+                      <Link
                         href="#"
                         className="text-green-600 hover:text-green-900"
                       >
                         Details
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <img
+                          <Image
                             className="h-10 w-10 rounded-full"
-                            src="/api/placeholder/40/40"
+                            src={ProfilePic}
                             alt="Emily Davis"
                           />
                         </div>
@@ -985,21 +993,21 @@ export default function WorkersListingPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <a
+                      <Link
                         href="#"
                         className="text-green-600 hover:text-green-900"
                       >
                         Details
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <img
+                          <Image
                             className="h-10 w-10 rounded-full"
-                            src="/api/placeholder/40/40"
+                            src={ProfilePic}
                             alt="Sarah Wilson"
                           />
                         </div>
@@ -1028,21 +1036,21 @@ export default function WorkersListingPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <a
+                      <Link
                         href="#"
                         className="text-green-600 hover:text-green-900"
                       >
                         Details
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <img
+                          <Image
                             className="h-10 w-10 rounded-full"
-                            src="/api/placeholder/40/40"
+                            src={ProfilePic}
                             alt="Robert Johnson"
                           />
                         </div>
@@ -1071,12 +1079,12 @@ export default function WorkersListingPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <a
+                      <Link
                         href="#"
                         className="text-green-600 hover:text-green-900"
                       >
                         Details
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                 </tbody>
@@ -1084,12 +1092,12 @@ export default function WorkersListingPage() {
             </div>
           </div>
           <div className="px-4 py-4 sm:px-6 border-t border-gray-200">
-            <a
+            <Link
               href="#"
               className="text-sm font-medium text-green-600 hover:text-green-500"
             >
               View full schedule <span aria-hidden="true">&rarr;</span>
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -1109,9 +1117,9 @@ export default function WorkersListingPage() {
               <div className="border border-gray-200 rounded-md p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center">
-                    <img
+                    <Image
                       className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
-                      src="/api/placeholder/40/40"
+                      src={ProfilePic}
                       alt="David Martinez"
                     />
                     <div className="ml-3">
@@ -1183,9 +1191,9 @@ export default function WorkersListingPage() {
               <div className="border border-gray-200 rounded-md p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center">
-                    <img
+                    <Image
                       className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
-                      src="/api/placeholder/40/40"
+                      src={ProfilePic}
                       alt="Lisa Thompson"
                     />
                     <div className="ml-3">
@@ -1256,12 +1264,12 @@ export default function WorkersListingPage() {
             </div>
           </div>
           <div className="px-4 py-4 sm:px-6 border-t border-gray-200">
-            <a
+            <Link
               href="#"
               className="text-sm font-medium text-green-600 hover:text-green-500"
             >
               View all time off requests <span aria-hidden="true">&rarr;</span>
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -1281,9 +1289,9 @@ export default function WorkersListingPage() {
               <ul className="divide-y divide-gray-200">
                 <li className="py-4 flex flex-col sm:flex-row sm:items-center">
                   <div className="flex items-start sm:items-center">
-                    <img
+                    <Image
                       className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
-                      src="/api/placeholder/40/40"
+                      src={ProfilePic}
                       alt="John Smith"
                     />
                     <div className="ml-3 flex-grow">
@@ -1312,9 +1320,9 @@ export default function WorkersListingPage() {
                 </li>
                 <li className="py-4 flex flex-col sm:flex-row sm:items-center">
                   <div className="flex items-start sm:items-center">
-                    <img
+                    <Image
                       className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
-                      src="/api/placeholder/40/40"
+                      src={ProfilePic}
                       alt="Emily Davis"
                     />
                     <div className="ml-3 flex-grow">
@@ -1344,12 +1352,12 @@ export default function WorkersListingPage() {
               </ul>
             </div>
             <div className="px-4 py-4 sm:px-6 border-t border-gray-200">
-              <a
+              <Link
                 href="#"
                 className="text-sm font-medium text-green-600 hover:text-green-500"
               >
                 View all certifications <span aria-hidden="true">&rarr;</span>
-              </a>
+              </Link>
             </div>
           </div>
 

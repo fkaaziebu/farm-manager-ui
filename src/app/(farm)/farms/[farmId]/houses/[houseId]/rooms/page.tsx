@@ -18,6 +18,7 @@ import {
   Users,
   Check,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function RoomListingPage() {
   // Sample rooms data
@@ -270,7 +271,7 @@ export default function RoomListingPage() {
   const houses = ["all", ...new Set(rooms.map((room) => room.houseName))];
 
   // Function to get status color
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "operational":
         return "bg-green-100 text-green-800";
@@ -347,19 +348,22 @@ export default function RoomListingPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <a href="/farms/1" className="mr-3 sm:mr-4">
+              <Link href="/farms/1" className="mr-3 sm:mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </a>
+              </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                   Room Inventory
                 </h1>
                 <p className="mt-1 text-xs sm:text-sm text-gray-500">
-                  Manage your farm's rooms and sections
+                  Manage your farm&apos;s rooms and sections
                 </p>
               </div>
             </div>
-            <button className="mt-3 sm:mt-0 sm:ml-auto bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <button
+              type="button"
+              className="mt-3 sm:mt-0 sm:ml-auto bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
+            >
               <Plus size={16} />
               <span>Add Room</span>
             </button>
@@ -665,7 +669,7 @@ export default function RoomListingPage() {
                         {roomStats.needsCleaning}
                       </span>
                       <span className="hidden lg:inline text-xs sm:text-sm text-gray-500">
-                        rooms haven't been cleaned in over 7 days
+                        rooms haven&apos;t been cleaned in over 7 days
                       </span>
                     </dd>
                   </dl>
@@ -775,12 +779,12 @@ export default function RoomListingPage() {
                   </div>
 
                   <div className="mt-4 sm:mt-5">
-                    <a
+                    <Link
                       href={`/farms/1/houses/${room.houseId}/rooms/${room.id}`}
                       className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                     >
                       View Details
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -794,7 +798,7 @@ export default function RoomListingPage() {
             <ul className="divide-y divide-gray-200">
               {filteredRooms.map((room) => (
                 <li key={room.id}>
-                  <a
+                  <Link
                     href={`/farms/1/houses/${room.houseId}/rooms/${room.id}`}
                     className="block hover:bg-gray-50"
                   >
@@ -857,7 +861,7 @@ export default function RoomListingPage() {
                         </div>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -868,7 +872,7 @@ export default function RoomListingPage() {
         <div className="mt-4 sm:mt-6">
           <nav className="flex items-center justify-between border-t border-gray-200 px-2 sm:px-4">
             <div className="-mt-px flex w-0 flex-1">
-              <a
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-transparent pt-4 pr-1 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
@@ -885,25 +889,25 @@ export default function RoomListingPage() {
                   />
                 </svg>
                 Previous
-              </a>
+              </Link>
             </div>
             <div className="hidden md:-mt-px md:flex">
-              <a
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-green-500 px-4 pt-4 text-sm font-medium text-green-600"
                 aria-current="page"
               >
                 1
-              </a>
-              <a
+              </Link>
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
                 2
-              </a>
+              </Link>
             </div>
             <div className="-mt-px flex w-0 flex-1 justify-end">
-              <a
+              <Link
                 href="#"
                 className="inline-flex items-center border-t-2 border-transparent pt-4 pl-1 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
@@ -920,7 +924,7 @@ export default function RoomListingPage() {
                     clipRule="evenodd"
                   />
                 </svg>
-              </a>
+              </Link>
             </div>
           </nav>
         </div>
@@ -1011,12 +1015,12 @@ export default function RoomListingPage() {
                       >
                         Resolve
                       </button>
-                      <a
+                      <Link
                         href={`/farms/1/houses/${room.houseId}/rooms/${room.id}`}
                         className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                       >
                         View Details
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 ))}

@@ -9,18 +9,14 @@ import {
   Plus,
   Menu,
   X,
-  ThermometerSnowflake,
   Users,
-  Home,
-  ClipboardList,
-  SlidersHorizontal,
   Check,
   AlertTriangle,
-  ChevronRight,
   Pencil,
   Trash,
   Share,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function RoomAnimalsPage() {
   // Sample room data
@@ -337,12 +333,12 @@ export default function RoomAnimalsPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <a
+              <Link
                 href={`/farms/1/houses/${room.houseId}/rooms/${room.id}`}
                 className="mr-3 sm:mr-4"
               >
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </a>
+              </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                   Animals in {room.name}
@@ -984,8 +980,8 @@ export default function RoomAnimalsPage() {
                 No animals found
               </h3>
               <p className="text-sm text-gray-500 mb-4">
-                Try adjusting your search or filters to find what you're looking
-                for.
+                Try adjusting your search or filters to find what you&apos;re
+                looking for.
               </p>
               <button
                 onClick={() => {

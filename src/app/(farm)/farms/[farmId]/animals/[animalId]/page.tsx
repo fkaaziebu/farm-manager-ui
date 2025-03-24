@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import React, { useState } from "react";
 import {
   ArrowLeft,
@@ -226,9 +227,9 @@ export default function AnimalDetailsPage() {
             {/* Existing header content, but with more flexible layout */}
             <div className="w-full sm:w-auto flex items-center justify-between">
               <div className="flex items-center">
-                <a href="/farms/1" className="mr-4">
+                <Link href="/farms/1" className="mr-4">
                   <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-                </a>
+                </Link>
                 <div>
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                     Holstein Cow #A12345
@@ -1059,6 +1060,7 @@ export default function AnimalDetailsPage() {
                               {index > 0 ? (
                                 <span
                                   className={
+                                    // @ts-expect-error err
                                     parseFloat(growthPercent) >= 0
                                       ? "text-green-600"
                                       : "text-red-600"

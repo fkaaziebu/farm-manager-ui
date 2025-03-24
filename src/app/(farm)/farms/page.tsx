@@ -7,11 +7,11 @@ import {
   Home,
   Mouse,
   ChevronRight,
-  Users,
   BarChart,
   Menu,
   X,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function FarmsListingPage() {
   // Sample farm data
@@ -194,14 +194,14 @@ export default function FarmsListingPage() {
       farm.location.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const getPerformanceColor = (performance) => {
+  const getPerformanceColor = (performance: number) => {
     if (performance >= 90) return "bg-green-500";
     if (performance >= 80) return "bg-green-400";
     if (performance >= 70) return "bg-yellow-400";
     return "bg-red-400";
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "operational":
         return "bg-green-100 text-green-800";
@@ -230,6 +230,7 @@ export default function FarmsListingPage() {
               </h1>
               <div className="sm:hidden">
                 <button
+                  type="button"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none"
                 >
@@ -252,36 +253,36 @@ export default function FarmsListingPage() {
           {mobileMenuOpen && (
             <div className="sm:hidden mt-4 pt-4 border-t border-gray-200">
               <nav className="flex flex-col space-y-3">
-                <a
+                <Link
                   href="/dashboard"
                   className="px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100"
                 >
                   Dashboard
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/farms"
                   className="px-3 py-2 rounded-md text-base font-medium text-gray-900 bg-gray-100"
                 >
                   Farms
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/animals"
                   className="px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100"
                 >
                   Animals
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/workers"
                   className="px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100"
                 >
                   Workers
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/reports"
                   className="px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100"
                 >
                   Reports
-                </a>
+                </Link>
               </nav>
             </div>
           )}
@@ -504,30 +505,30 @@ export default function FarmsListingPage() {
                     ))}
 
                     {farm.houses.length > MAX_HOUSES_DISPLAY && (
-                      <a
+                      <Link
                         href={`/farms/${farm.id}/houses`}
                         className="flex items-center justify-center p-2 bg-gray-50 rounded-md text-xs sm:text-sm text-gray-700 hover:bg-gray-100"
                       >
                         View All {farm.houses.length} Houses
                         <ChevronRight size={16} className="ml-1" />
-                      </a>
+                      </Link>
                     )}
                   </div>
                 </div>
 
                 <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-                  <a
+                  <Link
                     href={`/farms/${farm.id}`}
                     className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                   >
                     View Details
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href={`/farms/${farm.id}/houses`}
                     className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
                     Manage Houses
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
 import {
   Search,
   Users,
@@ -9,7 +10,6 @@ import {
   Map as MapIcon,
   Edit,
   ArrowLeft,
-  Home,
   Mouse,
   AlertTriangle,
   Menu,
@@ -25,6 +25,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import Link from "next/link";
+import ProfilePic from "@/../public/globe.svg";
 
 export default function FarmDetailsPage() {
   // Sample farm performance data for chart
@@ -45,25 +47,25 @@ export default function FarmDetailsPage() {
       id: 1,
       name: "John Smith",
       role: "Farm Manager",
-      image: "/api/placeholder/40/40",
+      image: "@/../public/globe.svg",
     },
     {
       id: 2,
       name: "Emily Davis",
       role: "Veterinarian",
-      image: "/api/placeholder/40/40",
+      image: "@/../public/globe.svg",
     },
     {
       id: 3,
       name: "Michael Brown",
       role: "Feed Specialist",
-      image: "/api/placeholder/40/40",
+      image: "@/../public/globe.svg",
     },
     {
       id: 4,
       name: "Sarah Wilson",
       role: "Animal Caretaker",
-      image: "/api/placeholder/40/40",
+      image: "@/../public/globe.svg",
     },
   ];
 
@@ -114,7 +116,7 @@ export default function FarmDetailsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "operational":
         return "bg-green-100 text-green-800";
@@ -136,9 +138,9 @@ export default function FarmDetailsPage() {
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <a href="/farms" className="mr-4">
+              <Link href="/farms" className="mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </a>
+              </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                   Green Valley Farm
@@ -163,6 +165,7 @@ export default function FarmDetailsPage() {
       {/* Mobile menu button - visible on small screens */}
       <div className="md:hidden bg-white border-t border-gray-200 p-2 sticky top-0 z-10 shadow-sm">
         <button
+          type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="flex items-center justify-center w-full p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
         >
@@ -182,30 +185,30 @@ export default function FarmDetailsPage() {
         {/* Mobile navigation menu */}
         {mobileMenuOpen && (
           <div className="mt-2 space-y-2 p-2 bg-white border border-gray-200 rounded-md shadow-lg">
-            <a
+            <Link
               href="/farms"
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
             >
               All Farms
-            </a>
-            <a
+            </Link>
+            <Link
               href="/farms/1/workers"
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
             >
               Workers
-            </a>
-            <a
+            </Link>
+            <Link
               href="/farms/1/animals"
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
             >
               Animals
-            </a>
-            <a
+            </Link>
+            <Link
               href="/farms/1/houses"
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
             >
               Houses
-            </a>
+            </Link>
           </div>
         )}
       </div>
@@ -359,12 +362,12 @@ export default function FarmDetailsPage() {
             <h3 className="text-base sm:text-lg font-medium text-gray-900">
               Farm Houses
             </h3>
-            <a
+            <Link
               href="/farms/1/houses"
               className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
             >
               View All
-            </a>
+            </Link>
           </div>
           <div className="p-3 sm:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -406,12 +409,12 @@ export default function FarmDetailsPage() {
                           </div>
                         )}
                       </div>
-                      <a
+                      <Link
                         href={`/farms/1/houses/${house.id}`}
                         className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                       >
                         View
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -428,12 +431,12 @@ export default function FarmDetailsPage() {
               <h3 className="text-base sm:text-lg font-medium text-gray-900">
                 Farm Workers
               </h3>
-              <a
+              <Link
                 href="/farms/1/workers"
                 className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
               >
                 View All
-              </a>
+              </Link>
             </div>
             <div className="p-3 sm:p-5">
               <div className="flow-root">
@@ -442,9 +445,9 @@ export default function FarmDetailsPage() {
                     <li key={worker.id} className="py-3 sm:py-4">
                       <div className="flex items-center space-x-3 sm:space-x-4">
                         <div className="flex-shrink-0">
-                          <img
+                          <Image
                             className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
-                            src={worker.image}
+                            src={ProfilePic}
                             alt={worker.name}
                           />
                         </div>
@@ -457,12 +460,12 @@ export default function FarmDetailsPage() {
                           </p>
                         </div>
                         <div>
-                          <a
+                          <Link
                             href={`/farms/1/workers/${worker.id}`}
                             className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                           >
                             View
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </li>
@@ -478,12 +481,12 @@ export default function FarmDetailsPage() {
               <h3 className="text-base sm:text-lg font-medium text-gray-900">
                 Farm Animals
               </h3>
-              <a
+              <Link
                 href="/farms/1/animals"
                 className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
               >
                 View All
-              </a>
+              </Link>
             </div>
             <div className="p-3 sm:p-5">
               <div className="flow-root">
@@ -515,12 +518,12 @@ export default function FarmDetailsPage() {
                           </div>
                         </div>
                         <div>
-                          <a
+                          <Link
                             href={`/farms/1/animals/${animal.id}`}
                             className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                           >
                             View
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </li>

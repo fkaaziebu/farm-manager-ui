@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function AuthRequestPasswordReset() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -37,12 +39,12 @@ export default function AuthRequestPasswordReset() {
           </div>
 
           <div className="text-center">
-            <a
+            <Link
               href="/auth/worker/login"
               className="font-medium text-green-600 hover:text-green-500"
             >
               Back to login
-            </a>
+            </Link>
           </div>
         </form>
       </div>

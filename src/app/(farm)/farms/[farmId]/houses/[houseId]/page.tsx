@@ -32,6 +32,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import Link from "next/link";
 
 export default function HouseDetailPage() {
   // Sample house data
@@ -221,7 +222,7 @@ export default function HouseDetailPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Function to get status color
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "operational":
         return "bg-green-100 text-green-800";
@@ -237,7 +238,7 @@ export default function HouseDetailPage() {
   };
 
   // Function to get alert color
-  const getAlertColor = (status) => {
+  const getAlertColor = (status: string) => {
     switch (status) {
       case "normal":
       case "good":
@@ -256,7 +257,7 @@ export default function HouseDetailPage() {
   };
 
   // Calculate occupancy percentage
-  const calculateOccupancy = (occupancy, capacity) => {
+  const calculateOccupancy = (occupancy: number, capacity: number) => {
     return ((occupancy / capacity) * 100).toFixed(0);
   };
 
@@ -267,9 +268,9 @@ export default function HouseDetailPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <a href="/farms/1/houses" className="mr-3 sm:mr-4">
+              <Link href="/farms/1/houses" className="mr-3 sm:mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </a>
+              </Link>
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center">
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
@@ -296,12 +297,12 @@ export default function HouseDetailPage() {
                 <Edit size={14} className="mr-1 sm:mr-2" />
                 Edit
               </button>
-              <a
+              <Link
                 href={`/farms/1/houses/${house.id}/rooms`}
                 className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700"
               >
                 View Rooms
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -1071,13 +1072,13 @@ export default function HouseDetailPage() {
                   </div>
                 </div>
               </div>
-              <a
+              <Link
                 href={`/farms/1/houses/${house.id}/rooms/new`}
                 className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700"
               >
                 <Plus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Add Room
-              </a>
+              </Link>
             </div>
 
             {/* Rooms grid */}
@@ -1164,13 +1165,13 @@ export default function HouseDetailPage() {
                         day: "numeric",
                       })}
                     </div>
-                    <a
+                    <Link
                       href={`/farms/1/houses/${house.id}/rooms/${room.id}`}
                       className="inline-flex items-center justify-center px-2 sm:px-3 py-1 border border-transparent text-xs sm:text-sm leading-5 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                     >
                       <Eye className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
                       View
-                    </a>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -1244,7 +1245,8 @@ export default function HouseDetailPage() {
                         </dt>
                         <dd className="mt-1 text-xs sm:text-sm text-gray-900">
                           {Math.ceil(
-                            (new Date(house.nextInspection) - new Date()) /
+                            (new Date(house.nextInspection).valueOf() -
+                              new Date().valueOf()) /
                               (1000 * 60 * 60 * 24),
                           )}{" "}
                           days
@@ -1394,22 +1396,22 @@ export default function HouseDetailPage() {
                     <div>
                       <div className="-mt-px flex divide-x divide-gray-200">
                         <div className="w-0 flex-1 flex">
-                          <a
+                          <Link
                             href="#"
                             className="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-3 sm:py-4 text-xs sm:text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500"
                           >
                             <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                             <span className="ml-2 sm:ml-3">View</span>
-                          </a>
+                          </Link>
                         </div>
                         <div className="-ml-px w-0 flex-1 flex">
-                          <a
+                          <Link
                             href="#"
                             className="relative w-0 flex-1 inline-flex items-center justify-center py-3 sm:py-4 text-xs sm:text-sm text-gray-700 font-medium border border-transparent rounded-br-lg hover:text-gray-500"
                           >
                             <Download className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                             <span className="ml-2 sm:ml-3">Download</span>
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </div>
@@ -1443,22 +1445,22 @@ export default function HouseDetailPage() {
                     <div>
                       <div className="-mt-px flex divide-x divide-gray-200">
                         <div className="w-0 flex-1 flex">
-                          <a
+                          <Link
                             href="#"
                             className="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-3 sm:py-4 text-xs sm:text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500"
                           >
                             <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                             <span className="ml-2 sm:ml-3">View</span>
-                          </a>
+                          </Link>
                         </div>
                         <div className="-ml-px w-0 flex-1 flex">
-                          <a
+                          <Link
                             href="#"
                             className="relative w-0 flex-1 inline-flex items-center justify-center py-3 sm:py-4 text-xs sm:text-sm text-gray-700 font-medium border border-transparent rounded-br-lg hover:text-gray-500"
                           >
                             <Download className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                             <span className="ml-2 sm:ml-3">Download</span>
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </div>
@@ -1492,22 +1494,22 @@ export default function HouseDetailPage() {
                     <div>
                       <div className="-mt-px flex divide-x divide-gray-200">
                         <div className="w-0 flex-1 flex">
-                          <a
+                          <Link
                             href="#"
                             className="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-3 sm:py-4 text-xs sm:text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500"
                           >
                             <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                             <span className="ml-2 sm:ml-3">View</span>
-                          </a>
+                          </Link>
                         </div>
                         <div className="-ml-px w-0 flex-1 flex">
-                          <a
+                          <Link
                             href="#"
                             className="relative w-0 flex-1 inline-flex items-center justify-center py-3 sm:py-4 text-xs sm:text-sm text-gray-700 font-medium border border-transparent rounded-br-lg hover:text-gray-500"
                           >
                             <Download className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                             <span className="ml-2 sm:ml-3">Download</span>
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </div>

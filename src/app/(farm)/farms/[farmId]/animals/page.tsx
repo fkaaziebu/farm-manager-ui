@@ -14,6 +14,7 @@ import {
   Grid,
   List,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function AnimalsListingPage() {
   // Sample animals data
@@ -188,11 +189,15 @@ export default function AnimalsListingPage() {
       } else if (sortBy === "type") {
         return a.type.localeCompare(b.type);
       } else if (sortBy === "age") {
-        return new Date(a.birthDate) - new Date(b.birthDate);
+        return (
+          new Date(a.birthDate).valueOf() - new Date(b.birthDate).valueOf()
+        );
       } else if (sortBy === "weight") {
         return b.weight - a.weight;
       } else if (sortBy === "lastCheck") {
-        return new Date(b.lastCheck) - new Date(a.lastCheck);
+        return (
+          new Date(b.lastCheck).valueOf() - new Date(a.lastCheck).valueOf()
+        );
       }
       return 0;
     });
@@ -205,7 +210,7 @@ export default function AnimalsListingPage() {
   ];
 
   // Function to get tag color class
-  const getTagColorClass = (tagColor) => {
+  const getTagColorClass = (tagColor: string) => {
     switch (tagColor) {
       case "green":
         return "bg-green-100 text-green-800";
@@ -223,7 +228,7 @@ export default function AnimalsListingPage() {
   };
 
   // Function to get status color class
-  const getStatusColorClass = (status) => {
+  const getStatusColorClass = (status: string) => {
     switch (status) {
       case "Healthy":
         return "bg-green-100 text-green-800";
@@ -245,8 +250,8 @@ export default function AnimalsListingPage() {
     treatment: animals.filter((a) => a.status === "Treatment").length,
     pregnant: animals.filter((a) => a.status === "Pregnant").length,
     needsCheck: animals.filter((a) => {
-      const lastCheck = new Date(a.lastCheck);
-      const currentDate = new Date();
+      const lastCheck = new Date(a.lastCheck).valueOf();
+      const currentDate = new Date().valueOf();
       const diffTime = Math.abs(currentDate - lastCheck);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       return diffDays > 7;
@@ -260,19 +265,22 @@ export default function AnimalsListingPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <a href="/farms/1" className="mr-3 sm:mr-4">
+              <Link href="/farms/1" className="mr-3 sm:mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </a>
+              </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                   Farm Animals
                 </h1>
                 <p className="mt-1 text-xs sm:text-sm text-gray-500">
-                  Manage your farm's animal inventory
+                  Manage your farm&apos;s animal inventory
                 </p>
               </div>
             </div>
-            <button className="mt-3 sm:mt-0 sm:ml-auto bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <button
+              type="button"
+              className="mt-3 sm:mt-0 sm:ml-auto bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
+            >
               <Plus size={16} />
               <span>Add Animal</span>
             </button>
