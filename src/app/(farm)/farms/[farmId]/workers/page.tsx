@@ -1,4 +1,7 @@
 "use client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import React, { useState } from "react";
 import {
   Plus,
@@ -12,12 +15,83 @@ import {
   X,
   Grid,
   List,
+  AlertTriangle,
+  UserPlus,
 } from "lucide-react";
 import Link from "next/link";
-import ProfilePic from "@/../public/globe.svg";
 import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import ProfilePic from "@/../public/globe.svg";
+import { toast } from "sonner";
+
+const formSchema = z
+  .object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    role: z.string().min(1, { message: "Please select a role." }),
+    password: z
+      .string()
+      .min(6, { message: "Password must be at least 6 characters." }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 export default function WorkersListingPage() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("search");
+
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      role: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      console.log(values);
+
+      toast("Farm worker added successfully");
+    } catch (error) {
+      toast("Farm Worker Adding Error", {
+        description: `${error?.response?.data?.message}`,
+      });
+    }
+  }
   // Sample workers data
   const [workers] = useState([
     {
@@ -119,6 +193,23 @@ export default function WorkersListingPage() {
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const handleAddExistingWorker = (workerId) => {
+    console.log(`Adding worker with ID ${workerId} to the farm`);
+    // In a real application, you would update your backend
+
+    // Show success message (replace with a toast notification in a real app)
+    alert("Worker added to farm successfully!");
+  };
+
+  const handleDialogOpenChange = (open) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setActiveTab("search");
+      setSearchQuery("");
+      form.reset();
+    }
+  };
+
   // Filter and sort workers
   const filteredWorkers = workers
     .filter((worker) => {
@@ -145,9 +236,12 @@ export default function WorkersListingPage() {
       } else if (sortBy === "rating") {
         return b.rating - a.rating;
       } else if (sortBy === "date") {
-        return new Date(b.joinDate) - new Date(a.joinDate);
+        return new Date(b.joinDate).valueOf() - new Date(a.joinDate).valueOf();
       } else if (sortBy === "activity") {
-        return new Date(b.lastActivity) - new Date(a.lastActivity);
+        return (
+          new Date(b.lastActivity).valueOf() -
+          new Date(a.lastActivity).valueOf()
+        );
       }
       return 0;
     });
@@ -176,7 +270,7 @@ export default function WorkersListingPage() {
   };
 
   // Function to get rating color class
-  const getRatingColorClass = (rating) => {
+  const getRatingColorClass = (rating: number) => {
     if (rating >= 90) return "bg-green-500";
     if (rating >= 80) return "bg-green-400";
     if (rating >= 70) return "bg-yellow-400";
@@ -212,13 +306,295 @@ export default function WorkersListingPage() {
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              className="sm:ml-auto w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2"
-            >
-              <Plus size={18} />
-              <span>Add Worker</span>
-            </button>
+            <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+              <DialogTrigger asChild>
+                <Button
+                  className="sm:ml-auto w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => setIsDialogOpen(true)}
+                >
+                  <Plus size={18} className="mr-2" />
+                  <span>Add Worker</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[550px]">
+                <DialogHeader>
+                  <DialogTitle>Add Worker to Farm</DialogTitle>
+                </DialogHeader>
+
+                <Tabs
+                  defaultValue="search"
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="mt-2"
+                >
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="search">Search Existing</TabsTrigger>
+                    <TabsTrigger value="create">Create New</TabsTrigger>
+                  </TabsList>
+
+                  {/* Tab Content for Searching Existing Workers */}
+                  <TabsContent value="search" className="py-4">
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                        <Input
+                          placeholder="Search by name, email, or role..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-8"
+                        />
+                      </div>
+
+                      <div className="max-h-[280px] overflow-y-auto border rounded-md">
+                        {filteredWorkers.length > 0 ? (
+                          <ul className="divide-y divide-gray-200">
+                            {filteredWorkers.map((worker) => (
+                              <li
+                                key={worker.id}
+                                className="p-3 hover:bg-gray-50"
+                              >
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <p className="font-medium text-gray-900">
+                                      {worker.name}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      {worker.email}
+                                    </p>
+                                    <div className="flex items-center mt-1">
+                                      <span className="text-xs text-gray-500 mr-2">
+                                        {worker.role}
+                                      </span>
+                                      <span
+                                        className={`text-xs px-2 py-0.5 rounded-full ${
+                                          worker.status === "Available"
+                                            ? "bg-green-100 text-green-800"
+                                            : "bg-yellow-100 text-yellow-800"
+                                        }`}
+                                      >
+                                        {worker.status}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    onClick={() =>
+                                      handleAddExistingWorker(worker.id)
+                                    }
+                                    size="sm"
+                                    disabled={worker.status === "Assigned"}
+                                    variant={
+                                      worker.status === "Available"
+                                        ? "default"
+                                        : "outline"
+                                    }
+                                    className={
+                                      worker.status === "Available"
+                                        ? "bg-green-600 hover:bg-green-700"
+                                        : ""
+                                    }
+                                  >
+                                    {worker.status === "Available" ? (
+                                      <>
+                                        <UserPlus className="h-3.5 w-3.5 mr-1" />
+                                        Add
+                                      </>
+                                    ) : (
+                                      "Assigned"
+                                    )}
+                                  </Button>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div className="p-4 text-center">
+                            <AlertTriangle className="h-10 w-10 mx-auto text-yellow-500 mb-2" />
+                            <p className="text-gray-500">
+                              No workers found matching your search.
+                            </p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              Try a different search term or create a new
+                              worker.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex justify-between items-center pt-2">
+                        <p className="text-sm text-gray-500">
+                          {filteredWorkers.length} worker
+                          {filteredWorkers.length !== 1 ? "s" : ""} found
+                        </p>
+                        <Button
+                          variant="link"
+                          onClick={() => setActiveTab("create")}
+                          className="text-green-600 hover:text-green-700"
+                        >
+                          Create new worker
+                        </Button>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Tab Content for Creating New Worker */}
+                  <TabsContent value="create" className="py-4">
+                    <Form {...form}>
+                      <form
+                        id="worker-form"
+                        onSubmit={form.handleSubmit(onSubmit)}
+                      >
+                        <div className="grid gap-4">
+                          <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem className="grid gap-2">
+                                <FormLabel htmlFor="worker-name">
+                                  Full Name
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    id="worker-name"
+                                    placeholder="Enter worker's full name"
+                                    {...field}
+                                    type="text"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem className="grid gap-2">
+                                <FormLabel htmlFor="worker-email">
+                                  Email Address
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    id="worker-email"
+                                    placeholder="Enter email address"
+                                    {...field}
+                                    type="email"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="role"
+                            render={({ field }) => (
+                              <FormItem className="grid gap-2">
+                                <FormLabel htmlFor="worker-role">
+                                  Role
+                                </FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger id="worker-role">
+                                      <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="farm_manager">
+                                      Farm Manager
+                                    </SelectItem>
+                                    <SelectItem value="field_worker">
+                                      Field Worker
+                                    </SelectItem>
+                                    <SelectItem value="livestock_specialist">
+                                      Livestock Specialist
+                                    </SelectItem>
+                                    <SelectItem value="veterinarian">
+                                      Veterinarian
+                                    </SelectItem>
+                                    <SelectItem value="mechanic">
+                                      Mechanic
+                                    </SelectItem>
+                                    <SelectItem value="admin">
+                                      Administrator
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                              <FormItem className="grid gap-2">
+                                <FormLabel htmlFor="worker-password">
+                                  Password
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    id="worker-password"
+                                    placeholder="Enter password"
+                                    {...field}
+                                    type="password"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                                <FormDescription>
+                                  Must be at least 6 characters.
+                                </FormDescription>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                              <FormItem className="grid gap-2">
+                                <FormLabel htmlFor="worker-confirm-password">
+                                  Confirm Password
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    id="worker-confirm-password"
+                                    placeholder="Confirm password"
+                                    {...field}
+                                    type="password"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </form>
+                    </Form>
+                  </TabsContent>
+                </Tabs>
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  {activeTab === "create" && (
+                    <Button
+                      type="submit"
+                      form="worker-form"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      Create Worker
+                    </Button>
+                  )}
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </header>
@@ -243,12 +619,14 @@ export default function WorkersListingPage() {
           <div className="sm:hidden flex justify-between gap-2">
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => setViewMode("grid")}
                 className={`flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${viewMode === "grid" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700"}`}
               >
                 <Grid size={18} />
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode("list")}
                 className={`flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${viewMode === "list" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700"}`}
               >
@@ -256,6 +634,7 @@ export default function WorkersListingPage() {
               </button>
             </div>
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white"
             >
@@ -266,18 +645,21 @@ export default function WorkersListingPage() {
           {/* Desktop view/filter buttons */}
           <div className="hidden sm:flex gap-2">
             <button
+              type="button"
               onClick={() => setViewMode("grid")}
               className={`flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${viewMode === "grid" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
             >
               Grid
             </button>
             <button
+              type="button"
               onClick={() => setViewMode("list")}
               className={`flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${viewMode === "list" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
             >
               List
             </button>
             <button
+              type="button"
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
@@ -351,6 +733,7 @@ export default function WorkersListingPage() {
                 </select>
               </div>
               <button
+                type="button"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
               >
@@ -423,7 +806,10 @@ export default function WorkersListingPage() {
                 </select>
               </div>
               <div className="flex items-end">
-                <button className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
                   Apply Filters
                 </button>
               </div>

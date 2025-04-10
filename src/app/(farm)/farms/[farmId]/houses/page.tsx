@@ -169,7 +169,10 @@ export default function HouseListingPage() {
       } else if (sortBy === "occupancy") {
         return b.occupancy / b.capacity - a.occupancy / a.capacity;
       } else if (sortBy === "inspection") {
-        return new Date(b.lastInspection) - new Date(a.lastInspection);
+        return (
+          new Date(b.lastInspection).valueOf() -
+          new Date(a.lastInspection).valueOf()
+        );
       }
       return 0;
     });
@@ -267,8 +270,9 @@ export default function HouseListingPage() {
       {/* Mobile menu button - visible on small screens */}
       <div className="md:hidden bg-white border-t border-gray-200 p-2 sticky top-0 z-10 shadow-sm">
         <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          type="button"
           className="flex items-center justify-center w-full p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? (
             <>
@@ -287,19 +291,21 @@ export default function HouseListingPage() {
         {mobileMenuOpen && (
           <div className="mt-2 space-y-1 px-2">
             <button
-              onClick={() => {
-                setViewMode("grid");
-                setMobileMenuOpen(false);
-              }}
+              type="button"
               className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
                 viewMode === "grid"
                   ? "bg-green-100 text-green-800"
                   : "text-gray-700 hover:bg-gray-100"
               }`}
+              onClick={() => {
+                setViewMode("grid");
+                setMobileMenuOpen(false);
+              }}
             >
               <Grid size={16} className="inline mr-2" /> Grid View
             </button>
             <button
+              type="button"
               onClick={() => {
                 setViewMode("list");
                 setMobileMenuOpen(false);
@@ -313,6 +319,7 @@ export default function HouseListingPage() {
               <List size={16} className="inline mr-2" /> List View
             </button>
             <button
+              type="button"
               onClick={() => {
                 setShowFilters(!showFilters);
                 setMobileMenuOpen(false);
@@ -342,6 +349,7 @@ export default function HouseListingPage() {
           </div>
           <div className="flex gap-2 overflow-x-auto hide-scrollbar">
             <button
+              type="button"
               onClick={() => setViewMode("grid")}
               className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${viewMode === "grid" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
             >
@@ -349,6 +357,7 @@ export default function HouseListingPage() {
               Grid
             </button>
             <button
+              type="button"
               onClick={() => setViewMode("list")}
               className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${viewMode === "list" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
             >
@@ -356,6 +365,7 @@ export default function HouseListingPage() {
               List
             </button>
             <button
+              type="button"
               onClick={() => setShowFilters(!showFilters)}
               className="hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
@@ -431,7 +441,10 @@ export default function HouseListingPage() {
                 </select>
               </div>
               <div className="flex items-end">
-                <button className="w-full inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-transparent shadow-sm text-xs sm:text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-transparent shadow-sm text-xs sm:text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
                   Apply Filters
                 </button>
               </div>
@@ -1183,7 +1196,7 @@ export default function HouseListingPage() {
                     <div
                       style={{ width: "75%" }}
                       className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
-                    ></div>
+                    />
                   </div>
                   <div className="flex justify-between mt-1 text-xs text-gray-500">
                     <span>Cold</span>
@@ -1218,7 +1231,7 @@ export default function HouseListingPage() {
                     <div
                       style={{ width: "70%" }}
                       className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
-                    ></div>
+                    />
                   </div>
                   <div className="flex justify-between mt-1 text-xs text-gray-500">
                     <span>Dry</span>
@@ -1257,7 +1270,7 @@ export default function HouseListingPage() {
                         width: `${(houses.filter((h) => h.ventilationStatus === "normal").length / houses.length) * 100}%`,
                       }}
                       className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
-                    ></div>
+                    />
                   </div>
                   <div className="flex justify-between mt-1 text-xs text-gray-500">
                     <span>Issues</span>

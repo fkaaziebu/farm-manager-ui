@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   Search,
@@ -27,8 +27,14 @@ import {
 } from "recharts";
 import Link from "next/link";
 import ProfilePic from "@/../public/globe.svg";
+import { useFetchFarms } from "@/hooks/queries";
+import { usePathname } from "next/navigation";
+import transformAnimalData from "@/lib/transform-animal-data";
 
 export default function FarmDetailsPage() {
+  const { farms, fetchFarms } = useFetchFarms();
+  const pathname = usePathname();
+  const farmId = Number(pathname.split("/").pop());
   // Sample farm performance data for chart
   const performanceData = [
     { month: "Jan", productivity: 75, expenses: 65, revenue: 70 },
@@ -39,78 +45,6 @@ export default function FarmDetailsPage() {
     { month: "Jun", productivity: 87, expenses: 72, revenue: 85 },
     { month: "Jul", productivity: 90, expenses: 75, revenue: 88 },
     { month: "Aug", productivity: 92, expenses: 78, revenue: 91 },
-  ];
-
-  // Sample workers data
-  const workers = [
-    {
-      id: 1,
-      name: "John Smith",
-      role: "Farm Manager",
-      image: "@/../public/globe.svg",
-    },
-    {
-      id: 2,
-      name: "Emily Davis",
-      role: "Veterinarian",
-      image: "@/../public/globe.svg",
-    },
-    {
-      id: 3,
-      name: "Michael Brown",
-      role: "Feed Specialist",
-      image: "@/../public/globe.svg",
-    },
-    {
-      id: 4,
-      name: "Sarah Wilson",
-      role: "Animal Caretaker",
-      image: "@/../public/globe.svg",
-    },
-  ];
-
-  // Sample animals data
-  const animals = [
-    { id: 1, type: "Cattle", breed: "Holstein", count: 120, health: "Good" },
-    { id: 2, type: "Sheep", breed: "Merino", count: 85, health: "Excellent" },
-    { id: 3, type: "Chicken", breed: "Leghorn", count: 450, health: "Good" },
-    { id: 4, type: "Pigs", breed: "Yorkshire", count: 65, health: "Fair" },
-  ];
-
-  // Sample houses data
-  const houses = [
-    {
-      id: 101,
-      name: "Main Barn",
-      type: "Cattle Barn",
-      animals: 42,
-      status: "operational",
-      alerts: 0,
-    },
-    {
-      id: 102,
-      name: "West Wing",
-      type: "Cattle Barn",
-      animals: 38,
-      status: "operational",
-      alerts: 1,
-    },
-    {
-      id: 103,
-      name: "East Storage",
-      type: "Storage",
-      animals: 0,
-      status: "maintenance",
-      alerts: 2,
-    },
-    {
-      id: 104,
-      name: "Poultry House",
-      type: "Poultry",
-      animals: 450,
-      status: "operational",
-      alerts: 0,
-    },
   ];
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -131,6 +65,16 @@ export default function FarmDetailsPage() {
     }
   };
 
+  useEffect(() => {
+    fetchFarms({
+      filter: {
+        id: {
+          eq: farmId,
+        },
+      },
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -143,11 +87,14 @@ export default function FarmDetailsPage() {
               </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-                  Green Valley Farm
+                  {farms?.length && farms[0].name}
                 </h1>
                 <div className="mt-1 flex items-center text-xs sm:text-sm text-gray-500">
                   <MapIcon size={16} className="mr-1.5" />
-                  <p>Somerset • 120 acres</p>
+                  <p>
+                    {farms?.length && farms[0].location} •{" "}
+                    {farms?.length && farms[0].area}
+                  </p>
                 </div>
               </div>
             </div>
@@ -287,7 +234,7 @@ export default function FarmDetailsPage() {
                       Total Workers
                     </dt>
                     <dd className="text-base sm:text-lg font-semibold text-gray-900">
-                      12
+                      {farms?.length && farms[0].workers?.length}
                     </dd>
                   </dl>
                 </div>
@@ -307,7 +254,7 @@ export default function FarmDetailsPage() {
                       Total Animals
                     </dt>
                     <dd className="text-base sm:text-lg font-semibold text-gray-900">
-                      720
+                      {farms?.length && farms[0].animals?.length}
                     </dd>
                   </dl>
                 </div>
@@ -357,181 +304,212 @@ export default function FarmDetailsPage() {
         </div>
 
         {/* Houses Section */}
-        <div className="bg-white overflow-hidden shadow rounded-lg mb-4 sm:mb-6">
-          <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
-            <h3 className="text-base sm:text-lg font-medium text-gray-900">
-              Farm Houses
-            </h3>
-            <Link
-              href="/farms/1/houses"
-              className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
-            >
-              View All
-            </Link>
-          </div>
-          <div className="p-3 sm:p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {houses.map((house) => (
-                <div
-                  key={house.id}
-                  className="border border-gray-200 rounded-lg overflow-hidden"
-                >
-                  <div className="p-3 sm:p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="text-sm sm:text-base font-medium text-gray-900">
-                          {house.name}
-                        </h4>
-                        <p className="text-xs sm:text-sm text-gray-500">
-                          {house.type}
-                        </p>
+        {farms?.length && farms[0].houses?.length ? (
+          <div className="bg-white overflow-hidden shadow rounded-lg mb-4 sm:mb-6">
+            <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">
+                Farm Houses
+              </h3>
+              <Link
+                href="/farms/1/houses"
+                className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
+              >
+                View All
+              </Link>
+            </div>
+            <div className="p-3 sm:p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                {farms[0]?.houses?.map((house) => (
+                  <div
+                    key={house.id}
+                    className="border border-gray-200 rounded-lg overflow-hidden"
+                  >
+                    <div className="p-3 sm:p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="text-sm sm:text-base font-medium text-gray-900">
+                            {house.house_number}
+                          </h4>
+                          <p className="text-xs sm:text-sm text-gray-500">
+                            {house.type}
+                          </p>
+                        </div>
+                        <span
+                          className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(house.status.toLowerCase())}`}
+                        >
+                          {house.status.charAt(0) +
+                            house.status.slice(1).toLowerCase()}
+                        </span>
                       </div>
-                      <span
-                        className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(house.status)}`}
-                      >
-                        {house.status.charAt(0).toUpperCase() +
-                          house.status.slice(1)}
-                      </span>
-                    </div>
 
-                    <div className="flex items-center justify-between mt-3 sm:mt-4">
-                      <div className="flex items-center">
-                        {house.animals > 0 && (
-                          <div className="flex items-center text-xs sm:text-sm text-gray-500 mr-3">
-                            <Mouse size={14} className="mr-1" />
-                            <span>{house.animals}</span>
-                          </div>
-                        )}
-                        {house.alerts > 0 && (
+                      <div className="flex items-center justify-between mt-3 sm:mt-4">
+                        <div className="flex items-center">
+                          {house.rooms?.length &&
+                            house?.rooms.reduce(
+                              (sum, room) =>
+                                sum +
+                                (room?.animals?.length
+                                  ? room?.animals?.length
+                                  : 0),
+                              0,
+                            ) > 0 && (
+                              <div className="flex items-center text-xs sm:text-sm text-gray-500 mr-3">
+                                <Mouse size={14} className="mr-1" />
+                                <span>
+                                  {house?.rooms.reduce(
+                                    (sum, room) =>
+                                      sum +
+                                      (room?.animals?.length
+                                        ? room?.animals?.length
+                                        : 0),
+                                    0,
+                                  )}
+                                </span>
+                              </div>
+                            )}
+
                           <div className="flex items-center text-xs sm:text-sm text-amber-500">
                             <AlertTriangle size={14} className="mr-1" />
-                            <span>{house.alerts}</span>
+                            <span>3</span>
                           </div>
-                        )}
+                        </div>
+                        <Link
+                          href={`/farms/${farmId}/houses/${house.id}`}
+                          className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                          View
+                        </Link>
                       </div>
-                      <Link
-                        href={`/farms/1/houses/${house.id}`}
-                        className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                      >
-                        View
-                      </Link>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div>No houses for this farm</div>
+        )}
 
         {/* Workers and Animals sections */}
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
           {/* Workers section */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">
-                Farm Workers
-              </h3>
-              <Link
-                href="/farms/1/workers"
-                className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
-              >
-                View All
-              </Link>
-            </div>
-            <div className="p-3 sm:p-5">
-              <div className="flow-root">
-                <ul className="-my-4 divide-y divide-gray-200">
-                  {workers.map((worker) => (
-                    <li key={worker.id} className="py-3 sm:py-4">
-                      <div className="flex items-center space-x-3 sm:space-x-4">
-                        <div className="flex-shrink-0">
-                          <Image
-                            className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
-                            src={ProfilePic}
-                            alt={worker.name}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {worker.name}
-                          </p>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate">
-                            {worker.role}
-                          </p>
-                        </div>
-                        <div>
-                          <Link
-                            href={`/farms/1/workers/${worker.id}`}
-                            className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                          >
-                            View
-                          </Link>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+          {farms?.length && farms[0].workers?.length && (
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">
+                  Farm Workers
+                </h3>
+                <Link
+                  href={`/farms/${farmId}/workers`}
+                  className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
+                >
+                  View All
+                </Link>
               </div>
-            </div>
-          </div>
-
-          {/* Animals section */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">
-                Farm Animals
-              </h3>
-              <Link
-                href="/farms/1/animals"
-                className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
-              >
-                View All
-              </Link>
-            </div>
-            <div className="p-3 sm:p-5">
-              <div className="flow-root">
-                <ul className="-my-4 divide-y divide-gray-200">
-                  {animals.map((animal) => (
-                    <li key={animal.id} className="py-3 sm:py-4">
-                      <div className="flex items-center space-x-3 sm:space-x-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {animal.type} - {animal.breed}
-                          </p>
-                          <div className="flex flex-col sm:flex-row sm:items-center">
-                            <p className="text-xs sm:text-sm text-gray-500 truncate sm:mr-2">
-                              Count: {animal.count}
+              <div className="p-3 sm:p-5">
+                <div className="flow-root">
+                  <ul className="-my-4 divide-y divide-gray-200">
+                    {farms[0].workers.map((worker) => (
+                      <li key={worker.id} className="py-3 sm:py-4">
+                        <div className="flex items-center space-x-3 sm:space-x-4">
+                          <div className="flex-shrink-0">
+                            <Image
+                              className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
+                              src={ProfilePic}
+                              alt={worker.name}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {worker.name}
                             </p>
-                            <span
-                              className={`mt-1 sm:mt-0 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                animal.health === "Excellent"
-                                  ? "bg-green-100 text-green-800"
-                                  : animal.health === "Good"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : animal.health === "Fair"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
-                              }`}
+                            {worker.roles.map((role) => (
+                              <p
+                                key={role}
+                                className="text-xs sm:text-sm text-gray-500 truncate"
+                              >
+                                {role.toLowerCase()}
+                              </p>
+                            ))}
+                          </div>
+                          <div>
+                            <Link
+                              href={`/farms/${farmId}/workers/${worker.id}`}
+                              className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                             >
-                              {animal.health}
-                            </span>
+                              View
+                            </Link>
                           </div>
                         </div>
-                        <div>
-                          <Link
-                            href={`/farms/1/animals/${animal.id}`}
-                            className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                          >
-                            View
-                          </Link>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Animals section */}
+          {farms?.length && farms[0].animals?.length && (
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">
+                  Farm Animals
+                </h3>
+                <Link
+                  href="/farms/1/animals"
+                  className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
+                >
+                  View All
+                </Link>
+              </div>
+              <div className="p-3 sm:p-5">
+                <div className="flow-root">
+                  <ul className="-my-4 divide-y divide-gray-200">
+                    {transformAnimalData({
+                      animals: farms[0]?.animals,
+                    }).map((animal) => (
+                      <li key={animal.type} className="py-3 sm:py-4">
+                        <div className="flex items-center space-x-3 sm:space-x-4">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {animal.type} - {animal.breed}
+                            </p>
+                            <div className="flex flex-col sm:flex-row sm:items-center">
+                              <p className="text-xs sm:text-sm text-gray-500 truncate sm:mr-2">
+                                Count: {animal.count}
+                              </p>
+                              <span
+                                className={`mt-1 sm:mt-0 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  animal.health === "Excellent"
+                                    ? "bg-green-100 text-green-800"
+                                    : animal.health === "Good"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : animal.health === "Fair"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {animal.health}
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <Link
+                              href={`/farms/1/animals/type/${animal.type}`}
+                              className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                              View
+                            </Link>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

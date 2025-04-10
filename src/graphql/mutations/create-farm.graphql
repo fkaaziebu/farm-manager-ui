@@ -1,0 +1,6 @@
+mutation CreateFarm($name: String!, $location: String!, $area: String!) {
+    createFarm(name: $name, location: $location, area: $area) {
+        id
+        name
+    }
+}
