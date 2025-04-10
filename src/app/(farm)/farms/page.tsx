@@ -105,7 +105,7 @@ export default function FarmsListingPage() {
           }
         }
       },
-      { threshold: 1 },
+      { threshold: 1 }
     );
 
     if (observerTarget.current) {
