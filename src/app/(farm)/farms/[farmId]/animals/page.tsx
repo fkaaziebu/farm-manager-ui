@@ -15,8 +15,10 @@ import {
   List,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function AnimalsListingPage() {
+  const router = useRouter();
   // Sample animals data
   const [animals] = useState([
     {
@@ -265,9 +267,13 @@ export default function AnimalsListingPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <Link href="/farms/1" className="mr-3 sm:mr-4">
+              <button
+                type="button"
+                className="mr-3 sm:mr-4"
+                onClick={() => router.back()}
+              >
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </Link>
+              </button>
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                   Farm Animals
@@ -367,14 +373,22 @@ export default function AnimalsListingPage() {
           <div className="flex gap-2 overflow-x-auto hide-scrollbar">
             <button
               onClick={() => setViewMode("grid")}
-              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${viewMode === "grid" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${
+                viewMode === "grid"
+                  ? "bg-green-50 border-green-500 text-green-700"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
             >
               <Grid size={16} className="mr-1 sm:mr-2" />
               Grid
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${viewMode === "list" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${
+                viewMode === "list"
+                  ? "bg-green-50 border-green-500 text-green-700"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
             >
               <List size={16} className="mr-1 sm:mr-2" />
               List
@@ -608,12 +622,16 @@ export default function AnimalsListingPage() {
                     <div>
                       <div className="flex items-center">
                         <span
-                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTagColorClass(animal.tagColor)}`}
+                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTagColorClass(
+                            animal.tagColor
+                          )}`}
                         >
                           {animal.id}
                         </span>
                         <span
-                          className={`ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColorClass(animal.status)}`}
+                          className={`ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColorClass(
+                            animal.status
+                          )}`}
                         >
                           {animal.status}
                         </span>
@@ -682,7 +700,9 @@ export default function AnimalsListingPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center">
                           <span
-                            className={`px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getTagColorClass(animal.tagColor)}`}
+                            className={`px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getTagColorClass(
+                              animal.tagColor
+                            )}`}
                           >
                             {animal.id}
                           </span>
@@ -690,7 +710,9 @@ export default function AnimalsListingPage() {
                             {animal.breed} {animal.type}
                           </p>
                           <span
-                            className={`ml-2 px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColorClass(animal.status)}`}
+                            className={`ml-2 px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColorClass(
+                              animal.status
+                            )}`}
                           >
                             {animal.status}
                           </span>

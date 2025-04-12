@@ -40,10 +40,8 @@ export default function useFetchFarms() {
           filter,
         },
       });
-
-      // @ts-expect-error err
       setFarms(
-        response?.data?.listFarms?.edges?.map((edge) => edge.node) || [],
+        response?.data?.listFarms?.edges?.map((edge) => edge.node) || []
       );
       setPageInfo(response.data?.listFarms.pageInfo);
     } catch (error) {

@@ -1,59 +1,59 @@
 query ListFarms(
-    $filter: FarmFilterInput
-    $pagination: PaginationInput
-    $searchTerm: String
-    $sort: [FarmSortInput!]
+  $filter: FarmFilterInput
+  $pagination: PaginationInput
+  $searchTerm: String
+  $sort: [FarmSortInput!]
 ) {
-    listFarms(
-        filter: $filter
-        searchTerm: $searchTerm
-        pagination: $pagination
-        sort: $sort
-    ) {
-        count
-        edges {
-            node {
-                id
-                name
-                performance
-                location
-                area
-                admin {
-                    id
-                    email
-                    name
-                }
-                animals {
-                    id
-                    tag_number
-                    type
-                    breed
-                    health_status
-                }
-                workers {
-                    id
-                    email
-                    name
-                    roles
-                }
-                houses {
-                    id
-                    house_number
-                    status
-                    rooms {
-                        room_number
-                        animals {
-                            tag_number
-                        }
-                    }
-                }
+  listFarms(
+    filter: $filter
+    searchTerm: $searchTerm
+    pagination: $pagination
+    sort: $sort
+  ) {
+    count
+    edges {
+      node {
+        id
+        name
+        performance
+        location
+        area
+        admin {
+          id
+          email
+          name
+        }
+        animals {
+          id
+          tag_number
+          type
+          breed
+          health_status
+        }
+        workers {
+          id
+          email
+          name
+          roles
+        }
+        houses {
+          id
+          house_number
+          status
+          rooms {
+            room_number
+            animals {
+              tag_number
             }
+          }
         }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
+      }
     }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
 }

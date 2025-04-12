@@ -1,0 +1,15 @@
+mutation AddAnimalsToFarm(
+  $farmId: String!
+  $houseNumber: String!
+  $roomNumber: String!
+  $animals: [CreateAnimalInput!]!
+) {
+  addAnimalsToFarm(
+    farmId: $farmId
+    houseNumber: $houseNumber
+    roomNumber: $roomNumber
+    animals: $animals
+  ) {
+    id
+  }
+}
