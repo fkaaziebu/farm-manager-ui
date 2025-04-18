@@ -1,0 +1,5 @@
+mutation AddPensToBarn($barnUnitId: String!, $pens: [PenInput!]!) {
+  addPensToBarn(barnUnitId: $barnUnitId, pens: $pens) {
+    id
+  }
+}

@@ -1,17 +1,13 @@
 import { useFetchFarms } from "@/hooks/queries";
 import { useEffect } from "react";
 import { Home, Mouse, BarChart } from "lucide-react";
-import { HouseStatus } from "@/graphql/generated/graphql";
+import { HousingStatus } from "@/graphql/generated/graphql";
 
 const OverviewSection = () => {
   const { fetchFarms, farms } = useFetchFarms();
 
   useEffect(() => {
-    fetchFarms({
-      pagination: {
-        first: 1000000,
-      },
-    });
+    fetchFarms({ searchTerm: "" });
   }, []);
   return (
     <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
@@ -35,9 +31,14 @@ const OverviewSection = () => {
             <div className="flex justify-between text-xs sm:text-sm">
               <span className="text-gray-500">Average Performance</span>
               <span className="text-gray-900 font-medium">
-                {(farms?.reduce((sum, farm) => sum + farm.performance, 0) /
-                  (farms?.length * 100)) *
-                  100}
+                {farms && farms.length > 0
+                  ? (farms.reduce(
+                      (sum, farm) => sum + (farm.performance || 0),
+                      0
+                    ) /
+                      (farms.length * 100)) *
+                    100
+                  : 0}
                 %
               </span>
             </div>
@@ -45,7 +46,14 @@ const OverviewSection = () => {
               <div
                 className="bg-green-500 h-1.5 sm:h-2 rounded-full"
                 style={{
-                  width: `${(farms?.reduce((sum, farm) => sum + farm.performance, 0) / (farms?.length * 100)) * 100}%`,
+                  width: `${
+                    (farms?.reduce(
+                      (sum, farm) => sum + (farm.performance || 0),
+                      0
+                    ) /
+                      (farms?.length * 100)) *
+                    100
+                  }%`,
                 }}
               />
             </div>
@@ -62,7 +70,7 @@ const OverviewSection = () => {
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
             {farms
-              ?.reduce((sum, farm) => sum + farm?.animals?.length, 0)
+              ?.reduce((sum, farm) => sum + (farm?.livestock?.length ?? 0), 0)
               .toLocaleString()}
           </div>
           <p className="text-xs sm:text-sm text-gray-500">
@@ -92,7 +100,7 @@ const OverviewSection = () => {
             <Home className="h-5 w-5 text-gray-400" />
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
-            {farms?.reduce((sum, farm) => sum + farm?.houses?.length, 0)}
+            {farms?.reduce((sum, farm) => sum + (farm?.barns?.length ?? 0), 0)}
           </div>
           <p className="text-xs sm:text-sm text-gray-500">
             Total houses across all farms
@@ -107,10 +115,10 @@ const OverviewSection = () => {
                   {farms?.reduce(
                     (sum, farm) =>
                       sum +
-                      farm.houses?.filter(
-                        (hs) => hs.status === HouseStatus.Operational,
-                      ).length,
-                    0,
+                      (farm.barns?.filter(
+                        (hs) => hs.status === HousingStatus.Operational
+                      )?.length ?? 0),
+                    0
                   )}
                 </span>
               </div>
@@ -121,10 +129,10 @@ const OverviewSection = () => {
                   {farms?.reduce(
                     (sum, farm) =>
                       sum +
-                      farm.houses?.filter(
-                        (hs) => hs.status === HouseStatus.Maintenance,
-                      ).length,
-                    0,
+                      (farm?.barns?.filter(
+                        (hs) => hs.status === HousingStatus.Maintenance
+                      )?.length ?? 0),
+                    0
                   )}
                 </span>
               </div>

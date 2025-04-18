@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Calendar,
@@ -29,6 +29,21 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { useFetchFarms } from "@/hooks/queries";
+import { Animal, BreedingStatus } from "@/graphql/generated/graphql";
+import { usePathname, useRouter } from "next/navigation";
+import formatDateOfBirth from "@/components/common/format-date-of-birth";
+import { formatDate } from "@/components/common";
+import {
+  EmptyStateBreeding,
+  EmptyStateExpenses,
+  EmptyStateFeedManagement,
+  EmptyStateGrowthPage,
+  EmptyStateHealthPage,
+} from "@/components/pages/farms/animals";
+import { set } from "react-hook-form";
+
+type AnimalProp = NonNullable<Animal>;
 
 export default function AnimalDetailsPage() {
   // Record types
@@ -38,7 +53,13 @@ export default function AnimalDetailsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [dateRange, setDateRange] = useState("all");
   const [sortBy, setSortBy] = useState("latest");
-
+  const { farms, fetchFarms } = useFetchFarms();
+  const [animalRecords, setAnimalRecords] = useState<Array<AnimalProp>>([]);
+  const [tagNumber, setTagNumber] = useState<string>("");
+  const pathname = usePathname();
+  const farmId = pathname.split("/")[2];
+  const animalId = pathname.split("/").pop();
+  const router = useRouter();
   // Action menu state
   const [showActionMenu, setShowActionMenu] = useState(false);
 
@@ -218,31 +239,76 @@ export default function AnimalDetailsPage() {
     { month: "Sep", amount: 455 },
   ];
 
+  useEffect(() => {
+    fetchFarms({
+      filter: {
+        id: {
+          eq: Number(farmId),
+        },
+      },
+      animalFilter: {
+        id: {
+          eq: Number(animalId) ?? undefined,
+        },
+      },
+    });
+  }, []);
+
+  useEffect(() => {
+    if (farms && farms.length > 0) {
+      const selectedFarm = farms.find((farm) => farm.id === farmId);
+      const selectedAnimal = selectedFarm?.animals?.find(
+        (animal) => animal.id === animalId
+      );
+      setAnimalRecords(selectedAnimal ? [selectedAnimal] : []);
+      setTagNumber(selectedAnimal?.tag_number);
+    }
+  }, [farms, farmId]);
+  console.log(animalRecords);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center">
-            {/* Existing header content, but with more flexible layout */}
-            <div className="w-full sm:w-auto flex items-center justify-between">
-              <div className="flex items-center">
-                <Link href="/farms/1" className="mr-4">
-                  <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-                </Link>
-                <div>
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-                    Holstein Cow #A12345
-                  </h1>
-                  <div className="mt-1 flex items-center text-xs sm:text-sm text-gray-500">
-                    <Calendar size={14} className="mr-1.5" />
-                    <p>Born: May 12, 2022 • Age: 2 years, 4 months</p>
+        {animalRecords.length &&
+          animalRecords.map((animalRecord) => (
+            <div
+              key={animalRecord.id}
+              className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8"
+            >
+              <div className="flex flex-col sm:flex-row items-center">
+                {/* Existing header content, but with more flexible layout */}
+                <div className="w-full sm:w-auto flex items-center justify-between">
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => router.back()}
+                      className="mr-4"
+                    >
+                      <ArrowLeft className="text-gray-500 hover:text-gray-700" />
+                    </button>
+                    <div>
+                      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                        {animalRecords[0].type[0]}
+                        {animalRecord.type.slice(1).toLowerCase()}{" "}
+                        {animalRecord.tag_number}
+                      </h1>
+                      <div className="mt-1 flex items-center text-xs sm:text-sm text-gray-500">
+                        <Calendar size={14} className="mr-1.5" />
+                        <p>
+                          Born: {formatDate(animalRecord.birth_date)} • Age:{" "}
+                          {formatDateOfBirth(animalRecord.birth_date).slice(
+                            15,
+                            19
+                          )}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          ))}
       </header>
 
       {/* Quick action bar */}
@@ -598,932 +664,1002 @@ export default function AnimalDetailsPage() {
 
         {/* Breeding Records Tab */}
         {activeTab === "breeding" && (
-          <div>
-            {/* Upcoming breeding events */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-              <div className="px-5 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Upcoming Breeding Events
-                </h3>
-              </div>
-              <div className="p-5">
-                <ul className="divide-y divide-gray-200">
-                  {upcomingEvents
-                    .filter((event) => event.type === "Breeding")
-                    .map((event) => (
-                      <li key={event.id}>
-                        <div className="px-4 py-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0">
-                                <Calendar className="h-6 w-6 text-green-500" />
-                              </div>
-                              <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-900">
-                                  {event.type}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {event.description}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="ml-2 flex-shrink-0 flex">
-                              <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                {new Date(event.date).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  },
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Breeding records list */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-              <ul className="divide-y divide-gray-200">
-                {breedingRecords.map((record) => (
-                  <li key={record.id}>
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <p className="text-sm font-medium text-green-600 truncate">
-                            {record.type}
-                          </p>
-                          <p className="ml-2 flex-shrink-0 inline-flex">
-                            <span
-                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                record.success
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {record.success ? "Successful" : "Unsuccessful"}
-                            </span>
-                          </p>
-                        </div>
-                        <div className="ml-2 flex-shrink-0 flex">
-                          <p className="text-sm text-gray-500">
-                            {new Date(record.date).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </p>
-                        </div>
+          <>
+            {animalRecords[0]?.breeding_records?.length ? (
+              <div>
+                {animalRecords.map((animalRecord) => (
+                  <>
+                    {/* Upcoming breeding events */}
+                    <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                      <div className="px-5 py-4 border-b border-gray-200">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Upcoming Breeding Events
+                        </h3>
                       </div>
-                      <div className="mt-2 sm:flex sm:justify-between">
-                        <div className="sm:flex">
-                          <p className="flex items-center text-sm text-gray-500">
-                            {record.notes}
-                          </p>
-                        </div>
-                        <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                          <p>Technician: {record.technician}</p>
+                      <div className="p-5">
+                        <ul className="divide-y divide-gray-200">
+                          {upcomingEvents
+                            .filter((event) => event.type === "Breeding")
+                            .map((event) => (
+                              <li key={event.id}>
+                                <div className="px-4 py-4">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center">
+                                      <div className="flex-shrink-0">
+                                        <Calendar className="h-6 w-6 text-green-500" />
+                                      </div>
+                                      <div className="ml-4">
+                                        <p className="text-sm font-medium text-gray-900">
+                                          {event.type}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {event.description}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="ml-2 flex-shrink-0 flex">
+                                      <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        {new Date(
+                                          event.date
+                                        ).toLocaleDateString("en-US", {
+                                          year: "numeric",
+                                          month: "short",
+                                          day: "numeric",
+                                        })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Breeding records list */}
+                    <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                      <ul className="divide-y divide-gray-200">
+                        {animalRecord?.breeding_records?.map((record) => (
+                          <li key={record.id}>
+                            <div className="px-4 py-4 sm:px-6">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <p className="text-sm font-medium text-green-600 truncate">
+                                    Natural delivery
+                                  </p>
+                                  <p className="ml-2 flex-shrink-0 inline-flex">
+                                    <span
+                                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        record.status ===
+                                        BreedingStatus.Successful
+                                          ? "bg-green-100 text-green-800"
+                                          : record.status ===
+                                            BreedingStatus.Failed
+                                          ? "bg-red-100 text-red-800"
+                                          : record.status ===
+                                            BreedingStatus.Cancelled
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : "bg-gray-100 text-gray-800"
+                                      }`}
+                                    >
+                                      {record.status ===
+                                      BreedingStatus.Successful
+                                        ? "Successful"
+                                        : record.status ===
+                                          BreedingStatus.Failed
+                                        ? "Failed"
+                                        : record.status ===
+                                          BreedingStatus.Cancelled
+                                        ? "Cancelled"
+                                        : "In Progress"}
+                                    </span>
+                                  </p>
+                                </div>
+                                <div className="ml-2 flex-shrink-0 flex">
+                                  <p className="text-sm text-gray-500">
+                                    {formatDate(record.mating_date)}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-2 sm:flex sm:justify-between">
+                                <div className="sm:flex">
+                                  <p className="flex items-center text-sm text-gray-500">
+                                    {record.notes}
+                                  </p>
+                                </div>
+                                <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                  <p>
+                                    Technician: {farms[0]?.workers[0]?.name}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Breeding Success Rate Chart */}
+                    <div className="bg-white overflow-hidden shadow rounded-lg">
+                      <div className="px-5 py-4 border-b border-gray-200">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Breeding Success Rate
+                        </h3>
+                      </div>
+                      <div className="p-5">
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={[
+                                  { name: "Successful", value: 3 },
+                                  { name: "Unsuccessful", value: 1 },
+                                ]}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) =>
+                                  `${name}: ${(percent * 100).toFixed(0)}%`
+                                }
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                              >
+                                <Cell fill="#10B981" />
+                                <Cell fill="#EF4444" />
+                              </Pie>
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
                         </div>
                       </div>
                     </div>
-                  </li>
+                  </>
                 ))}
-              </ul>
-            </div>
-
-            {/* Breeding Success Rate Chart */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-5 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Breeding Success Rate
-                </h3>
               </div>
-              <div className="p-5">
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { name: "Successful", value: 3 },
-                          { name: "Unsuccessful", value: 1 },
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) =>
-                          `${name}: ${(percent * 100).toFixed(0)}%`
-                        }
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        <Cell fill="#10B981" />
-                        <Cell fill="#EF4444" />
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          </div>
+            ) : (
+              <EmptyStateBreeding />
+            )}
+          </>
         )}
 
         {/* Health Records Tab */}
         {activeTab === "health" && (
-          <div>
-            {/* Upcoming health events */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-              <div className="px-5 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Upcoming Health Events
-                </h3>
-              </div>
-              <div className="p-5">
-                <ul className="divide-y divide-gray-200">
-                  {upcomingEvents
-                    .filter(
-                      (event) =>
-                        event.type === "Health Check" ||
-                        event.type === "Vaccination",
-                    )
-                    .map((event) => (
-                      <li key={event.id}>
-                        <div className="px-4 py-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0">
-                                <Calendar className="h-6 w-6 text-blue-500" />
+          <>
+            {animalRecords[0]?.health_records?.length ? (
+              <div>
+                {animalRecords.map((animalRecord) => (
+                  <>
+                    {/* Upcoming health events */}
+                    <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                      <div className="px-5 py-4 border-b border-gray-200">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Upcoming Health Events
+                        </h3>
+                      </div>
+                      <div className="p-5">
+                        <ul className="divide-y divide-gray-200">
+                          {upcomingEvents
+                            .filter(
+                              (event) =>
+                                event.type === "Health Check" ||
+                                event.type === "Vaccination"
+                            )
+                            .map((event) => (
+                              <li key={event.id}>
+                                <div className="px-4 py-4">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center">
+                                      <div className="flex-shrink-0">
+                                        <Calendar className="h-6 w-6 text-blue-500" />
+                                      </div>
+                                      <div className="ml-4">
+                                        <p className="text-sm font-medium text-gray-900">
+                                          {event.type}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {event.description}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="ml-2 flex-shrink-0 flex">
+                                      <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        {new Date(
+                                          event.date
+                                        ).toLocaleDateString("en-US", {
+                                          year: "numeric",
+                                          month: "short",
+                                          day: "numeric",
+                                        })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Health records list */}
+                    <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                      <ul className="divide-y divide-gray-200">
+                        {animalRecord?.health_records?.map((healthRecord) => (
+                          <li key={healthRecord.id}>
+                            <div className="px-4 py-4 sm:px-6">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <p className="text-sm font-medium text-blue-600 truncate">
+                                    {healthRecord.issue}
+                                  </p>
+                                  <p className="ml-2 flex-shrink-0 inline-flex">
+                                    <span
+                                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        record.type === "Vaccination"
+                                          ? "bg-green-100 text-green-800"
+                                          : record.type === "Checkup"
+                                          ? "bg-blue-100 text-blue-800"
+                                          : record.type === "Illness"
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : "bg-red-100 text-red-800"
+                                      }`}
+                                    >
+                                      {healthRecord.diagnosis}
+                                    </span>
+                                  </p>
+                                </div>
+                                <div className="ml-2 flex-shrink-0 flex">
+                                  <p className="text-sm text-gray-500">
+                                    {/* {healthRecord.date} */}
+                                  </p>
+                                </div>
                               </div>
-                              <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-900">
-                                  {event.type}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {event.description}
-                                </p>
+                              <div className="mt-2 sm:flex sm:justify-between">
+                                <div className="sm:flex">
+                                  <p className="flex items-center text-sm text-gray-500">
+                                    Treatment: {healthRecord.medication}
+                                  </p>
+                                </div>
+                                <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                  <p>Veterinarian: {healthRecord.vet_name}</p>
+                                </div>
                               </div>
                             </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Mortality Rate Chart */}
+                    <div className="bg-white overflow-hidden shadow rounded-lg">
+                      <div className="px-5 py-4 border-b border-gray-200">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Mortality Rate Trend
+                        </h3>
+                      </div>
+                      <div className="p-5">
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={mortalityData}
+                              margin={{
+                                top: 5,
+                                right: 30,
+                                left: 20,
+                                bottom: 5,
+                              }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="year" />
+                              <YAxis
+                                label={{
+                                  value: "Rate (%)",
+                                  angle: -90,
+                                  position: "insideLeft",
+                                }}
+                              />
+                              <Tooltip />
+                              <Line
+                                type="monotone"
+                                dataKey="rate"
+                                stroke="#EF4444"
+                                activeDot={{ r: 8 }}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ))}
+              </div>
+            ) : (
+              <EmptyStateHealthPage tag_number={tagNumber} />
+            )}
+          </>
+        )}
+
+        {/* Growth Records Tab */}
+        {activeTab === "growth" && (
+          <>
+            {animalRecords[0]?.growth_records?.length ? (
+              <div>
+                {animalRecords.map((animalRecord) => (
+                  <>
+                    {/* Growth Chart */}
+                    <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
+                      <div className="px-5 py-4 border-b border-gray-200">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Weight Growth Trend
+                        </h3>
+                      </div>
+                      <div className="p-5">
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={growthData}
+                              margin={{
+                                top: 5,
+                                right: 30,
+                                left: 20,
+                                bottom: 5,
+                              }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="month" />
+                              <YAxis
+                                label={{
+                                  value: "Weight (kg)",
+                                  angle: -90,
+                                  position: "insideLeft",
+                                }}
+                              />
+                              <Tooltip />
+                              <Line
+                                type="monotone"
+                                dataKey="weight"
+                                stroke="#10B981"
+                                activeDot={{ r: 8 }}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Growth Stats */}
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+                      <div className="bg-white overflow-hidden shadow rounded-lg">
+                        <div className="p-5">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
+                              <TrendingUp className="h-6 w-6 text-green-600" />
+                            </div>
+                            <div className="ml-5 w-0 flex-1">
+                              <dl>
+                                <dt className="text-sm font-medium text-gray-500 truncate">
+                                  Average Monthly Growth
+                                </dt>
+                                <dd className="text-lg font-semibold text-gray-900">
+                                  14.4 kg
+                                </dd>
+                              </dl>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white overflow-hidden shadow rounded-lg">
+                        <div className="p-5">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                              <TrendingUp className="h-6 w-6 text-blue-600" />
+                            </div>
+                            <div className="ml-5 w-0 flex-1">
+                              <dl>
+                                <dt className="text-sm font-medium text-gray-500 truncate">
+                                  Current Weight
+                                </dt>
+                                <dd className="text-lg font-semibold text-gray-900">
+                                  535 kg
+                                </dd>
+                              </dl>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white overflow-hidden shadow rounded-lg">
+                        <div className="p-5">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+                              <TrendingUp className="h-6 w-6 text-yellow-600" />
+                            </div>
+                            <div className="ml-5 w-0 flex-1">
+                              <dl>
+                                <dt className="text-sm font-medium text-gray-500 truncate">
+                                  Total Growth (YTD)
+                                </dt>
+                                <dd className="text-lg font-semibold text-gray-900">
+                                  115 kg
+                                </dd>
+                              </dl>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Growth Records Table */}
+                    <div className="bg-white shadow overflow-hidden sm:rounded-md">
+                      <div className="px-5 py-4 border-b border-gray-200">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Monthly Weight Records
+                        </h3>
+                      </div>
+                      <div className="bg-white">
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th
+                                  scope="col"
+                                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                  Month
+                                </th>
+                                <th
+                                  scope="col"
+                                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                  Weight (kg)
+                                </th>
+                                <th
+                                  scope="col"
+                                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                  Change
+                                </th>
+                                <th
+                                  scope="col"
+                                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                  Growth %
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {growthData.map((record, index) => {
+                                const prevWeight =
+                                  index > 0
+                                    ? growthData[index - 1].weight
+                                    : record.weight;
+                                const change = record.weight - prevWeight;
+                                const growthPercent =
+                                  index > 0
+                                    ? ((change / prevWeight) * 100).toFixed(1)
+                                    : 0;
+
+                                return (
+                                  <tr key={record.month}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                      {record.month}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                      {record.weight}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                      {index > 0 ? (
+                                        <span
+                                          className={
+                                            change >= 0
+                                              ? "text-green-600"
+                                              : "text-red-600"
+                                          }
+                                        >
+                                          {change > 0 ? "+" : ""}
+                                          {change}
+                                        </span>
+                                      ) : (
+                                        "-"
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                      {index > 0 ? (
+                                        <span
+                                          className={
+                                            // @ts-expect-error err
+                                            parseFloat(growthPercent) >= 0
+                                              ? "text-green-600"
+                                              : "text-red-600"
+                                          }
+                                        >
+                                          {growthPercent}%
+                                        </span>
+                                      ) : (
+                                        "-"
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ))}
+              </div>
+            ) : (
+              <EmptyStateGrowthPage />
+            )}
+          </>
+        )}
+
+        {/* Expense Records Tab */}
+        {activeTab === "expenses" && (
+          <>
+            {animalRecords[0]?.expense_records?.length ? (
+              <div>
+                <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                  <ul className="divide-y divide-gray-200">
+                    {expenseRecords.map((record) => (
+                      <li key={record.id}>
+                        <div className="px-4 py-4 sm:px-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {record.category}
+                              </p>
+                              <p className="ml-2 flex-shrink-0 inline-flex">
+                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                  ${record.amount}
+                                </span>
+                              </p>
+                            </div>
                             <div className="ml-2 flex-shrink-0 flex">
-                              <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {new Date(event.date).toLocaleDateString(
+                              <p className="text-sm text-gray-500">
+                                {new Date(record.date).toLocaleDateString(
                                   "en-US",
                                   {
                                     year: "numeric",
                                     month: "short",
                                     day: "numeric",
-                                  },
+                                  }
                                 )}
                               </p>
                             </div>
                           </div>
+                          <div className="mt-2">
+                            <p className="text-sm text-gray-500">
+                              {record.description}
+                            </p>
+                          </div>
                         </div>
                       </li>
                     ))}
-                </ul>
-              </div>
-            </div>
+                  </ul>
+                </div>
 
-            {/* Health records list */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-              <ul className="divide-y divide-gray-200">
-                {healthRecords.map((record) => (
-                  <li key={record.id}>
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <p className="text-sm font-medium text-blue-600 truncate">
-                            {record.type}
-                          </p>
-                          <p className="ml-2 flex-shrink-0 inline-flex">
-                            <span
-                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                record.type === "Vaccination"
-                                  ? "bg-green-100 text-green-800"
-                                  : record.type === "Checkup"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : record.type === "Illness"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
-                              }`}
+                {/* Expense Stats and Charts */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Expense by Category Chart */}
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="px-5 py-4 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Expenses by Category
+                      </h3>
+                    </div>
+                    <div className="p-5">
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={expenseBreakdown}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ name, percent }) =>
+                                `${name}: ${(percent * 100).toFixed(0)}%`
+                              }
+                              outerRadius={80}
+                              fill="#8884d8"
+                              dataKey="value"
                             >
-                              {record.diagnosis}
-                            </span>
-                          </p>
-                        </div>
-                        <div className="ml-2 flex-shrink-0 flex">
-                          <p className="text-sm text-gray-500">
-                            {new Date(record.date).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </p>
-                        </div>
+                              {expenseBreakdown.map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={COLORS[index % COLORS.length]}
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(value) => `$${value}`} />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
-                      <div className="mt-2 sm:flex sm:justify-between">
-                        <div className="sm:flex">
-                          <p className="flex items-center text-sm text-gray-500">
-                            Treatment: {record.treatment}
-                          </p>
-                        </div>
-                        <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                          <p>Veterinarian: {record.vet}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Mortality Rate Chart */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-5 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Mortality Rate Trend
-                </h3>
-              </div>
-              <div className="p-5">
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={mortalityData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="year" />
-                      <YAxis
-                        label={{
-                          value: "Rate (%)",
-                          angle: -90,
-                          position: "insideLeft",
-                        }}
-                      />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="rate"
-                        stroke="#EF4444"
-                        activeDot={{ r: 8 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Growth Records Tab */}
-        {activeTab === "growth" && (
-          <div>
-            {/* Growth Chart */}
-            <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-              <div className="px-5 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Weight Growth Trend
-                </h3>
-              </div>
-              <div className="p-5">
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={growthData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis
-                        label={{
-                          value: "Weight (kg)",
-                          angle: -90,
-                          position: "insideLeft",
-                        }}
-                      />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="weight"
-                        stroke="#10B981"
-                        activeDot={{ r: 8 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-            {/* Growth Stats */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
-                      <TrendingUp className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Average Monthly Growth
-                        </dt>
-                        <dd className="text-lg font-semibold text-gray-900">
-                          14.4 kg
-                        </dd>
-                      </dl>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                      <TrendingUp className="h-6 w-6 text-blue-600" />
+                  {/* Monthly Expense Trend */}
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="px-5 py-4 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Monthly Expense Trend
+                      </h3>
                     </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Current Weight
-                        </dt>
-                        <dd className="text-lg font-semibold text-gray-900">
-                          535 kg
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
-                      <TrendingUp className="h-6 w-6 text-yellow-600" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Total Growth (YTD)
-                        </dt>
-                        <dd className="text-lg font-semibold text-gray-900">
-                          115 kg
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Growth Records Table */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-md">
-              <div className="px-5 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Monthly Weight Records
-                </h3>
-              </div>
-              <div className="bg-white">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Month
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Weight (kg)
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Change
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Growth %
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {growthData.map((record, index) => {
-                        const prevWeight =
-                          index > 0
-                            ? growthData[index - 1].weight
-                            : record.weight;
-                        const change = record.weight - prevWeight;
-                        const growthPercent =
-                          index > 0
-                            ? ((change / prevWeight) * 100).toFixed(1)
-                            : 0;
-
-                        return (
-                          <tr key={record.month}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {record.month}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {record.weight}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {index > 0 ? (
-                                <span
-                                  className={
-                                    change >= 0
-                                      ? "text-green-600"
-                                      : "text-red-600"
-                                  }
-                                >
-                                  {change > 0 ? "+" : ""}
-                                  {change}
-                                </span>
-                              ) : (
-                                "-"
-                              )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {index > 0 ? (
-                                <span
-                                  className={
-                                    // @ts-expect-error err
-                                    parseFloat(growthPercent) >= 0
-                                      ? "text-green-600"
-                                      : "text-red-600"
-                                  }
-                                >
-                                  {growthPercent}%
-                                </span>
-                              ) : (
-                                "-"
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Expense Records Tab */}
-        {activeTab === "expenses" && (
-          <div>
-            <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-              <ul className="divide-y divide-gray-200">
-                {expenseRecords.map((record) => (
-                  <li key={record.id}>
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {record.category}
-                          </p>
-                          <p className="ml-2 flex-shrink-0 inline-flex">
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              ${record.amount}
-                            </span>
-                          </p>
-                        </div>
-                        <div className="ml-2 flex-shrink-0 flex">
-                          <p className="text-sm text-gray-500">
-                            {new Date(record.date).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500">
-                          {record.description}
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Expense Stats and Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Expense by Category Chart */}
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-5 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Expenses by Category
-                  </h3>
-                </div>
-                <div className="p-5">
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={expenseBreakdown}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) =>
-                            `${name}: ${(percent * 100).toFixed(0)}%`
-                          }
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {expenseBreakdown.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
+                    <div className="p-5">
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={[
+                              { month: "Jun", amount: 250 },
+                              { month: "Jul", amount: 325 },
+                              { month: "Aug", amount: 180 },
+                              { month: "Sep", amount: 250 },
+                            ]}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis
+                              label={{
+                                value: "Amount ($)",
+                                angle: -90,
+                                position: "insideLeft",
+                              }}
                             />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => `$${value}`} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
+                            <Tooltip formatter={(value) => `$${value}`} />
+                            <Bar dataKey="amount" fill="#FF8042" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Monthly Expense Trend */}
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-5 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Monthly Expense Trend
-                  </h3>
-                </div>
-                <div className="p-5">
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[
-                          { month: "Jun", amount: 250 },
-                          { month: "Jul", amount: 325 },
-                          { month: "Aug", amount: 180 },
-                          { month: "Sep", amount: 250 },
-                        ]}
-                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis
-                          label={{
-                            value: "Amount ($)",
-                            angle: -90,
-                            position: "insideLeft",
-                          }}
-                        />
-                        <Tooltip formatter={(value) => `$${value}`} />
-                        <Bar dataKey="amount" fill="#FF8042" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                {/* Expense Summary Stats */}
+                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="p-5">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
+                          <DollarSign className="h-6 w-6 text-red-600" />
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt className="text-sm font-medium text-gray-500 truncate">
+                              Total Expenses (YTD)
+                            </dt>
+                            <dd className="text-lg font-semibold text-gray-900">
+                              $2,800
+                            </dd>
+                          </dl>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Expense Summary Stats */}
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
-                      <DollarSign className="h-6 w-6 text-red-600" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Total Expenses (YTD)
-                        </dt>
-                        <dd className="text-lg font-semibold text-gray-900">
-                          $2,800
-                        </dd>
-                      </dl>
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="p-5">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                          <DollarSign className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt className="text-sm font-medium text-gray-500 truncate">
+                              Average Monthly Cost
+                            </dt>
+                            <dd className="text-lg font-semibold text-gray-900">
+                              $233
+                            </dd>
+                          </dl>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                      <DollarSign className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Average Monthly Cost
-                        </dt>
-                        <dd className="text-lg font-semibold text-gray-900">
-                          $233
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
-                      <TrendingUp className="h-6 w-6 text-yellow-600" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Cost Per Kg Gained
-                        </dt>
-                        <dd className="text-lg font-semibold text-gray-900">
-                          $24.35
-                        </dd>
-                      </dl>
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="p-5">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+                          <TrendingUp className="h-6 w-6 text-yellow-600" />
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt className="text-sm font-medium text-gray-500 truncate">
+                              Cost Per Kg Gained
+                            </dt>
+                            <dd className="text-lg font-semibold text-gray-900">
+                              $24.35
+                            </dd>
+                          </dl>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            ) : (
+              <EmptyStateExpenses />
+            )}
+          </>
         )}
 
         {/* Feed & Nutrition Tab */}
         {activeTab === "feed" && (
-          <div>
-            {/* Feed Consumption Chart */}
-            <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-              <div className="px-5 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Monthly Feed Consumption
-                </h3>
-              </div>
-              <div className="p-5">
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={feedConsumption}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis
-                        label={{
-                          value: "Amount (kg)",
-                          angle: -90,
-                          position: "insideLeft",
-                        }}
-                      />
-                      <Tooltip />
-                      <Bar dataKey="amount" fill="#10B981" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-            {/* Feed Summary Stats */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
-                      <TrendingUp className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Average Consumption
-                        </dt>
-                        <dd className="text-lg font-semibold text-gray-900">
-                          441 kg/month
-                        </dd>
-                      </dl>
+          <>
+            {animalRecords[0]?.feed_records?.length ? (
+              <div>
+                {/* Feed Consumption Chart */}
+                <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
+                  <div className="px-5 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Monthly Feed Consumption
+                    </h3>
+                  </div>
+                  <div className="p-5">
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={feedConsumption}
+                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="month" />
+                          <YAxis
+                            label={{
+                              value: "Amount (kg)",
+                              angle: -90,
+                              position: "insideLeft",
+                            }}
+                          />
+                          <Tooltip />
+                          <Bar dataKey="amount" fill="#10B981" />
+                        </BarChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                      <TrendingUp className="h-6 w-6 text-blue-600" />
+                {/* Feed Summary Stats */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="p-5">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
+                          <TrendingUp className="h-6 w-6 text-green-600" />
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt className="text-sm font-medium text-gray-500 truncate">
+                              Average Consumption
+                            </dt>
+                            <dd className="text-lg font-semibold text-gray-900">
+                              441 kg/month
+                            </dd>
+                          </dl>
+                        </div>
+                      </div>
                     </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Feed Efficiency
-                        </dt>
-                        <dd className="text-lg font-semibold text-gray-900">
-                          1.6 kg milk/kg feed
-                        </dd>
-                      </dl>
+                  </div>
+
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="p-5">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                          <TrendingUp className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt className="text-sm font-medium text-gray-500 truncate">
+                              Feed Efficiency
+                            </dt>
+                            <dd className="text-lg font-semibold text-gray-900">
+                              1.6 kg milk/kg feed
+                            </dd>
+                          </dl>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="p-5">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+                          <TrendingUp className="h-6 w-6 text-yellow-600" />
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt className="text-sm font-medium text-gray-500 truncate">
+                              Daily Average
+                            </dt>
+                            <dd className="text-lg font-semibold text-gray-900">
+                              14.7 kg/day
+                            </dd>
+                          </dl>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
-                      <TrendingUp className="h-6 w-6 text-yellow-600" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Daily Average
-                        </dt>
-                        <dd className="text-lg font-semibold text-gray-900">
-                          14.7 kg/day
-                        </dd>
-                      </dl>
+                {/* Current Diet Details */}
+                <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                  <div className="px-5 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Current Diet Composition
+                    </h3>
+                  </div>
+                  <div className="p-5">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Component
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Percentage
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Daily Amount (kg)
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Nutritional Value
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              Hay
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              40%
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              5.9 kg
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              Medium
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              Grain Mix
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              30%
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              4.4 kg
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              High
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              Silage
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              20%
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              2.9 kg
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              Medium-High
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              Protein Supplement
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              10%
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              1.5 kg
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              Very High
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Current Diet Details */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-              <div className="px-5 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Current Diet Composition
-                </h3>
-              </div>
-              <div className="p-5">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Component
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Percentage
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Daily Amount (kg)
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Nutritional Value
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          Hay
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          40%
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          5.9 kg
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          Medium
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          Grain Mix
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          30%
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          4.4 kg
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          High
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          Silage
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          20%
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          2.9 kg
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          Medium-High
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          Protein Supplement
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          10%
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          1.5 kg
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          Very High
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                {/* Diet Modification History */}
+                <div className="bg-white shadow overflow-hidden sm:rounded-md">
+                  <div className="px-5 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Diet Modification History
+                    </h3>
+                  </div>
+                  <div className="p-5">
+                    <ul className="divide-y divide-gray-200">
+                      <li className="py-4">
+                        <div className="flex space-x-3">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-sm font-medium">
+                                Increased Protein Content
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                Aug 22, 2024
+                              </p>
+                            </div>
+                            <p className="text-sm text-gray-500">
+                              Increased protein supplement from 8% to 10% to
+                              support milk production during peak lactation
+                              period.
+                            </p>
+                          </div>
+                        </div>
+                      </li>
+                      <li className="py-4">
+                        <div className="flex space-x-3">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-sm font-medium">
+                                Adjusted Grain Mix
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                Jul 10, 2024
+                              </p>
+                            </div>
+                            <p className="text-sm text-gray-500">
+                              Modified grain mix composition to include more
+                              corn for increased energy content.
+                            </p>
+                          </div>
+                        </div>
+                      </li>
+                      <li className="py-4">
+                        <div className="flex space-x-3">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-sm font-medium">
+                                Started New Silage Batch
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                Jun 05, 2024
+                              </p>
+                            </div>
+                            <p className="text-sm text-gray-500">
+                              Began using new silage batch with higher moisture
+                              content. Adjusted other components accordingly.
+                            </p>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Diet Modification History */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-md">
-              <div className="px-5 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Diet Modification History
-                </h3>
-              </div>
-              <div className="p-5">
-                <ul className="divide-y divide-gray-200">
-                  <li className="py-4">
-                    <div className="flex space-x-3">
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-medium">
-                            Increased Protein Content
-                          </h3>
-                          <p className="text-sm text-gray-500">Aug 22, 2024</p>
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          Increased protein supplement from 8% to 10% to support
-                          milk production during peak lactation period.
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                  <li className="py-4">
-                    <div className="flex space-x-3">
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-medium">
-                            Adjusted Grain Mix
-                          </h3>
-                          <p className="text-sm text-gray-500">Jul 10, 2024</p>
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          Modified grain mix composition to include more corn
-                          for increased energy content.
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                  <li className="py-4">
-                    <div className="flex space-x-3">
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-medium">
-                            Started New Silage Batch
-                          </h3>
-                          <p className="text-sm text-gray-500">Jun 05, 2024</p>
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          Began using new silage batch with higher moisture
-                          content. Adjusted other components accordingly.
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
+            ) : (
+              <EmptyStateFeedManagement />
+            )}
+          </>
         )}
       </div>
     </div>

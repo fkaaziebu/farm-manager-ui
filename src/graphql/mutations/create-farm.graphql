@@ -1,6 +1,16 @@
-mutation CreateFarm($name: String!, $location: String!, $area: String!) {
-    createFarm(name: $name, location: $location, area: $area) {
-        id
-        name
-    }
+mutation CreateFarm(
+  $name: String!
+  $location: String!
+  $area: String!
+  $farmType: FarmType!
+) {
+  createFarm(
+    name: $name
+    location: $location
+    area: $area
+    farmType: $farmType
+  ) {
+    id
+    name
+  }
 }

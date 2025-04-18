@@ -1,18 +1,18 @@
 import { useMutation } from "@apollo/client";
 
-import { CreateAndAddWorkerToFarm } from "@/graphql/mutations/create-and-add-workers-to-farm.graphql";
+import { AddWorkersToFarm } from "@/graphql/mutations/create-and-add-workers-to-farm.graphql";
 
 import type {
-  CreateAndAddWorkerToFarmMutation,
-  CreateAndAddWorkerToFarmMutationVariables,
+  AddWorkersToFarmMutation,
+  AddWorkersToFarmMutationVariables,
 } from "@/graphql/generated/graphql";
 
 const useCreateAndAddWorkerToFarm = () => {
-  const [createAndAddWorkerToFarm, { loading, error }] = useMutation<
-    CreateAndAddWorkerToFarmMutation,
-    CreateAndAddWorkerToFarmMutationVariables
-  >(CreateAndAddWorkerToFarm);
+  const [addWorkersToFarm, { loading, error }] = useMutation<
+    AddWorkersToFarmMutation,
+    AddWorkersToFarmMutationVariables
+  >(AddWorkersToFarm);
 
-  return { createAndAddWorkerToFarm, loading, error };
+  return { addWorkersToFarm, loading, error };
 };
 export default useCreateAndAddWorkerToFarm;

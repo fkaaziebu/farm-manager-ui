@@ -1,0 +1,11 @@
+mutation AddLivestockHealthRecord(
+  $livestockTag: String!
+  $healthRecord: HealthRecordInput!
+) {
+  addLivestockHealthRecord(
+    livestockTag: $livestockTag
+    healthRecord: $healthRecord
+  ) {
+    id
+  }
+}

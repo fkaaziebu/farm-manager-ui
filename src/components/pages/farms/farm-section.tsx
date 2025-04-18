@@ -79,7 +79,7 @@ const FarmSection = ({
                         </span>
                       </div>
                       <p className="text-lg sm:text-xl font-medium text-gray-900 mt-0.5 sm:mt-1">
-                        {farm.animals?.length.toLocaleString()}
+                        {farm.livestock?.length.toLocaleString()}
                       </p>
                     </div>
                     <div className="bg-gray-50 p-2 sm:p-3 rounded-md">
@@ -99,60 +99,60 @@ const FarmSection = ({
                     <div className="flex items-center justify-between mb-2 sm:mb-3">
                       <h4 className="text-sm font-medium text-gray-900 flex items-center">
                         <Home size={16} className="mr-1.5" />
-                        Houses ({farm?.houses?.length})
+                        Houses ({farm?.barns?.length})
                       </h4>
                     </div>
 
                     <div className="space-y-2">
-                      {farm?.houses
-                        ?.slice(0, MAX_HOUSES_DISPLAY)
-                        .map((house) => (
-                          <div
-                            key={house.id}
-                            className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-md"
-                          >
-                            <div>
-                              <div className="font-medium text-xs sm:text-sm text-gray-900 truncate max-w-[120px] sm:max-w-none">
-                                {house.house_number}
-                              </div>
-                              <div className="text-xs text-gray-500 truncate max-w-[120px] sm:max-w-none">
-                                {"Cattle Barn"}
-                              </div>
+                      {farm?.barns?.slice(0, MAX_HOUSES_DISPLAY).map((barn) => (
+                        <div
+                          key={barn.id}
+                          className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-md"
+                        >
+                          <div>
+                            <div className="font-medium text-xs sm:text-sm text-gray-900 truncate max-w-[120px] sm:max-w-none">
+                              {barn.name}
                             </div>
-                            <div className="flex items-center space-x-2 sm:space-x-3">
-                              {house?.rooms?.reduce(
-                                (sum, room) => sum + room?.animals?.length,
-                                0
-                              ) > 0 && (
-                                <div className="flex items-center text-xs text-gray-500">
-                                  <Mouse size={12} className="mr-1" />
-                                  {house?.rooms?.reduce(
-                                    (sum, room) => sum + room?.animals?.length,
-                                    0
-                                  )}
-                                </div>
-                              )}
-                              <span
-                                className={`px-1.5 sm:px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(
-                                  house.status.toLowerCase()
-                                )}`}
-                              >
-                                {house.status[0] +
-                                  house.status.slice(1).toLowerCase()}
-                              </span>
+                            <div className="text-xs text-gray-500 truncate max-w-[120px] sm:max-w-none">
+                              {"Cattle Barn"}
                             </div>
                           </div>
-                        ))}
+                          <div className="flex items-center space-x-2 sm:space-x-3">
+                            {(barn?.pens ?? []).reduce(
+                              (sum, pen) => sum + (pen?.livestock?.length ?? 0),
+                              0
+                            ) > 0 && (
+                              <div className="flex items-center text-xs text-gray-500">
+                                <Mouse size={12} className="mr-1" />
+                                {(barn?.pens ?? []).reduce(
+                                  (sum, pen) =>
+                                    sum + (pen?.livestock?.length ?? 0),
+                                  0
+                                )}
+                              </div>
+                            )}
+                            <span
+                              className={`px-1.5 sm:px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(
+                                barn.status.toLowerCase()
+                              )}`}
+                            >
+                              {barn.status[0] +
+                                barn.status.slice(1).toLowerCase()}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
 
-                      {farm?.houses?.length > MAX_HOUSES_DISPLAY && (
-                        <Link
-                          href={`/farms/${farm.id}/houses`}
-                          className="flex items-center justify-center p-2 bg-gray-50 rounded-md text-xs sm:text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          View All {farm?.houses?.length} Houses
-                          <ChevronRight size={16} className="ml-1" />
-                        </Link>
-                      )}
+                      {farm.barns?.length &&
+                        farm?.barns?.length > MAX_HOUSES_DISPLAY && (
+                          <Link
+                            href={`/farms/${farm.id}/houses`}
+                            className="flex items-center justify-center p-2 bg-gray-50 rounded-md text-xs sm:text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            View All {farm?.barns?.length} Houses
+                            <ChevronRight size={16} className="ml-1" />
+                          </Link>
+                        )}
                     </div>
                   </div>
 

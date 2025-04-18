@@ -1,17 +1,35 @@
 
-declare module '*/add-animals-to-farm.graphql' {
+declare module '*/add-barns-to-farm.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
-  export const AddAnimalsToFarm: DocumentNode;
+  export const AddBarnsToFarm: DocumentNode;
 
   export default defaultDocument;
 }
     
 
-declare module '*/add-house-to-farm.graphql' {
+declare module '*/add-livestock-health-record.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
-  export const AddHouseToFarm: DocumentNode;
+  export const AddLivestockHealthRecord: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/add-livestock-to-pen.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const AddLivestockToPen: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/add-pens-to-barn.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const AddPensToBarn: DocumentNode;
 
   export default defaultDocument;
 }
@@ -20,7 +38,7 @@ declare module '*/add-house-to-farm.graphql' {
 declare module '*/create-and-add-workers-to-farm.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
-  export const CreateAndAddWorkerToFarm: DocumentNode;
+  export const AddWorkersToFarm: DocumentNode;
 
   export default defaultDocument;
 }
@@ -48,6 +66,15 @@ declare module '*/register-admin.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const RegisterAdmin: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/get-barn.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetBarn: DocumentNode;
 
   export default defaultDocument;
 }

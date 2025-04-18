@@ -1,18 +1,18 @@
 import { useMutation } from "@apollo/client";
 
-import { AddAnimalsToFarm } from "@/graphql/mutations/add-animals-to-farm.graphql";
+import { AddLivestockToPen } from "@/graphql/mutations/add-livestock-to-pen.graphql";
 
 import type {
-  AddAnimalsToFarmMutation,
-  AddAnimalsToFarmMutationVariables,
+  AddLivestockToPenMutation,
+  AddLivestockToPenMutationVariables,
 } from "@/graphql/generated/graphql";
 
-const useAddAnimalsToFarm = () => {
-  const [addAnimalsToFarm, { loading, error }] = useMutation<
-    AddAnimalsToFarmMutation,
-    AddAnimalsToFarmMutationVariables
-  >(AddAnimalsToFarm);
+const useAddLivestockToPen = () => {
+  const [addLivestockToPen, { loading, error }] = useMutation<
+    AddLivestockToPenMutation,
+    AddLivestockToPenMutationVariables
+  >(AddLivestockToPen);
 
-  return { addAnimalsToFarm, loading, error };
+  return { addLivestockToPen, loading, error };
 };
-export default useAddAnimalsToFarm;
+export default useAddLivestockToPen;

@@ -2,7 +2,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
+import { ModalProvider } from "@/components/providers/modal-provider";
 import { apolloClient } from "@/config";
 import { ApolloProvider } from "@apollo/client";
 
@@ -28,6 +28,7 @@ export default function RootLayout({
       >
         <ApolloProvider client={apolloClient}>
           {children}
+          <ModalProvider />
           <Toaster />
         </ApolloProvider>
       </body>

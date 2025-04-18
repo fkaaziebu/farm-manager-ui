@@ -9,80 +9,19 @@ import { Menu, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 
+import { useModal } from "@/hooks/use-modal-store";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useCreateFarm } from "@/hooks/mutations";
-
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Farm name must be at least 2 characters.",
-  }),
-  location: z.string().min(2, {
-    message: "Location must be at least 2 characters.",
-  }),
-  area: z.string().min(2, {
-    message: "Area must be at least 2 characters.",
-  }),
-});
 
 export default function FarmsListingPage() {
-  const { createFarm } = useCreateFarm();
   const { farms, fetchFarms, fetchMoreFarms } = useFetchFarms();
   const router = useRouter();
   const observerTarget = useRef<HTMLDivElement | null>(null);
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      location: "",
-      area: "",
-    },
-  });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      const { name, location, area } = values;
-      await createFarm({
-        variables: {
-          name,
-          location,
-          area,
-        },
-      });
-
-      toast("Farm creation successful");
-    } catch (error) {
-      toast("Farm Creation Error", {
-        description: `${error?.response?.data?.message}`,
-      });
-    }
-  }
+  const { onOpen, type } = useModal();
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -92,7 +31,7 @@ export default function FarmsListingPage() {
   }, []);
 
   useEffect(() => {
-    fetchFarms({ searchTerm, pagination: { first: 5 } });
+    fetchFarms({ searchTerm });
   }, [searchTerm]);
 
   useEffect(() => {
@@ -145,100 +84,13 @@ export default function FarmsListingPage() {
               </div>
             </div>
 
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white">
-                  <Plus className="mr-2 h-4 w-4" /> Add New Farm
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Farm</DialogTitle>
-                  <DialogDescription>
-                    Fill in the details below to create a new farm.
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form id="farm-form" onSubmit={form.handleSubmit(onSubmit)}>
-                    <div className="grid gap-4 py-4">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem className="grid gap-2">
-                            <FormLabel htmlFor="farm-name">Farm Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="farm-name"
-                                placeholder="Enter farm name"
-                                {...field}
-                                type="text"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="location"
-                        render={({ field }) => (
-                          <FormItem className="grid gap-2">
-                            <FormLabel htmlFor="farm-name">Location</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="farm-location"
-                                placeholder="Enter location"
-                                {...field}
-                                type="text"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="area"
-                        render={({ field }) => (
-                          <FormItem className="grid gap-2">
-                            <FormLabel htmlFor="farm-name">
-                              Area (acres)
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                id="farm-area"
-                                placeholder="Enter area in acres"
-                                {...field}
-                                type="text"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </form>
-                </Form>
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    form="farm-form"
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    Create Farm
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => onOpen("add-farm")}
+              type="button"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add New Farm
+            </Button>
           </div>
 
           {/* Mobile menu */}

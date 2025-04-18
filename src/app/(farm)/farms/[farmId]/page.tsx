@@ -41,6 +41,7 @@ export default function FarmDetailsPage() {
   const { farms, fetchFarms } = useFetchFarms();
   const pathname = usePathname();
   const farmId = Number(pathname.split("/").pop());
+
   // Sample farm performance data for chart
   const performanceData = [
     { month: "Jan", productivity: 75, expenses: 65, revenue: 70 },
@@ -73,13 +74,9 @@ export default function FarmDetailsPage() {
 
   useEffect(() => {
     fetchFarms({
-      filter: {
-        id: {
-          eq: farmId,
-        },
-      },
+      searchTerm: searchQuery,
     });
-  }, []);
+  }, [searchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -314,14 +311,14 @@ export default function FarmDetailsPage() {
         </div>
 
         {/* Houses Section */}
-        {farms?.length && farms[0].houses?.length ? (
+        {farms?.length && farms[0].barns?.length ? (
           <div className="bg-white overflow-hidden shadow rounded-lg mb-4 sm:mb-6">
             <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-base sm:text-lg font-medium text-gray-900">
                 Farm Houses
               </h3>
               <Link
-                href="/farms/1/houses"
+                href={`/farms/${farmId}/houses`}
                 className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
               >
                 View All
@@ -329,50 +326,50 @@ export default function FarmDetailsPage() {
             </div>
             <div className="p-3 sm:p-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {farms[0]?.houses?.map((house) => (
+                {farms[0]?.barns?.map((barn) => (
                   <div
-                    key={house.id}
+                    key={barn.id}
                     className="border border-gray-200 rounded-lg overflow-hidden"
                   >
                     <div className="p-3 sm:p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h4 className="text-sm sm:text-base font-medium text-gray-900">
-                            {house.house_number}
+                            {barn.name}
                           </h4>
                           <p className="text-xs sm:text-sm text-gray-500">
-                            {house.type}
+                            {barn.area_sqm} area_sqm
                           </p>
                         </div>
                         <span
                           className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(
-                            house.status.toLowerCase()
+                            barn.status.toLowerCase()
                           )}`}
                         >
-                          {house.status.charAt(0) +
-                            house.status.slice(1).toLowerCase()}
+                          {barn.status.charAt(0) +
+                            barn.status.slice(1).toLowerCase()}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between mt-3 sm:mt-4">
                         <div className="flex items-center">
-                          {house.rooms?.length &&
-                            house?.rooms.reduce(
-                              (sum, room) =>
+                          {barn.pens?.length &&
+                            barn?.pens.reduce(
+                              (sum, pen) =>
                                 sum +
-                                (room?.animals?.length
-                                  ? room?.animals?.length
+                                (pen?.livestock?.length
+                                  ? pen?.livestock?.length
                                   : 0),
                               0
                             ) > 0 && (
                               <div className="flex items-center text-xs sm:text-sm text-gray-500 mr-3">
                                 <Mouse size={14} className="mr-1" />
                                 <span>
-                                  {house?.rooms.reduce(
-                                    (sum, room) =>
+                                  {barn?.pens.reduce(
+                                    (sum, pen) =>
                                       sum +
-                                      (room?.animals?.length
-                                        ? room?.animals?.length
+                                      (pen?.livestock?.length
+                                        ? pen?.livestock?.length
                                         : 0),
                                     0
                                   )}
@@ -386,7 +383,7 @@ export default function FarmDetailsPage() {
                           </div>
                         </div>
                         <Link
-                          href={`/farms/${farmId}/houses/${house.id}`}
+                          href={`/farms/${farmId}/houses/${barn.unit_id}/`}
                           className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                         >
                           View
@@ -399,7 +396,10 @@ export default function FarmDetailsPage() {
             </div>
           </div>
         ) : (
-          <FarmHouseEmptyState farmId={farmId.toString()} />
+          <FarmHouseEmptyState
+            farmId={farmId.toString()}
+            farmTag={farms?.[0]?.farm_tag ?? ""}
+          />
         )}
 
         {/* Workers and Animals sections */}
@@ -471,7 +471,7 @@ export default function FarmDetailsPage() {
                   Farm Animals
                 </h3>
                 <Link
-                  href="/farms/1/animals"
+                  href={`/farms/${farmId}/animals`}
                   className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
                 >
                   View All

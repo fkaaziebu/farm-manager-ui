@@ -1,59 +1,50 @@
 query ListFarms(
-  $filter: FarmFilterInput
+  $searchTerm: String!
   $pagination: PaginationInput
-  $searchTerm: String
   $sort: [FarmSortInput!]
 ) {
-  listFarms(
-    filter: $filter
-    searchTerm: $searchTerm
-    pagination: $pagination
-    sort: $sort
-  ) {
-    count
+  listFarms(searchTerm: $searchTerm, pagination: $pagination, sort: $sort) {
     edges {
       node {
-        id
+        barns {
+          capacity
+          pens {
+            livestock {
+              weight
+              updated_at
+              birth_date
+              id
+            }
+            id
+            unit_id
+            area_sqm
+            status
+          }
+          id
+          status
+          name
+          area_sqm
+          unit_id
+        }
         name
         performance
-        location
         area
-        admin {
+        location
+        livestock {
           id
-          email
-          name
-        }
-        animals {
-          id
-          tag_number
-          type
-          breed
-          health_status
         }
         workers {
           id
-          email
-          name
-          roles
         }
-        houses {
-          id
-          house_number
-          status
-          rooms {
-            room_number
-            animals {
-              tag_number
-            }
-          }
-        }
+        farm_tag
+        id
       }
     }
     pageInfo {
+      endCursor
       hasNextPage
       hasPreviousPage
       startCursor
-      endCursor
     }
   }
 }

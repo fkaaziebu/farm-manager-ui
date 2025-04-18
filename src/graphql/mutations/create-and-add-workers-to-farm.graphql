@@ -1,8 +1,5 @@
-mutation CreateAndAddWorkerToFarm(
-  $farmId: String!
-  $workers: [CreateWorkerInput!]!
-) {
-  createAndAddWorkerToFarm(farmId: $farmId, workers: $workers) {
+mutation AddWorkersToFarm($farmTag: String!, $workers: [WorkerInput!]!) {
+  addWorkersToFarm(farmTag: $farmTag, workers: $workers) {
     id
   }
 }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Search,
@@ -14,144 +14,24 @@ import {
   Grid,
   List,
 } from "lucide-react";
-import Link from "next/link";
+import { useFetchFarms } from "@/hooks/queries";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { Animal, HealthStatus } from "@/graphql/generated/graphql";
+import formatDateOfBirth from "@/components/common/format-date-of-birth";
+import { formatDate } from "@/components/common";
+import { timeAgo } from "@/components/common/time-ago";
+import { EmptyStateAnimalEvents } from "@/components/pages/farms/animals";
+import { useModal } from "@/hooks/use-modal-store";
+
+type AnimalProp = NonNullable<Animal>;
 
 export default function AnimalsListingPage() {
   const router = useRouter();
-  // Sample animals data
-  const [animals] = useState([
-    {
-      id: "A12345",
-      type: "Cattle",
-      breed: "Holstein",
-      birthDate: "2022-05-12",
-      age: "2y 4m",
-      gender: "Female",
-      weight: 535,
-      status: "Healthy",
-      location: "Pasture A",
-      lastCheck: "2024-09-05",
-      tagColor: "green",
-    },
-    {
-      id: "A12346",
-      type: "Cattle",
-      breed: "Jersey",
-      birthDate: "2021-08-22",
-      age: "3y 1m",
-      gender: "Female",
-      weight: 485,
-      status: "Healthy",
-      location: "Dairy Barn",
-      lastCheck: "2024-09-10",
-      tagColor: "green",
-    },
-    {
-      id: "A12347",
-      type: "Cattle",
-      breed: "Angus",
-      birthDate: "2022-03-10",
-      age: "2y 6m",
-      gender: "Male",
-      weight: 620,
-      status: "Healthy",
-      location: "Pasture B",
-      lastCheck: "2024-09-08",
-      tagColor: "blue",
-    },
-    {
-      id: "A12348",
-      type: "Sheep",
-      breed: "Merino",
-      birthDate: "2023-01-15",
-      age: "1y 8m",
-      gender: "Female",
-      weight: 65,
-      status: "Treatment",
-      location: "Barn C",
-      lastCheck: "2024-09-12",
-      tagColor: "yellow",
-    },
-    {
-      id: "A12349",
-      type: "Sheep",
-      breed: "Suffolk",
-      birthDate: "2022-11-30",
-      age: "1y 10m",
-      gender: "Male",
-      weight: 78,
-      status: "Healthy",
-      location: "Barn C",
-      lastCheck: "2024-09-07",
-      tagColor: "blue",
-    },
-    {
-      id: "A12350",
-      type: "Pig",
-      breed: "Yorkshire",
-      birthDate: "2023-06-18",
-      age: "1y 3m",
-      gender: "Female",
-      weight: 110,
-      status: "Pregnant",
-      location: "Pig House A",
-      lastCheck: "2024-09-11",
-      tagColor: "pink",
-    },
-    {
-      id: "A12351",
-      type: "Pig",
-      breed: "Duroc",
-      birthDate: "2023-05-05",
-      age: "1y 4m",
-      gender: "Male",
-      weight: 125,
-      status: "Healthy",
-      location: "Pig House B",
-      lastCheck: "2024-09-09",
-      tagColor: "blue",
-    },
-    {
-      id: "A12352",
-      type: "Chicken",
-      breed: "Leghorn",
-      birthDate: "2023-08-12",
-      age: "1y 1m",
-      gender: "Female",
-      weight: 1.8,
-      status: "Healthy",
-      location: "Coop A",
-      lastCheck: "2024-09-06",
-      tagColor: "white",
-    },
-    {
-      id: "A12353",
-      type: "Chicken",
-      breed: "Rhode Island Red",
-      birthDate: "2023-09-20",
-      age: "1y 0m",
-      gender: "Female",
-      weight: 2.1,
-      status: "Treatment",
-      location: "Coop B",
-      lastCheck: "2024-09-11",
-      tagColor: "yellow",
-    },
-    {
-      id: "A12354",
-      type: "Cattle",
-      breed: "Hereford",
-      birthDate: "2021-10-05",
-      age: "2y 11m",
-      gender: "Male",
-      weight: 750,
-      status: "Healthy",
-      location: "Pasture C",
-      lastCheck: "2024-09-10",
-      tagColor: "blue",
-    },
-  ]);
+  const { farms, fetchFarms } = useFetchFarms();
+  const pathname = usePathname();
+  const [farmAnimals, setFarmAnimals] = useState<AnimalProp[]>([]);
+  const farmId = pathname.split("/")[2]; //
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -162,22 +42,24 @@ export default function AnimalsListingPage() {
   const [sortBy, setSortBy] = useState("id");
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  const { onOpen } = useModal();
   // Filter and sort animals
-  const filteredAnimals = animals
+  const filteredAnimals = farmAnimals
     .filter((animal) => {
       // Search filter
       const matchesSearch =
         animal.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
         animal.breed.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        animal.location.toLowerCase().includes(searchQuery.toLowerCase());
+        animal.room?.room_number
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
       // Type filter
       const matchesType = typeFilter === "all" || animal.type === typeFilter;
 
       // Status filter
       const matchesStatus =
-        statusFilter === "all" || animal.status === statusFilter;
+        statusFilter === "all" || animal.health_status === statusFilter;
 
       // Gender filter
       const matchesGender =
@@ -192,23 +74,26 @@ export default function AnimalsListingPage() {
         return a.type.localeCompare(b.type);
       } else if (sortBy === "age") {
         return (
-          new Date(a.birthDate).valueOf() - new Date(b.birthDate).valueOf()
+          new Date(a.birth_date).valueOf() - new Date(b.birth_date).valueOf()
         );
       } else if (sortBy === "weight") {
         return b.weight - a.weight;
       } else if (sortBy === "lastCheck") {
         return (
-          new Date(b.lastCheck).valueOf() - new Date(a.lastCheck).valueOf()
+          new Date(b.updated_at).valueOf() - new Date(a.updated_at).valueOf()
         );
       }
       return 0;
     });
 
   // Get unique animal types for filter
-  const animalTypes = ["all", ...new Set(animals.map((animal) => animal.type))];
+  const animalTypes = [
+    "all",
+    ...new Set(farmAnimals.map((animal) => animal.type)),
+  ];
   const statusTypes = [
     "all",
-    ...new Set(animals.map((animal) => animal.status)),
+    ...new Set(farmAnimals.map((animal) => animal.health_status)),
   ];
 
   // Function to get tag color class
@@ -230,16 +115,18 @@ export default function AnimalsListingPage() {
   };
 
   // Function to get status color class
-  const getStatusColorClass = (status: string) => {
+  const getStatusColorClass = (status: HealthStatus) => {
     switch (status) {
-      case "Healthy":
+      case HealthStatus.Healthy:
         return "bg-green-100 text-green-800";
-      case "Treatment":
+      case HealthStatus.Recovering:
         return "bg-yellow-100 text-yellow-800";
-      case "Pregnant":
+      case HealthStatus.Sick:
         return "bg-purple-100 text-purple-800";
-      case "Quarantine":
+      case HealthStatus.Critical:
         return "bg-red-100 text-red-800";
+      case HealthStatus.Treated:
+        return "bg-orange-100 text-orange-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -247,12 +134,19 @@ export default function AnimalsListingPage() {
 
   // Animal stats
   const animalStats = {
-    total: animals.length,
-    healthy: animals.filter((a) => a.status === "Healthy").length,
-    treatment: animals.filter((a) => a.status === "Treatment").length,
-    pregnant: animals.filter((a) => a.status === "Pregnant").length,
-    needsCheck: animals.filter((a) => {
-      const lastCheck = new Date(a.lastCheck).valueOf();
+    total: farmAnimals.length,
+    healthy: farmAnimals.filter((a) => a.health_status === HealthStatus.Healthy)
+      .length,
+    treated: farmAnimals.filter((a) => a.health_status === HealthStatus.Treated)
+      .length,
+    recovering: farmAnimals.filter(
+      (a) => a.health_status === HealthStatus.Recovering
+    ).length,
+    critical: farmAnimals.filter(
+      (a) => a.health_status === HealthStatus.Critical
+    ).length,
+    needsCheck: farmAnimals.filter((a) => {
+      const lastCheck = new Date(a.updated_at).valueOf();
       const currentDate = new Date().valueOf();
       const diffTime = Math.abs(currentDate - lastCheck);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -260,6 +154,23 @@ export default function AnimalsListingPage() {
     }).length,
   };
 
+  useEffect(() => {
+    fetchFarms({
+      filter: {
+        id: {
+          eq: Number(farmId),
+        },
+      },
+    });
+  }, []);
+
+  useEffect(() => {
+    if (farms && farms.length > 0) {
+      const selectedFarm = farms.find((farm) => farm.id === farmId);
+      setFarmAnimals(selectedFarm?.animals ?? []);
+    }
+  }, [farms, farmId]);
+  console.log("Farm Animals", farmAnimals);
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -286,6 +197,7 @@ export default function AnimalsListingPage() {
             <button
               type="button"
               className="mt-3 sm:mt-0 sm:ml-auto bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
+              onClick={() => onOpen("add-animals-to-farm", { farmId })}
             >
               <Plus size={16} />
               <span>Add Animal</span>
@@ -546,10 +458,10 @@ export default function AnimalsListingPage() {
                 <div className="ml-3 sm:ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
-                      In Treatment
+                      Critical
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {animalStats.treatment}
+                      {animalStats.critical}
                     </dd>
                   </dl>
                 </div>
@@ -566,10 +478,10 @@ export default function AnimalsListingPage() {
                 <div className="ml-3 sm:ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
-                      Pregnant
+                      Recovering
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {animalStats.pregnant}
+                      {animalStats.recovering}
                     </dd>
                   </dl>
                 </div>
@@ -623,17 +535,18 @@ export default function AnimalsListingPage() {
                       <div className="flex items-center">
                         <span
                           className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTagColorClass(
-                            animal.tagColor
+                            "green"
                           )}`}
                         >
-                          {animal.id}
+                          {animal.tag_number}
                         </span>
                         <span
                           className={`ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColorClass(
-                            animal.status
+                            animal.health_status
                           )}`}
                         >
-                          {animal.status}
+                          {animal.health_status[0].toUpperCase()}
+                          {animal.health_status.slice(1).toLowerCase()}
                         </span>
                       </div>
                       <h3 className="mt-2 text-sm sm:text-lg font-medium text-gray-900">
@@ -642,7 +555,7 @@ export default function AnimalsListingPage() {
                     </div>
                     <div className="bg-gray-100 p-2 rounded-full">
                       <span className="text-xs font-medium text-gray-500">
-                        {animal.gender.charAt(0)}
+                        {animal.gender.charAt(0).toUpperCase()}
                       </span>
                     </div>
                   </div>
@@ -650,31 +563,37 @@ export default function AnimalsListingPage() {
                   <div className="mt-3 sm:mt-4 grid grid-cols-2 gap-3 sm:gap-4">
                     <div className="text-xs sm:text-sm">
                       <span className="text-gray-500">Age:</span>
-                      <p className="font-medium text-gray-900">{animal.age}</p>
+                      <p className="font-medium text-gray-900">
+                        {formatDateOfBirth(animal.birth_date)}
+                      </p>
                     </div>
                     <div className="text-xs sm:text-sm">
                       <span className="text-gray-500">Weight:</span>
                       <p className="font-medium text-gray-900">
-                        {animal.weight} kg
+                        {animal.weight === 0 ? "N/A" : animal.weight + " kg"}
                       </p>
                     </div>
                     <div className="text-xs sm:text-sm">
                       <span className="text-gray-500">Location:</span>
                       <p className="font-medium text-gray-900">
-                        {animal.location}
+                        {animal?.room?.house?.house_number}{" "}
+                        {animal?.room?.room_number}
                       </p>
                     </div>
                     <div className="text-xs sm:text-sm">
                       <span className="text-gray-500">Last Check:</span>
                       <p className="font-medium text-gray-900">
-                        {new Date(animal.lastCheck).toLocaleDateString()}
+                        {formatDate(animal.updated_at)}
+                      </p>
+                      <p className="text-gray-500">
+                        {timeAgo(animal.updated_at)}
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-4 sm:mt-5">
                     <a
-                      href={`/farms/1/animals/${animal.id}`}
+                      href={`/farms/${farmId}/animals/${animal.id}`}
                       className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                     >
                       View Details
@@ -701,35 +620,38 @@ export default function AnimalsListingPage() {
                         <div className="flex items-center">
                           <span
                             className={`px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getTagColorClass(
-                              animal.tagColor
+                              "green"
                             )}`}
                           >
-                            {animal.id}
+                            {animal.tag_number}
                           </span>
                           <p className="ml-2 text-xs sm:text-sm font-medium text-gray-900">
                             {animal.breed} {animal.type}
                           </p>
                           <span
                             className={`ml-2 px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColorClass(
-                              animal.status
+                              animal.health_status
                             )}`}
                           >
-                            {animal.status}
+                            {animal.health_status[0].toUpperCase()}
+                            {animal.health_status.slice(1).toLowerCase()}
                           </span>
                         </div>
                         <div className="flex items-center mt-2 sm:mt-0">
                           <div className="mr-2 sm:mr-4 flex flex-col items-end">
                             <div className="text-xs sm:text-sm text-gray-900">
-                              {animal.weight} kg
+                              {animal.weight === 0
+                                ? "N/A"
+                                : animal.weight + " kg"}
                             </div>
                             <div className="text-xs sm:text-sm text-gray-500">
-                              {animal.age}
+                              {formatDateOfBirth(animal.birth_date)}
                             </div>
                           </div>
                           <div className="flex-shrink-0">
                             <span className="inline-flex items-center justify-center h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-gray-100">
                               <span className="text-xs font-medium text-gray-800">
-                                {animal.gender.charAt(0)}
+                                {animal.gender.charAt(0).toUpperCase()}
                               </span>
                             </span>
                           </div>
@@ -740,7 +662,8 @@ export default function AnimalsListingPage() {
                           <div className="flex items-center">
                             <div className="text-xs sm:text-sm text-gray-500">
                               <span className="font-medium">Location:</span>{" "}
-                              {animal.location}
+                              {animal?.room?.house?.house_number ?? "N/A"}{" "}
+                              {animal?.room?.room_number}
                             </div>
                           </div>
                         </div>
@@ -748,7 +671,10 @@ export default function AnimalsListingPage() {
                           <Calendar className="flex-shrink-0 mr-1 h-3 w-3 sm:h-5 sm:w-5 text-gray-400" />
                           <p>
                             <span className="font-medium">Last check:</span>{" "}
-                            {new Date(animal.lastCheck).toLocaleDateString()}
+                            {formatDate(animal.updated_at)}
+                          </p>
+                          <p className="text-gray-500">
+                            {timeAgo(animal.updated_at)}
                           </p>
                         </div>
                       </div>
@@ -783,44 +709,44 @@ export default function AnimalsListingPage() {
                 Previous
               </a>
             </div>
-            <div className="hidden md:-mt-px md:flex">
+            <div className="hidden sm:flex md:-mt-px md:flex">
               <a
                 href="#"
-                className="inline-flex items-center border-t-2 border-green-500 px-4 pt-4 text-sm font-medium text-green-600"
+                className="inline-flex items-center border-t-2 border-green-500 px-2 sm:px-4 pt-4 text-xs sm:text-sm font-medium text-green-600"
                 aria-current="page"
               >
                 1
               </a>
               <a
                 href="#"
-                className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                className="inline-flex items-center border-t-2 border-transparent px-2 sm:px-4 pt-4 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
                 2
               </a>
               <a
                 href="#"
-                className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                className="inline-flex items-center border-t-2 border-transparent px-2 sm:px-4 pt-4 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
                 3
               </a>
-              <span className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500">
+              <span className="inline-flex items-center border-t-2 border-transparent px-2 sm:px-4 pt-4 text-xs sm:text-sm font-medium text-gray-500">
                 ...
               </span>
               <a
                 href="#"
-                className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                className="inline-flex items-center border-t-2 border-transparent px-2 sm:px-4 pt-4 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
                 8
               </a>
               <a
                 href="#"
-                className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                className="inline-flex items-center border-t-2 border-transparent px-2 sm:px-4 pt-4 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
                 9
               </a>
               <a
                 href="#"
-                className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                className="inline-flex items-center border-t-2 border-transparent px-2 sm:px-4 pt-4 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
               >
                 10
               </a>
@@ -846,6 +772,36 @@ export default function AnimalsListingPage() {
               </a>
             </div>
           </nav>
+          <div className="mt-2 flex justify-center sm:hidden">
+            <a
+              href="#"
+              className="inline-flex items-center border-t-2 border-green-500 px-2 pt-4 text-xs font-medium text-green-600"
+              aria-current="page"
+            >
+              1
+            </a>
+            <a
+              href="#"
+              className="inline-flex items-center border-t-2 border-transparent px-2 pt-4 text-xs font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            >
+              2
+            </a>
+            <a
+              href="#"
+              className="inline-flex items-center border-t-2 border-transparent px-2 pt-4 text-xs font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            >
+              3
+            </a>
+            <span className="inline-flex items-center border-t-2 border-transparent px-2 pt-4 text-xs font-medium text-gray-500">
+              ...
+            </span>
+            <a
+              href="#"
+              className="inline-flex items-center border-t-2 border-transparent px-2 pt-4 text-xs font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            >
+              10
+            </a>
+          </div>
         </div>
 
         {/* Quick Actions */}
@@ -897,162 +853,166 @@ export default function AnimalsListingPage() {
         </div>
 
         {/* Upcoming Animal Events */}
-        <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">
-          <div className="px-3 py-3 sm:px-4 sm:py-5 border-b border-gray-200">
-            <h3 className="text-base sm:text-lg leading-6 font-medium text-gray-900">
-              Upcoming Animal Events
-            </h3>
-            <p className="mt-1 max-w-2xl text-xs sm:text-sm text-gray-500">
-              Next 7 days schedule
-            </p>
-          </div>
-          <div className="px-3 py-3 sm:px-4 sm:py-5">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Date
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Event
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Animals
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Assigned To
-                    </th>
-                    <th
-                      scope="col"
-                      className="relative px-3 py-2 sm:px-6 sm:py-3"
-                    >
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  <tr>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                      Sep 15, 2024
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
-                      <div className="text-xs sm:text-sm font-medium text-gray-900">
-                        Vaccination
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-500">
-                        Annual boosters
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        Cattle
-                      </span>
-                      <span className="ml-1 text-xs sm:text-sm text-gray-500">
-                        5 animals
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                      Dr. Emily Davis
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
-                      <a
-                        href="#"
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        Details
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                      Sep 17, 2024
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
-                      <div className="text-xs sm:text-sm font-medium text-gray-900">
-                        Weight Check
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-500">
-                        Monthly measurement
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        Pig
-                      </span>
-                      <span className="ml-1 text-xs sm:text-sm text-gray-500">
-                        8 animals
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                      John Smith
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
-                      <a
-                        href="#"
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        Details
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                      Sep 19, 2024
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
-                      <div className="text-xs sm:text-sm font-medium text-gray-900">
-                        Health Check
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-500">
-                        Follow-up treatment
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                        Sheep
-                      </span>
-                      <span className="ml-1 text-xs sm:text-sm text-gray-500">
-                        2 animals
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                      Dr. Emily Davis
-                    </td>
-                    <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
-                      <a
-                        href="#"
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        Details
-                      </a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div className="px-3 py-3 sm:px-4 sm:py-4 border-t border-gray-200">
-            <a
-              href="#"
-              className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
-            >
-              View all events <span aria-hidden="true">&rarr;</span>
-            </a>
-          </div>
-        </div>
+        {
+          // <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">
+          //   <div className="px-3 py-3 sm:px-4 sm:py-5 border-b border-gray-200">
+          //     <h3 className="text-base sm:text-lg leading-6 font-medium text-gray-900">
+          //       Upcoming Animal Events
+          //     </h3>
+          //     <p className="mt-1 max-w-2xl text-xs sm:text-sm text-gray-500">
+          //       Next 7 days schedule
+          //     </p>
+          //   </div>
+          //   <div className="px-3 py-3 sm:px-4 sm:py-5">
+          //     <div className="overflow-x-auto">
+          //       <table className="min-w-full divide-y divide-gray-200">
+          //         <thead className="bg-gray-50">
+          //           <tr>
+          //             <th
+          //               scope="col"
+          //               className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          //             >
+          //               Date
+          //             </th>
+          //             <th
+          //               scope="col"
+          //               className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          //             >
+          //               Event
+          //             </th>
+          //             <th
+          //               scope="col"
+          //               className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          //             >
+          //               Animals
+          //             </th>
+          //             <th
+          //               scope="col"
+          //               className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          //             >
+          //               Assigned To
+          //             </th>
+          //             <th
+          //               scope="col"
+          //               className="relative px-3 py-2 sm:px-6 sm:py-3"
+          //             >
+          //               <span className="sr-only">Actions</span>
+          //             </th>
+          //           </tr>
+          //         </thead>
+          //         <tbody className="bg-white divide-y divide-gray-200">
+          //           <tr>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+          //               Sep 15, 2024
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
+          //               <div className="text-xs sm:text-sm font-medium text-gray-900">
+          //                 Vaccination
+          //               </div>
+          //               <div className="text-xs sm:text-sm text-gray-500">
+          //                 Annual boosters
+          //               </div>
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
+          //               <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+          //                 Cattle
+          //               </span>
+          //               <span className="ml-1 text-xs sm:text-sm text-gray-500">
+          //                 5 animals
+          //               </span>
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+          //               Dr. Emily Davis
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
+          //               <a
+          //                 href="#"
+          //                 className="text-green-600 hover:text-green-900"
+          //               >
+          //                 Details
+          //               </a>
+          //             </td>
+          //           </tr>
+          //           <tr>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+          //               Sep 17, 2024
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
+          //               <div className="text-xs sm:text-sm font-medium text-gray-900">
+          //                 Weight Check
+          //               </div>
+          //               <div className="text-xs sm:text-sm text-gray-500">
+          //                 Monthly measurement
+          //               </div>
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
+          //               <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+          //                 Pig
+          //               </span>
+          //               <span className="ml-1 text-xs sm:text-sm text-gray-500">
+          //                 8 animals
+          //               </span>
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+          //               John Smith
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
+          //               <a
+          //                 href="#"
+          //                 className="text-green-600 hover:text-green-900"
+          //               >
+          //                 Details
+          //               </a>
+          //             </td>
+          //           </tr>
+          //           <tr>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+          //               Sep 19, 2024
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
+          //               <div className="text-xs sm:text-sm font-medium text-gray-900">
+          //                 Health Check
+          //               </div>
+          //               <div className="text-xs sm:text-sm text-gray-500">
+          //                 Follow-up treatment
+          //               </div>
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap">
+          //               <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+          //                 Sheep
+          //               </span>
+          //               <span className="ml-1 text-xs sm:text-sm text-gray-500">
+          //                 2 animals
+          //               </span>
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+          //               Dr. Emily Davis
+          //             </td>
+          //             <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
+          //               <a
+          //                 href="#"
+          //                 className="text-green-600 hover:text-green-900"
+          //               >
+          //                 Details
+          //               </a>
+          //             </td>
+          //           </tr>
+          //         </tbody>
+          //       </table>
+          //     </div>
+          //   </div>
+          //   <div className="px-3 py-3 sm:px-4 sm:py-4 border-t border-gray-200">
+          //     <a
+          //       href="#"
+          //       className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
+          //     >
+          //       View all events <span aria-hidden="true">&rarr;</span>
+          //     </a>
+          //   </div>
+          // </div>
+
+          <EmptyStateAnimalEvents />
+        }
 
         {/* Bulk Actions */}
         <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">

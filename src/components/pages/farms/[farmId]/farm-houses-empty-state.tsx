@@ -1,80 +1,16 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormLabel,
-  FormMessage,
-  FormItem,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useAddHouseToFarm } from "@/hooks/mutations";
-import { toast } from "sonner";
+import { useModal } from "@/hooks/use-modal-store";
 
-const formSchema = z.object({
-  houseNumber: z.string().min(1, {
-    message: "House number is required.",
-  }),
-
-  roomDetails: z
-    .array(
-      z.object({
-        room_number: z.string().min(1, {
-          message: "Room number is required.",
-        }),
-      })
-    )
-    .min(1, {
-      message: "At least one room detail is required.",
-    }),
-});
-
-export default function FarmHouseEmptyState({ farmId }: { farmId: string }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { addHouseToFarm, loading } = useAddHouseToFarm();
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      houseNumber: "",
-      roomDetails: [{ room_number: "" }],
-    },
-  });
-
-  async function onSubmit(data: z.infer<typeof formSchema>) {
-    try {
-      const { houseNumber, roomDetails } = data;
-      await addHouseToFarm({
-        variables: {
-          farmId: farmId,
-          houseNumber: houseNumber,
-          rooms: roomDetails.map((room) => ({
-            room_number: room.room_number,
-          })),
-        },
-      });
-      toast("You successfully added a house to the farm");
-    } catch (error) {
-      console.error("Error adding house to farm:", error);
-      toast.error("Error adding house to farm");
-    }
-  }
+export default function FarmHouseEmptyState({
+  farmId,
+  farmTag,
+}: {
+  farmId: string;
+  farmTag: string;
+}) {
+  const { onOpen } = useModal();
 
   return (
     <div className="bg-white overflow-hidden shadow rounded-lg mb-4 sm:mb-6">
@@ -108,119 +44,13 @@ export default function FarmHouseEmptyState({ farmId }: { farmId: string }) {
             You haven&apos;t added any houses to this farm. Add your first house
             to start managing your farm&apos;s buildings and animals.
           </p>
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                <Plus className="mr-2 h-4 w-4" /> Add house to Farm
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Add New House</DialogTitle>
-                <DialogDescription>
-                  Fill in the details below to create a new house.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form
-                  id="farm-form"
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={form.control}
-                    name="houseNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>House Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Poultry-house-1" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="roomDetails"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Rooms</FormLabel>
-                        <FormControl>
-                          <div className="space-y-2">
-                            {field.value.map(
-                              (
-                                room: { room_number: string },
-                                index: number
-                              ) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <Input
-                                    placeholder={`Room ${index + 1}`}
-                                    value={room.room_number}
-                                    onChange={(e) => {
-                                      const updatedRooms = [...field.value];
-                                      updatedRooms[index].room_number =
-                                        e.target.value;
-                                      field.onChange(updatedRooms);
-                                    }}
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => {
-                                      const updatedRooms = field.value.filter(
-                                        (_: any, i: number) => i !== index
-                                      );
-                                      field.onChange(updatedRooms);
-                                    }}
-                                  >
-                                    Remove
-                                  </Button>
-                                </div>
-                              )
-                            )}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() =>
-                                field.onChange([
-                                  ...field.value,
-                                  { room_number: "" },
-                                ])
-                              }
-                            >
-                              Add Room
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </form>
-              </Form>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  form="farm-form"
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Create Farm
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+
+          <Button
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            onClick={() => onOpen("add-house-to-farm", { farmId, farmTag })}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add house to Farm
+          </Button>
         </div>
       </div>
     </div>
