@@ -7,9 +7,22 @@ import {
   Heart,
   TrendingUp,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-
-const EmptyStateBreeding = () => {
+import { useModal } from "@/hooks/use-modal-store";
+import { Livestock } from "@/graphql/generated/graphql";
+const EmptyStateBreeding = ({
+  penLivestock,
+  penName,
+  livestockType, // Pass the first Livestock object if applicable
+}: {
+  penLivestock: Livestock[];
+  penName?: string;
+  livestockType?: string;
+}) => {
+  const pathname = usePathname();
+  const initialAnimalTag = pathname.split("/").pop();
+  const { onOpen } = useModal();
   return (
     <div>
       {/* Empty Upcoming breeding events */}
@@ -57,7 +70,17 @@ const EmptyStateBreeding = () => {
             program.
           </p>
           <div className="mt-4">
-            <Button className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+            <Button
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              onClick={() => {
+                onOpen("add-livestock-breeding-record", {
+                  penLivestock,
+                  penName,
+                  livestockTag: initialAnimalTag,
+                  livestockType,
+                });
+              }}
+            >
               <Heart className="mr-2 h-4 w-4" />
               Add Breeding Record
             </Button>

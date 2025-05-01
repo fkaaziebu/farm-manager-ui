@@ -1,8 +1,12 @@
 export { default as useCreateFarm } from "./use-create-farm";
 export { default as useLoginAdmin } from "./use-login-admin";
 export { default as useAddBarnsToFarm } from "./use-add-barns-to-farm";
-export { default as useCreateAndAddWorkerToFarm } from "./use-create-and-add-worker-to-farm";
-export { default as useAddAnimalsToFarm } from "./use-add-animals-to-farm";
+export { useCreateAndAddWorkerToFarm } from "./use-create-and-add-worker-to-farm";
+export { default as useAddLivestockToPen } from "./use-add-livestocks-to-pen";
 export { default as useRegisterAdmin } from "./use-register-admin";
 export { default as useAddAnimalHealthRecord } from "./use-add-livestock-health-record";
 export { default as useAddPensToBarn } from "./use-add-pens-to-barn";
+export { useAssignWorkersToFarm } from "./use-create-and-add-worker-to-farm";
+export { default as useAddLivestockBreedingRecord } from "./use-add-livestock-breeding-record";
+export { default as useAddLivestockGrowthRecord } from "./use-add-livestock-growth-record";
+export { default as useAddLivestockExpenseRecord } from "./use-add-livestock-expense-record";

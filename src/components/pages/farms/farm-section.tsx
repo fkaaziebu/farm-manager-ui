@@ -146,7 +146,7 @@ const FarmSection = ({
                       {farm.barns?.length &&
                         farm?.barns?.length > MAX_HOUSES_DISPLAY && (
                           <Link
-                            href={`/farms/${farm.id}/houses`}
+                            href={`/farms/${farm.id}/barns`}
                             className="flex items-center justify-center p-2 bg-gray-50 rounded-md text-xs sm:text-sm text-gray-700 hover:bg-gray-100"
                           >
                             View All {farm?.barns?.length} Houses
@@ -164,7 +164,7 @@ const FarmSection = ({
                       View Details
                     </Link>
                     <Link
-                      href={`/farms/${farm.id}/houses`}
+                      href={`/farms/${farm.id}/barns`}
                       className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                     >
                       Manage Houses

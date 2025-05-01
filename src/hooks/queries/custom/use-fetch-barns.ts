@@ -1,80 +1,72 @@
 import { useState } from "react";
-import useListFarms from "../use-list-farms";
+import useListBarns from "../use-list-barns";
 import { toast } from "sonner";
 import {
-  Farm,
-  FarmSortField,
+  Barn,
+  BarnSortField,
   PageInfo,
   SortDirection,
   PaginationInput,
-  FarmFilterInput,
 } from "@/graphql/generated/graphql";
 
-type FarmProps = NonNullable<Farm>;
+type BarnProps = NonNullable<Barn>;
 
-export default function useFetchFarms() {
-  const [loadingFarms, setLoadingFarms] = useState(false);
-  const [farms, setFarms] = useState<Array<FarmProps>>();
+export default function useFetchBarns() {
+  const [loadingBarns, setLoadingBarns] = useState(false);
+  const [barns, setBarns] = useState<Array<BarnProps>>();
   const [pageInfo, setPageInfo] = useState<PageInfo>();
 
-  const { listFarms } = useListFarms();
+  const { listBarns } = useListBarns();
 
-  const fetchFarms = async ({
+  const fetchBarns = async ({
     searchTerm,
     pagination,
-    filter,
   }: {
     searchTerm?: string;
     pagination?: PaginationInput;
-    filter?: FarmFilterInput;
   }) => {
     try {
-      setLoadingFarms(true);
-      const response = await listFarms({
+      setLoadingBarns(true);
+      const response = await listBarns({
         variables: {
           searchTerm: searchTerm || "",
           sort: [
             {
-              field: FarmSortField.Id,
+              field: BarnSortField.Id,
               direction: SortDirection.Asc,
             },
           ],
           pagination,
-          filter: {
-            id: filter?.id,
-          },
         },
       });
       // @ts-expect-error err
-      setFarms(response?.data?.listFarms?.edges.map((edge) => edge.node) || []);
-      setPageInfo(response?.data?.listFarms?.pageInfo);
+      setBarns(response?.data?.listBarns?.edges.map((edge) => edge.node) || []);
+      setPageInfo(response?.data?.listBarns?.pageInfo);
     } catch (error) {
-      toast("Error loading farms", {
+      toast("Error loading barns", {
         description: `${error}`,
       });
     } finally {
-      setLoadingFarms(false);
+      setLoadingBarns(false);
     }
   };
 
-  const fetchMoreFarms = async ({
+  const fetchMoreBarns = async ({
     searchTerm,
     pagination,
-    filter,
   }: {
     searchTerm?: string;
     pagination?: PaginationInput;
-    filter?: FarmFilterInput;
   }) => {
     try {
       if (pageInfo?.hasNextPage && pageInfo.endCursor) {
-        setLoadingFarms(true);
-        const response = await listFarms({
+        setLoadingBarns(true);
+        const response = await listBarns({
           variables: {
             searchTerm: searchTerm || "",
             sort: [
               {
-                field: FarmSortField.Id,
+                field: BarnSortField.Id,
                 direction: SortDirection.Asc,
               },
             ],
@@ -82,34 +74,31 @@ export default function useFetchFarms() {
               ...pagination,
               after: pageInfo.endCursor,
             },
-            filter: {
-              id: filter?.id,
-            },
           },
         });
 
-        setFarms([
+        setBarns([
           // @ts-expect-error err
-          ...farms,
+          ...barns,
           // @ts-expect-error err
-          ...response.data.listFarms.edges.map((edge) => edge.node),
+          ...response.data.listBarns.edges.map((edge) => edge.node),
         ]);
-        setPageInfo(response.data?.listFarms.pageInfo);
+        setPageInfo(response.data?.listBarns.pageInfo);
       }
     } catch (error) {
-      toast("Error loading farms", {
+      toast("Error loading barns", {
         description: `${error}`,
       });
     } finally {
-      setLoadingFarms(false);
+      setLoadingBarns(false);
     }
   };
 
   return {
-    farms,
-    loadingFarms,
-    fetchFarms,
-    fetchMoreFarms,
+    barns,
+    loadingBarns,
+    fetchBarns,
+    fetchMoreBarns,
     pageInfo,
   };
 }

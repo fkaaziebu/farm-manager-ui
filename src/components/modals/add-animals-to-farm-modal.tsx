@@ -1,621 +1,535 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useModal } from "@/hooks/use-modal-store";
-import { Plus, Check, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Calendar, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormItem, FormLabel } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormLabel,
+  FormMessage,
+  FormItem,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAddAnimalsToFarm } from "@/hooks/mutations";
-import { useFetchFarms } from "@/hooks/queries";
-import { Farm } from "@/graphql/generated/graphql";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useAddLivestockToPen } from "@/hooks/mutations";
+import { LivestockGender, LivestockType } from "@/graphql/generated/graphql";
 
-// Gender enum for animal form
-const AnimalGender = {
+// Define livestock types and gender options
+
+const Gender = {
   MALE: "MALE",
   FEMALE: "FEMALE",
-};
+} as const;
 
-type HouseProp = NonNullable<NonNullable<NonNullable<Farm>["houses"]>[number]>;
+// Validation schema for a single livestock
 
-// Validation schema for a single animal
-const animalSchema = z.object({
-  breed: z.string().min(1, "Breed is required"),
-  gender: z.enum([AnimalGender.MALE, AnimalGender.FEMALE], {
+const CattleBreeds = [
+  "Holstein",
+  "Jersey",
+  "Angus",
+  "Hereford",
+  "Charolais",
+  "Limousin",
+  "Simmental",
+  "Brahman",
+  "Other",
+];
+
+const livestockSchema = z.object({
+  livestockType: z.enum(
+    [
+      LivestockType.Cattle,
+      LivestockType.Sheep,
+      LivestockType.Goat,
+      LivestockType.Pig,
+      LivestockType.Other,
+      LivestockType.Grasscutter,
+    ],
+    {
+      errorMap: () => ({ message: "Livestock type is required" }),
+    }
+  ),
+  breed: z.string().min(1, { message: "Breed is required" }),
+  gender: z.enum([Gender.MALE, Gender.FEMALE], {
     errorMap: () => ({ message: "Gender is required" }),
   }),
-  tag_number: z.string().min(1, "Tag number is required"),
-  birth_date: z.string().refine((date) => !isNaN(Date.parse(date)), {
-    message: "Valid birth date is required",
-  }),
+  livestockTag: z.string().min(1, { message: "Tag number is required" }),
+  birthDate: z.string().optional().nullable(),
+  weight: z.coerce
+    .number()
+    .positive({ message: "Weight must be positive" })
+    .optional()
+    .nullable(),
 });
 
-// Validation schema for the entire form
+// Form schema
 const formSchema = z.object({
-  farmId: z.string().min(1, "Farm ID is required"),
-  houseNumber: z.string().min(1, "House number is required"),
-  roomNumber: z.string().min(1, "Room number is required"),
-  animals: z.array(animalSchema).min(1, "At least one animal is required"),
+  penUnitId: z.string().min(1, { message: "Pen ID is required" }),
+  livestock: z
+    .array(livestockSchema)
+    .min(1, { message: "At least one animal is required" }),
 });
 
-export const AddAnimalsModal = () => {
-  const { isOpen, onClose, type, data } = useModal();
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [pendingAnimals, setPendingAnimals] = useState<
-    { breed: string; gender: string; tag_number: string; birth_date: string }[]
-  >([]);
-  const [houseNumber, setHouseNumber] = useState("");
-  const [roomNumber, setRoomNumber] = useState("");
-  const { addAnimalsToFarm, loading } = useAddAnimalsToFarm();
-  const { farms, fetchFarms } = useFetchFarms();
+export const AddLivestockModal = () => {
+  const { isOpen, onClose, onOpen, type, data } = useModal();
+  const { addLivestockToPen, loading } = useAddLivestockToPen();
 
-  const farmId = data?.farmId || "";
+  const penUnitId = data?.penUnitId || "";
+  const penName = data?.penName || "pen";
+  const [animalCount, setAnimalCount] = useState(1);
 
-  const [houses, setHouses] = useState<HouseProp[]>([]);
-
-  const isModalOpen = isOpen && type === "add-animals-to-farm";
-
-  // Current animal being added
-  const [currentAnimal, setCurrentAnimal] = useState<{
-    breed: string;
-    gender: string;
-    tag_number: string;
-    birth_date: string;
-  }>({
-    breed: "",
-    gender: "",
-    tag_number: "",
-    birth_date: "",
-  });
-
-  // Reset state when modal opens/closes
-  useEffect(() => {
-    if (isModalOpen) {
-      fetchFarms({
-        filter: {
-          id: {
-            eq: farmId,
-          },
-        },
-      });
-    } else {
-      setPendingAnimals([]);
-      setHouseNumber("");
-      setRoomNumber("");
-      setCurrentAnimal({
-        breed: "",
-        gender: "",
-        tag_number: "",
-        birth_date: "",
-      });
-      setIsReviewModalOpen(false);
-    }
-  }, [isModalOpen, farmId]);
-
-  // Update houses when farms data changes
-  useEffect(() => {
-    if (farms && farms.length > 0 && farmId) {
-      const selectedFarm = farms.find((farm) => farm.id === farmId);
-      setHouses(selectedFarm?.houses ?? []);
-    }
-  }, [farms, farmId]);
-
-  // Form setup
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      farmId,
-      houseNumber: "",
-      roomNumber: "",
-      animals: [],
+      penUnitId: penUnitId,
+      livestock: [
+        {
+          livestockType: LivestockType.Cattle,
+          breed: "",
+          gender: LivestockGender.Male,
+          livestockTag: "",
+          birthDate: null,
+          weight: null,
+        },
+      ],
     },
   });
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
+  // Update form when penUnitId changes
+  useEffect(() => {
+    if (isOpen && penUnitId) {
+      form.setValue("penUnitId", penUnitId);
+    }
+  }, [isOpen, penUnitId, form]);
+
+  const isModalOpen = isOpen && type === "add-livestock-to-pen";
+
+  // Helper to add a new animal to the form
+  const addAnimal = () => {
+    const currentAnimals = form.getValues("livestock");
+    form.setValue("livestock", [
+      ...currentAnimals,
+      {
+        livestockType: LivestockType.Cattle,
+        breed: "",
+        gender: LivestockGender.Male,
+        livestockTag: "",
+        birthDate: null,
+        weight: null,
+      },
+    ]);
+    setAnimalCount(animalCount + 1);
+  };
+
+  // Helper to remove an animal from the form
+  const removeAnimal = (index: number) => {
+    const currentAnimals = form.getValues("livestock");
+    if (currentAnimals.length > 1) {
+      form.setValue(
+        "livestock",
+        currentAnimals.filter((_, i) => i !== index)
+      );
+      setAnimalCount(animalCount - 1);
+    }
+  };
+
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString();
-    } catch (e) {
-      return dateString;
-    }
-  };
+      console.log("Submitting form data:", data);
 
-  // Update current animal being added
-  const updateCurrentAnimal = (field, value) => {
-    setCurrentAnimal({
-      ...currentAnimal,
-      [field]: value,
-    });
-  };
+      // Format the data for the API
+      const formattedLivestock = data.livestock.map((animal) => ({
+        livestockType: animal.livestockType,
+        breed: animal.breed,
+        gender: animal.gender as LivestockGender,
+        livestockTag: animal.livestockTag,
+        birthDate: animal.birthDate || null,
+        weight: animal.weight ?? 0,
+      }));
 
-  // Add animal to pending list
-  const addAnimalToPending = () => {
-    // Validate all fields are filled
-    if (
-      !currentAnimal.breed ||
-      !currentAnimal.gender ||
-      !currentAnimal.tag_number ||
-      !currentAnimal.birth_date
-    ) {
-      toast.error("Please fill out all fields");
-      return;
-    }
-
-    // Validate birth date
-    if (isNaN(Date.parse(currentAnimal.birth_date))) {
-      toast.error("Please enter a valid birth date");
-      return;
-    }
-
-    // Add to pending animals
-    setPendingAnimals([...pendingAnimals, { ...currentAnimal }]);
-
-    // Reset current animal form
-    setCurrentAnimal({
-      breed: "",
-      gender: "",
-      tag_number: "",
-      birth_date: "",
-    });
-
-    toast.success("Animal added to pending list");
-  };
-
-  // Remove animal from pending list
-  const removeAnimal = (index) => {
-    const newAnimals = [...pendingAnimals];
-    newAnimals.splice(index, 1);
-    setPendingAnimals(newAnimals);
-  };
-
-  // Handle final submission
-  const handleFormSubmit = async () => {
-    // Validate farm details
-    if (!houseNumber || !roomNumber) {
-      toast.error("Please enter house and room numbers");
-      return;
-    }
-
-    if (pendingAnimals.length === 0) {
-      toast.error("No animals to add");
-      return;
-    }
-
-    try {
-      await addAnimalsToFarm({
+      await addLivestockToPen({
         variables: {
-          farmId,
-          houseNumber,
-          roomNumber,
-          animals: pendingAnimals,
+          penUnitId: data.penUnitId,
+          livestock: formattedLivestock,
         },
       });
-      toast.success("Animals added successfully");
-      setPendingAnimals([]);
-      setIsReviewModalOpen(false);
+
+      // Reset form
+      form.reset({
+        penUnitId: penUnitId,
+        livestock: [
+          {
+            livestockType: LivestockType.Cattle,
+            breed: "",
+            gender: LivestockGender.Male,
+            livestockTag: "",
+            birthDate: null,
+            weight: null,
+          },
+        ],
+      });
+      setAnimalCount(1);
+
       onClose();
+      onOpen("notification", {
+        notificationType: "success",
+        notificationMessage: `Livestock added successfully!`,
+      });
     } catch (error) {
-      // Error handling is done in the mutation hook
-      console.error(error);
+      onOpen("notification", {
+        notificationType: "error",
+        notificationMessage: `Error adding livestock: ${error}`,
+      });
+      console.error("Error adding livestock:", error);
     }
-  };
+  }
+
+  useEffect(() => {
+    if (isModalOpen && penUnitId) {
+      form.setValue("penUnitId", penUnitId);
+    }
+  }, [isModalOpen, penUnitId, form]);
 
   return (
-    <>
-      <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            initial={{ y: 5, opacity: 0, display: "none" }}
-            animate={{ y: 0, opacity: 1, display: "block" }}
-            exit={{ y: 5, opacity: 0, display: "none" }}
-            className="backdrop-blur-sm fixed bg-gray-400/60 inset-0 z-50 flex items-center justify-center "
-            onClick={() => onClose()}
-          >
-            <div className="flex items-center justify-center w-full h-full">
-              <div
-                className=" w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden items-center justify-center m-auto "
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Main Add Animals Modal */}
-                {!isReviewModalOpen ? (
-                  <>
-                    <div className="bg-green-50 px-6 py-4 border-b border-green-100">
-                      <div className="space-y-2">
-                        <div className="text-xl font-semibold text-green-800">
-                          Add new animals to the farm
-                        </div>
-                        <div className="text-sm text-green-700">
-                          Add multiple animals one by one, then review and
-                          submit them all together.
-                        </div>
-                      </div>
-                    </div>
+    <AnimatePresence>
+      {isModalOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -5 }}
+          transition={{ duration: 0.2 }}
+          className="backdrop-blur-sm bg-gray-400/60 fixed inset-0 z-50 flex items-center justify-center"
+          onClick={() => onClose()}
+        >
+          <div className="flex items-center justify-center w-full h-full">
+            <div
+              className="w-full max-w-2xl bg-white rounded-lg shadow-xl overflow-hidden items-center justify-center m-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-green-50 p-4 border-b border-green-200">
+                <div className="text-xl font-semibold text-green-800">
+                  Add Livestock to {penName}
+                </div>
+                <div className="text-sm text-green-700 mt-1">
+                  Add one or more animals to your pen. You can add multiple
+                  animals at once.
+                </div>
+              </div>
 
-                    <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
-                      <Form {...form}>
-                        <div className="space-y-4">
-                          {/* Animal count badge */}
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-medium text-gray-800">
-                              Location Details
-                            </h3>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              {pendingAnimals.length} animal
-                              {pendingAnimals.length !== 1 ? "s" : ""} pending
-                            </span>
+              <div className="p-6 max-h-[70vh] overflow-y-auto">
+                <Form {...form}>
+                  <form
+                    id="livestock-form"
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-6"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="penUnitId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pen unit</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Farm identifier"
+                              {...field}
+                              readOnly={!!penUnitId}
+                              value={field.value}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-gray-700">
+                          Animals
+                        </h3>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {animalCount}{" "}
+                          {animalCount === 1 ? "animal" : "animals"}
+                        </span>
+                      </div>
+
+                      {form.watch("livestock").map((_, index) => (
+                        <div
+                          key={index}
+                          className="p-4 border border-gray-200 rounded-md space-y-4 bg-gray-50"
+                        >
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-medium text-gray-700">
+                              Animal {index + 1}
+                            </h4>
+                            {form.watch("livestock").length > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeAnimal(index)}
+                                className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">Remove animal</span>
+                              </Button>
+                            )}
                           </div>
 
-                          {/* House Number field */}
-                          <FormItem className="space-y-1.5">
-                            <FormLabel className="text-sm font-medium text-gray-700">
-                              Select House
-                            </FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <select
-                                  value={houseNumber || ""}
-                                  onChange={(e) =>
-                                    setHouseNumber(e.target.value)
-                                  }
-                                  className="w-full rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none"
-                                >
-                                  <option value="">Select a house</option>
-                                  {houses?.map((house) => (
-                                    <option
-                                      key={house.id}
-                                      value={house.house_number}
-                                    >
-                                      {house.house_number}
-                                    </option>
-                                  ))}
-                                </select>
-                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                  <svg
-                                    className="fill-current h-4 w-4"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20"
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name={`livestock.${index}.livestockType`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Type <span className="text-red-500">*</span>
+                                  </FormLabel>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
                                   >
-                                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                  </svg>
-                                </div>
-                              </div>
-                            </FormControl>
-                          </FormItem>
-
-                          <FormItem className="space-y-1.5">
-                            <FormLabel className="text-sm font-medium text-gray-700">
-                              Select Room
-                            </FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <select
-                                  value={roomNumber || ""}
-                                  onChange={(e) =>
-                                    setRoomNumber(e.target.value)
-                                  }
-                                  className="w-full rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none"
-                                  disabled={!houseNumber}
-                                >
-                                  <option value="">Select a room</option>
-                                  {houses
-                                    ?.find(
-                                      (house) =>
-                                        house.house_number === houseNumber
-                                    )
-                                    ?.rooms?.map((room) => (
-                                      <option
-                                        key={room.id}
-                                        value={room.room_number}
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select type" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value={LivestockType.Cattle}>
+                                        Cattle
+                                      </SelectItem>
+                                      <SelectItem value={LivestockType.Sheep}>
+                                        Sheep
+                                      </SelectItem>
+                                      <SelectItem value={LivestockType.Goat}>
+                                        Goat
+                                      </SelectItem>
+                                      <SelectItem value={LivestockType.Pig}>
+                                        Pig
+                                      </SelectItem>
+                                      <SelectItem
+                                        value={LivestockType.Grasscutter}
                                       >
-                                        {room.room_number}
-                                      </option>
-                                    ))}
-                                </select>
-                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                  <svg
-                                    className="fill-current h-4 w-4"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                  </svg>
-                                </div>
-                              </div>
-                            </FormControl>
-                          </FormItem>
+                                        Grasscutter
+                                      </SelectItem>
 
-                          <div className="border-t border-gray-200 pt-4 mt-4">
-                            <h3 className="text-lg font-medium text-gray-800 mb-4">
-                              Animal Details
-                            </h3>
+                                      <SelectItem value={LivestockType.Other}>
+                                        Other
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
 
-                            {/* Breed field */}
-                            <FormItem className="space-y-1.5">
-                              <FormLabel className="text-sm font-medium text-gray-700">
-                                Breed
-                              </FormLabel>
-                              <FormControl>
-                                <input
-                                  type="text"
-                                  value={currentAnimal.breed || ""}
-                                  onChange={(e) =>
-                                    updateCurrentAnimal("breed", e.target.value)
-                                  }
-                                  className="w-full rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm placeholder-gray-400 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                                  placeholder="e.g. Holstein"
-                                />
-                              </FormControl>
-                            </FormItem>
-
-                            {/* Gender field */}
-                            <FormItem className="space-y-1.5 mt-3">
-                              <FormLabel className="text-sm font-medium text-gray-700">
-                                Gender
-                              </FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <select
-                                    value={currentAnimal.gender || ""}
-                                    onChange={(e) =>
-                                      updateCurrentAnimal(
-                                        "gender",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-full rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none"
-                                  >
-                                    <option value="">Select gender</option>
-                                    <option value={AnimalGender.MALE}>
-                                      Male
-                                    </option>
-                                    <option value={AnimalGender.FEMALE}>
-                                      Female
-                                    </option>
-                                  </select>
-                                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg
-                                      className="fill-current h-4 w-4"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      viewBox="0 0 20 20"
+                            <FormField
+                              control={form.control}
+                              name={`livestock.${index}.breed`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Breed{" "}
+                                    <span className="text-red-500">*</span>
+                                  </FormLabel>
+                                  {form.watch(
+                                    `livestock.${index}.livestockType`
+                                  ) === LivestockType.Cattle ? (
+                                    <Select
+                                      onValueChange={field.onChange}
+                                      value={field.value || ""}
                                     >
-                                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </FormControl>
-                            </FormItem>
-
-                            {/* Tag Number field */}
-                            <FormItem className="space-y-1.5 mt-3">
-                              <FormLabel className="text-sm font-medium text-gray-700">
-                                Tag Number
-                              </FormLabel>
-                              <FormControl>
-                                <input
-                                  type="text"
-                                  value={currentAnimal.tag_number || ""}
-                                  onChange={(e) =>
-                                    updateCurrentAnimal(
-                                      "tag_number",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="w-full rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm placeholder-gray-400 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                                  placeholder="e.g. A12345"
-                                />
-                              </FormControl>
-                            </FormItem>
-
-                            {/* Birth Date field */}
-                            <FormItem className="space-y-1.5 mt-3">
-                              <FormLabel className="text-sm font-medium text-gray-700">
-                                Birth Date
-                              </FormLabel>
-                              <FormControl>
-                                <input
-                                  type="date"
-                                  value={currentAnimal.birth_date || ""}
-                                  onChange={(e) =>
-                                    updateCurrentAnimal(
-                                      "birth_date",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="w-full rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm placeholder-gray-400 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                                />
-                              </FormControl>
-                            </FormItem>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select breed" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {CattleBreeds.map((breed) => (
+                                          <SelectItem key={breed} value={breed}>
+                                            {breed}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  ) : (
+                                    <FormControl>
+                                      <Input
+                                        placeholder="e.g. Holstein"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                  )}
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                           </div>
 
-                          {/* Add animal button */}
-                          <Button
-                            type="button"
-                            className="w-full inline-flex items-center justify-center px-4 py-2.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150"
-                            onClick={addAnimalToPending}
-                          >
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add This Animal
-                          </Button>
-                        </div>
-                      </Form>
-
-                      {/* Show pending animals preview if any */}
-                      {pendingAnimals.length > 0 && (
-                        <div className="mt-6 pt-6 border-t border-gray-200">
-                          <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-sm font-medium text-gray-700">
-                              Pending Animals
-                            </h3>
-                            <Button
-                              type="button"
-                              className="text-xs text-green-600 hover:text-green-800 font-medium"
-                              onClick={() => setIsReviewModalOpen(true)}
-                            >
-                              Review All
-                            </Button>
-                          </div>
-
-                          <div className="max-h-40 overflow-y-auto pr-2">
-                            {pendingAnimals.map((animal, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center space-x-2 py-2 border-b border-gray-100 last:border-0"
-                              >
-                                <Check className="h-4 w-4 text-green-600 flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-800 truncate">
-                                    {animal.breed}
-                                  </p>
-                                  <p className="text-xs text-gray-500 truncate">
-                                    Tag: {animal.tag_number}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t border-gray-100">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150"
-                        onClick={() => onClose()}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="button"
-                        className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150"
-                        onClick={() => setIsReviewModalOpen(true)}
-                        disabled={pendingAnimals.length === 0}
-                      >
-                        {`Review & Submit (${pendingAnimals.length})`}
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  /* Review Animals Modal */
-                  <>
-                    <div className="bg-blue-50 px-6 py-4 border-b border-blue-100">
-                      <div className="space-y-2">
-                        <div className="text-xl font-semibold text-blue-800">
-                          Review Animals
-                        </div>
-                        <div className="text-sm text-blue-700">
-                          Review the animals you&apos;re about to add to{" "}
-                          {houseNumber ? houseNumber : "the farm"}.
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => onClose()}
-                        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
-                      {pendingAnimals.length === 0 ? (
-                        <div className="text-center py-8">
-                          <AlertCircle className="mx-auto h-10 w-10 text-gray-400" />
-                          <p className="mt-2 text-sm text-gray-500">
-                            No animals added yet
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <div className="bg-gray-50 p-3 rounded-lg">
-                            <p className="text-sm font-medium text-gray-700">
-                              Location: {houseNumber || "Not specified"} -{" "}
-                              {roomNumber || "Not specified"}
-                            </p>
-                          </div>
-
-                          <div className="flex justify-between items-center">
-                            <h3 className="text-sm font-medium text-gray-700">
-                              Total animals: {pendingAnimals.length}
-                            </h3>
-                          </div>
-
-                          <div className="max-h-64 overflow-y-auto">
-                            {pendingAnimals.map((animal, idx) => (
-                              <div
-                                key={idx}
-                                className="p-3 mb-2 border border-gray-200 rounded-lg bg-white"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <div className="flex items-center space-x-2">
-                                      <p className="text-sm font-medium text-gray-800">
-                                        {animal.breed}
-                                      </p>
-                                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                        {animal.gender === AnimalGender.MALE
-                                          ? "Male"
-                                          : "Female"}
-                                      </span>
-                                    </div>
-                                    <p className="text-xs text-gray-500">
-                                      Tag: {animal.tag_number}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                      Birth Date:{" "}
-                                      {formatDate(animal.birth_date)}
-                                    </p>
-                                  </div>
-                                  <Button
-                                    type="button"
-                                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium text-red-700 hover:bg-red-50"
-                                    onClick={() => removeAnimal(idx)}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name={`livestock.${index}.gender`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Gender{" "}
+                                    <span className="text-red-500">*</span>
+                                  </FormLabel>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
                                   >
-                                    Remove
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select gender" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value={Gender.MALE}>
+                                        Male
+                                      </SelectItem>
+                                      <SelectItem value={Gender.FEMALE}>
+                                        Female
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name={`livestock.${index}.livestockTag`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Tag Number{" "}
+                                    <span className="text-red-500">*</span>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g. A12345"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name={`livestock.${index}.birthDate`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="flex items-center">
+                                    <Calendar className="h-3.5 w-3.5 mr-1" />
+                                    Birth Date
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="date"
+                                      {...field}
+                                      value={field.value || ""}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name={`livestock.${index}.weight`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="flex items-center">
+                                    <Scale className="h-3.5 w-3.5 mr-1" />
+                                    Weight (lbs)
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="Weight in pounds"
+                                      {...field}
+                                      value={
+                                        field.value === null ? "" : field.value
+                                      }
+                                      onChange={(e) => {
+                                        const value =
+                                          e.target.value === ""
+                                            ? null
+                                            : Number(e.target.value);
+                                        field.onChange(value);
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                           </div>
                         </div>
-                      )}
-                    </div>
+                      ))}
 
-                    <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t border-gray-100">
                       <Button
                         type="button"
                         variant="outline"
-                        className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
-                        onClick={() => setIsReviewModalOpen(false)}
+                        className="w-full"
+                        onClick={addAnimal}
                       >
-                        Back
-                      </Button>
-                      <Button
-                        type="button"
-                        className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
-                        onClick={handleFormSubmit}
-                        disabled={
-                          pendingAnimals.length === 0 ||
-                          !houseNumber ||
-                          !roomNumber ||
-                          loading
-                        }
-                      >
-                        {loading ? "Adding..." : "Add All Animals"}
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Another Animal
                       </Button>
                     </div>
-                  </>
-                )}
+                  </form>
+                </Form>
+              </div>
+
+              <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onClose()}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  form="livestock-form"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  disabled={loading}
+                >
+                  {loading
+                    ? "Adding..."
+                    : `Add ${animalCount} ${
+                        animalCount === 1 ? "Animal" : "Animals"
+                      }`}
+                </Button>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
+
+export default AddLivestockModal;

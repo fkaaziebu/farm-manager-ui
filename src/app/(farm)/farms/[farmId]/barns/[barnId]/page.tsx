@@ -39,7 +39,6 @@ import { HousingStatus } from "@/graphql/generated/graphql";
 import EmptyStateBarnPens from "@/components/pages/farms/barns/empty-barn-state";
 import { useModal } from "@/hooks/use-modal-store";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 
 export default function HouseDetailPage() {
   const { onOpen } = useModal();
@@ -47,7 +46,6 @@ export default function HouseDetailPage() {
   const pathname = usePathname();
   const barnUnitId = pathname.split("/").pop() ?? "";
   const farmId = pathname.split("/")[pathname.split("/").length - 3];
-  const router = useRouter();
   const totalOcupancy = barn?.pens
     ? barn.pens.reduce((acc, curr) => acc + curr?.livestock?.length, 0)
     : 0;
@@ -105,10 +103,19 @@ export default function HouseDetailPage() {
     { time: "Now", value: 65 },
   ];
 
-  const animalDistribution = [
-    { name: "Holstein Cattle", value: 32 },
-    { name: "Jersey Cattle", value: 10 },
-  ];
+  const animalDistribution =
+    barn?.pens?.reduce((acc, pen) => {
+      pen.livestock?.forEach((livestock) => {
+        const type = livestock.livestock_type;
+        const existing = acc.find((item) => item.name === type);
+        if (existing) {
+          existing.value += 1;
+        } else {
+          acc.push({ name: type, value: 1 });
+        }
+      });
+      return acc;
+    }, [] as { name: string; value: number }[]) || [];
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -222,9 +229,9 @@ export default function HouseDetailPage() {
           {!loadingBarn && (
             <div className="flex flex-col sm:flex-row sm:items-center">
               <div className="flex items-center">
-                <button onClick={() => router.back()} className="mr-3 sm:mr-4">
+                <Link href={`/farms/${farmId}/barns`} className="mr-3 sm:mr-4">
                   <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-                </button>
+                </Link>
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center">
                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
@@ -255,7 +262,7 @@ export default function HouseDetailPage() {
                   Edit
                 </button>
                 <Link
-                  href={`/farms/1/houses/${house.id}/rooms`}
+                  href={`/farms/${farmId}/barns/${barn?.unit_id}/pens`}
                   className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700"
                 >
                   View Rooms
@@ -519,7 +526,7 @@ export default function HouseDetailPage() {
                           </dt>
                           <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
                             {calculateOccupancy(
-                              house.occupancy,
+                              totalOcupancy,
                               barn?.capacity || 0
                             )}
                             %
@@ -629,7 +636,9 @@ export default function HouseDetailPage() {
                             cy="50%"
                             labelLine={false}
                             label={({ name, percent }) =>
-                              `${name}: ${(percent * 100).toFixed(0)}%`
+                              `${name.charAt(0)}${name
+                                .slice(1)
+                                .toLowerCase()}: ${(percent * 100).toFixed(0)}%`
                             }
                             outerRadius={window.innerWidth < 640 ? 70 : 100}
                             fill="#8884d8"
@@ -655,13 +664,13 @@ export default function HouseDetailPage() {
                           </h4>
                           <div className="mt-2 flex items-center justify-between">
                             <div className="text-xs sm:text-sm font-medium text-gray-500">
-                              Current Occupancy: {house.occupancy}/
-                              {house.capacity}
+                              Current Occupancy: {totalOcupancy}/
+                              {barn?.capacity}
                             </div>
                             <div className="text-xs sm:text-sm font-medium text-gray-900">
                               {calculateOccupancy(
-                                house.occupancy,
-                                house.capacity
+                                totalOcupancy,
+                                barn?.capacity || 0
                               )}
                               %
                             </div>
@@ -671,8 +680,8 @@ export default function HouseDetailPage() {
                               className="bg-green-600 h-2.5 rounded-full"
                               style={{
                                 width: `${calculateOccupancy(
-                                  house.occupancy,
-                                  house.capacity
+                                  totalOcupancy,
+                                  barn?.capacity || 0
                                 )}%`,
                               }}
                             ></div>
@@ -1129,15 +1138,42 @@ export default function HouseDetailPage() {
                               </dd>
                             </div>
                             <div className="col-span-2">
-                              <dt className="text-xs sm:text-sm font-medium text-gray-500">
+                              <dt className="text-xs sm:text-sm font-medium text-gray-500 pb-2">
                                 Animal Types
                               </dt>
                               <dd className="mt-1 text-xs sm:text-sm text-gray-900">
-                                {pen?.livestock
-                                  ?.map(
-                                    (livestock) => livestock?.livestock_type
-                                  )
-                                  .join(", ")}
+                                {pen?.livestock?.length ? (
+                                  Array.from(
+                                    new Set(
+                                      pen?.livestock?.map(
+                                        (livestock) =>
+                                          livestock?.livestock_type
+                                            ?.charAt(0)
+                                            .toUpperCase() +
+                                          livestock?.livestock_type
+                                            ?.slice(1)
+                                            .toLowerCase()
+                                      )
+                                    )
+                                  ).join(", ")
+                                ) : (
+                                  <div className="flex flex-col items-start">
+                                    <p className="text-red-500 text-xs sm:text-sm">
+                                      No animals assigned to this room.
+                                    </p>
+                                    <button
+                                      onClick={() =>
+                                        onOpen("add-livestock-to-pen", {
+                                          penUnitId: pen.unit_id,
+                                        })
+                                      }
+                                      className="mt-2 inline-flex items-center px-2 sm:px-3 py-1 border border-transparent text-xs sm:text-sm leading-5 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                                    >
+                                      <Plus className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                                      Add Animal
+                                    </button>
+                                  </div>
+                                )}
                               </dd>
                             </div>
                           </dl>
@@ -1152,7 +1188,7 @@ export default function HouseDetailPage() {
                             })}
                           </div>
                           <Link
-                            href={`/farms/${farmId}/houses/${barn.id}/rooms/${pen.id}`}
+                            href={`/farms/${farmId}/barns/${barn.unit_id}/pens/${pen.unit_id}`}
                             className="inline-flex items-center justify-center px-2 sm:px-3 py-1 border border-transparent text-xs sm:text-sm leading-5 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                           >
                             <Eye className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />

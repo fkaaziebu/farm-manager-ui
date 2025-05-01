@@ -1,0 +1,34 @@
+query ListLivestock(
+  $searchTerm: String!
+  $pagination: PaginationInput
+  $sort: [LivestockSortInput!]
+) {
+  listLivestock(searchTerm: $searchTerm, pagination: $pagination, sort: $sort) {
+    edges {
+      node {
+        availability_status
+        birth_date
+        gender
+        health_status
+        livestock_tag
+        weight
+        updated_at
+        livestock_type
+        pen {
+          unit_id
+          barn {
+            unit_id
+          }
+        }
+        inserted_at
+        id
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+      hasPreviousPage
+      startCursor
+    }
+  }
+}

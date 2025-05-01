@@ -8,6 +8,33 @@ declare module '*/add-barns-to-farm.graphql' {
 }
     
 
+declare module '*/add-livestock-breeding-record.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const AddLivestockBreedingRecord: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/add-livestock-expense-record.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const AddLivestockExpenseRecord: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/add-livestock-growth-record.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const AddLivestockGrowthRecord: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/add-livestock-health-record.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -35,10 +62,19 @@ declare module '*/add-pens-to-barn.graphql' {
 }
     
 
-declare module '*/create-and-add-workers-to-farm.graphql' {
+declare module '*/add-workers-to-farm.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const AddWorkersToFarm: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/assign-workers-to-farm.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const AssignWorkersToFarm: DocumentNode;
 
   export default defaultDocument;
 }
@@ -80,10 +116,55 @@ declare module '*/get-barn.graphql' {
 }
     
 
+declare module '*/get-livestock.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetLivestock: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/get-pen.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetPen: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/list-barns.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const ListBarns: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/list-farms.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const ListFarms: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/list-livestock.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const ListLivestock: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/list-pens.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const ListPens: DocumentNode;
 
   export default defaultDocument;
 }

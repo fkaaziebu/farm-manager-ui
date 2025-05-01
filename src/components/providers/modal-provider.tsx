@@ -1,13 +1,16 @@
 "use client";
 
 import { AddFarmModal } from "@/components/modals/add-farm-modal";
-import { AddAnimalsModal } from "@/components/modals/add-animals-to-farm-modal";
+import { AddLivestockModal } from "@/components/modals/add-animals-to-farm-modal";
 import { HealthRecordModal } from "@/components/modals/add-health-record-modal";
-import { AddWorkersModal } from "@/components/modals/add-workers-to-farm-modal";
+import { FarmWorkersModal } from "@/components/modals/add-workers-to-farm-modal";
 import { AddHouseModal } from "@/components/modals/add-barns-to-farm-modal";
 import { useEffect, useState } from "react";
 import { AddPensModal } from "../modals/add-pens-to-barns-modal";
 import { NotificationModal } from "../modals/notification-modal";
+import { BreedingRecordModal } from "../modals/add-livestock-breeding-record-modal";
+import { GrowthRecordModal } from "../modals/add-livestock-growth-record-modal";
+import { ExpenseRecordModal } from "../modals/add-livestock-expense-record-modal";
 
 export const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -23,12 +26,15 @@ export const ModalProvider = () => {
   return (
     <>
       <AddFarmModal />
-      <AddAnimalsModal />
       <HealthRecordModal />
-      <AddWorkersModal />
+      <FarmWorkersModal />
       <AddHouseModal />
       <AddPensModal />
       <NotificationModal />
+      <AddLivestockModal />
+      <BreedingRecordModal />
+      <GrowthRecordModal />
+      <ExpenseRecordModal />
     </>
   );
 };

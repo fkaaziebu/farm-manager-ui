@@ -5,6 +5,7 @@ query GetBarn($barnUnitId: String!) {
     construction_date
     id
     name
+    unit_id
     pens {
       area_sqm
       bedding_type

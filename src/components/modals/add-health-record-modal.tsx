@@ -12,6 +12,7 @@ import {
   User,
   DollarSign,
   FilePlus,
+  CalendarCheckIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,6 +20,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useAddAnimalHealthRecord } from "@/hooks/mutations";
+
+import { HealthRecordStatus } from "@/graphql/generated/graphql";
 
 type AddHealthRecordInput = {
   tagNumber: string;
@@ -29,13 +32,17 @@ type AddHealthRecordInput = {
   vetName: string;
   cost: string;
   notes: string;
+  dosage: string;
+  treatment: string;
+  recordDate: string;
+  recordStatus: HealthRecordStatus;
 };
 
 export const HealthRecordModal = () => {
   const { isOpen, onClose, type, data } = useModal();
-  const { addAnimalHealthRecord, loading } = useAddAnimalHealthRecord();
-
-  const tagNumber = data?.tagNumber || "";
+  const { addLivestockHealthRecord, loading } = useAddAnimalHealthRecord();
+  const { onOpen } = useModal();
+  const tagNumber = data?.livestockTag || "";
 
   const [healthRecord, setHealthRecord] = useState({
     tagNumber: tagNumber,
@@ -46,6 +53,10 @@ export const HealthRecordModal = () => {
     vetName: "",
     cost: "",
     notes: "",
+    dosage: "",
+    treatment: "",
+    recordDate: new Date().toISOString(),
+    recordStatus: HealthRecordStatus.Healthy,
   });
 
   const {
@@ -63,6 +74,10 @@ export const HealthRecordModal = () => {
       vetName: "",
       cost: "",
       notes: "",
+      dosage: "",
+      treatment: "",
+      recordStatus: HealthRecordStatus.Healthy,
+      recordDate: new Date().toISOString(),
     },
   });
 
@@ -72,16 +87,22 @@ export const HealthRecordModal = () => {
   const onSubmit: SubmitHandler<AddHealthRecordInput> = async (data, event) => {
     event?.preventDefault();
     try {
-      const response = await addAnimalHealthRecord({
+      const response = await addLivestockHealthRecord({
         variables: {
-          tagNumber: tagNumber,
-          issue: data.issue,
-          symptoms: data.symptoms,
-          diagnosis: data.diagnosis,
-          medication: data.medication,
-          vetName: data.vetName,
-          cost: parseInt(data.cost),
-          notes: data.notes,
+          livestockTag: tagNumber,
+          healthRecord: {
+            issue: data.issue,
+            symptoms: data.symptoms,
+            diagnosis: data.diagnosis,
+            medication: data.medication,
+            vetName: data.vetName,
+            cost: parseFloat(data.cost),
+            notes: data.notes,
+            recordDate: new Date().toISOString(),
+            treatment: data.treatment,
+            dosage: data.dosage,
+            recordStatus: data.recordStatus,
+          },
         },
       });
 
@@ -89,7 +110,7 @@ export const HealthRecordModal = () => {
         throw new Error(response.errors[0].message);
       }
 
-      if (!response.data?.addAnimalHealthRecord) {
+      if (!response.data?.addLivestockHealthRecord) {
         throw new Error("Failed to add health record");
       }
 
@@ -104,12 +125,22 @@ export const HealthRecordModal = () => {
         vetName: "",
         cost: "",
         notes: "",
+        dosage: "",
+        treatment: "",
+        recordDate: new Date().toISOString(),
+        recordStatus: HealthRecordStatus.Healthy,
       });
 
       onClose();
+      onOpen("notification", {
+        notificationType: "success",
+        notificationMessage: `Health record created successfully!`,
+      });
     } catch (error) {
-      console.error(error);
-      alert("Failed to add health record.");
+      onOpen("notification", {
+        notificationType: "error",
+        notificationMessage: `Error creating health record: ${error}`,
+      });
     }
   };
 
@@ -159,6 +190,50 @@ export const HealthRecordModal = () => {
                         readOnly
                         className="col-span-3 bg-gray-100 cursor-not-allowed"
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="recordStatus"
+                        className="flex items-center"
+                      >
+                        <Clipboard className="h-4 w-4 mr-1 text-gray-500" />
+                        Animal health Status
+                      </Label>
+                      <select
+                        id="recordStatus"
+                        value={healthRecord.recordStatus}
+                        {...register("recordStatus", {
+                          required: {
+                            value: true,
+                            message: "Health status is required",
+                          },
+                          onChange(event) {
+                            setHealthRecord({
+                              ...healthRecord,
+                              recordStatus: event.target
+                                .value as HealthRecordStatus,
+                            });
+                          },
+                        })}
+                        className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                      >
+                        <option value={HealthRecordStatus.Healthy}>
+                          Healthy
+                        </option>
+                        <option value={HealthRecordStatus.Sick}>Sick</option>
+                        <option value={HealthRecordStatus.Recovering}>
+                          Recovering
+                        </option>
+                        <option value={HealthRecordStatus.Treated}>
+                          Treated
+                        </option>
+                      </select>
+                      {errors.recordStatus && (
+                        <p className="text-xs text-red-500">
+                          {errors.recordStatus.message}
+                        </p>
+                      )}
                     </div>
 
                     {/* Health Issue */}
@@ -255,9 +330,38 @@ export const HealthRecordModal = () => {
 
                     {/* Medication */}
                     <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="treatment" className="flex items-center">
+                        <Pill className="h-4 w-4 mr-1 text-gray-500" />
+                        Treatment
+                      </Label>
+                      <Input
+                        id="treatment"
+                        placeholder="e.g Isolate and give injection"
+                        value={healthRecord.treatment}
+                        {...register("treatment", {
+                          required: {
+                            value: true,
+                            message: "Treatment is required",
+                          },
+                          onChange(event) {
+                            setHealthRecord({
+                              ...healthRecord,
+                              treatment: event.target.value,
+                            });
+                          },
+                        })}
+                      />
+                      {errors.treatment && (
+                        <p className="text-xs text-red-500">
+                          {errors.treatment.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
                       <Label htmlFor="medication" className="flex items-center">
                         <Pill className="h-4 w-4 mr-1 text-gray-500" />
-                        Medication/Treatment
+                        Medication
                       </Label>
                       <Input
                         id="medication"
@@ -279,6 +383,36 @@ export const HealthRecordModal = () => {
                       {errors.medication && (
                         <p className="text-xs text-red-500">
                           {errors.medication.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="doasge" className="flex items-center">
+                        <Pill className="h-4 w-4 mr-1 text-gray-500" />
+                        Dosage
+                      </Label>
+                      <Input
+                        id="dosage"
+                        type="string"
+                        placeholder="e.g. 500mg"
+                        value={healthRecord.dosage}
+                        {...register("dosage", {
+                          required: {
+                            value: true,
+                            message: "Dosage is required",
+                          },
+                          onChange(event) {
+                            setHealthRecord({
+                              ...healthRecord,
+                              dosage: event.target.value,
+                            });
+                          },
+                        })}
+                      />
+                      {errors.dosage && (
+                        <p className="text-xs text-red-500">
+                          {errors.dosage.message}
                         </p>
                       )}
                     </div>
@@ -344,6 +478,36 @@ export const HealthRecordModal = () => {
                       {errors.cost && (
                         <p className="text-xs text-red-500">
                           {errors.cost.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="recordDate" className="flex items-center">
+                        <CalendarCheckIcon className="h-4 w-4 mr-1 text-gray-500" />
+                        Date Recorded
+                      </Label>
+                      <Input
+                        id="recordDate"
+                        type="date"
+                        placeholder=""
+                        value={healthRecord.recordDate}
+                        {...register("recordDate", {
+                          required: {
+                            value: true,
+                            message: "Date is required",
+                          },
+                          onChange(event) {
+                            setHealthRecord({
+                              ...healthRecord,
+                              recordDate: event.target.value,
+                            });
+                          },
+                        })}
+                      />
+                      {errors.recordDate && (
+                        <p className="text-xs text-red-500">
+                          {errors.recordDate.message}
                         </p>
                       )}
                     </div>

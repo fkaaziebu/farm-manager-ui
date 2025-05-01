@@ -75,6 +75,9 @@ export default function FarmDetailsPage() {
   useEffect(() => {
     fetchFarms({
       searchTerm: searchQuery,
+      filter: {
+        id: farmId,
+      },
     });
   }, [searchQuery]);
 
@@ -85,13 +88,9 @@ export default function FarmDetailsPage() {
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="mr-4"
-              >
+              <Link href="/farms" className="mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </button>
+              </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                   {farms?.length && farms[0].name}
@@ -261,7 +260,7 @@ export default function FarmDetailsPage() {
                       Total Animals
                     </dt>
                     <dd className="text-base sm:text-lg font-semibold text-gray-900">
-                      {farms?.length && farms[0].animals?.length}
+                      {farms?.[0]?.livestock?.length}
                     </dd>
                   </dl>
                 </div>
@@ -318,7 +317,7 @@ export default function FarmDetailsPage() {
                 Farm Houses
               </h3>
               <Link
-                href={`/farms/${farmId}/houses`}
+                href={`/farms/${farmId}/barns`}
                 className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
               >
                 View All
@@ -383,7 +382,7 @@ export default function FarmDetailsPage() {
                           </div>
                         </div>
                         <Link
-                          href={`/farms/${farmId}/houses/${barn.unit_id}/`}
+                          href={`/farms/${farmId}/barns/${barn.unit_id}/`}
                           className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                         >
                           View
@@ -464,14 +463,14 @@ export default function FarmDetailsPage() {
           )}
 
           {/* Animals section */}
-          {farms?.length && farms[0].animals?.length ? (
+          {farms?.length && farms[0].livestock?.length ? (
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
                 <h3 className="text-base sm:text-lg font-medium text-gray-900">
                   Farm Animals
                 </h3>
                 <Link
-                  href={`/farms/${farmId}/animals`}
+                  href={`/farms/${farmId}/livestock`}
                   className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
                 >
                   View All
@@ -481,36 +480,36 @@ export default function FarmDetailsPage() {
                 <div className="flow-root">
                   <ul className="-my-4 divide-y divide-gray-200">
                     {transformAnimalData({
-                      animals: farms[0]?.animals,
-                    }).map((animal) => (
-                      <li key={animal.type} className="py-3 sm:py-4">
+                      livestocks: farms[0]?.livestock,
+                    }).map((livestock) => (
+                      <li key={livestock.type} className="py-3 sm:py-4">
                         <div className="flex items-center space-x-3 sm:space-x-4">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">
-                              {animal.type} - {animal.breed}
+                              {livestock.type} - {livestock.breed}
                             </p>
                             <div className="flex flex-col sm:flex-row sm:items-center">
                               <p className="text-xs sm:text-sm text-gray-500 truncate sm:mr-2">
-                                Count: {animal.count}
+                                Count: {livestock.count}
                               </p>
                               <span
                                 className={`mt-1 sm:mt-0 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  animal.health === "Excellent"
+                                  livestock.health === "Excellent"
                                     ? "bg-green-100 text-green-800"
-                                    : animal.health === "Good"
+                                    : livestock.health === "Good"
                                     ? "bg-blue-100 text-blue-800"
-                                    : animal.health === "Fair"
+                                    : livestock.health === "Fair"
                                     ? "bg-yellow-100 text-yellow-800"
                                     : "bg-red-100 text-red-800"
                                 }`}
                               >
-                                {animal.health}
+                                {livestock.health}
                               </span>
                             </div>
                           </div>
                           <div>
                             <Link
-                              href={`/farms/1/animals/type/${animal.type}`}
+                              href={`/farms/${farmId}/livestock?type=${livestock.type}`}
                               className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                             >
                               View

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Search,
@@ -17,10 +17,24 @@ import {
   List,
 } from "lucide-react";
 import Link from "next/link";
-import ProfilePic from "@/../public/globe.svg";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { useFetchBarns } from "@/hooks/queries";
+import { Barn, HousingStatus } from "@/graphql/generated/graphql";
+import { useRouter } from "next/navigation";
+import animalPic from "@/../public/images/ann-ann-kxxNn15lXoM-unsplash.jpg";
+import { useFetchFarms } from "@/hooks/queries";
+import { useModal } from "@/hooks/use-modal-store";
+type BarnProps = NonNullable<Barn>;
 
 export default function HouseListingPage() {
+  const { barns, fetchBarns, pageInfo, fetchMoreBarns } = useFetchBarns();
+  const { fetchFarms, farms } = useFetchFarms();
+  const [farmBarns, setFarmBarns] = useState<BarnProps[]>([]);
+  const router = useRouter();
+  const { onOpen } = useModal();
+  const pathname = usePathname();
+  const farmId = pathname.split("/")[pathname.split("/").length - 2];
   // Sample houses data
   const [houses] = useState([
     {
@@ -142,54 +156,19 @@ export default function HouseListingPage() {
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Filter and sort houses
-  const filteredHouses = houses
-    .filter((house) => {
-      // Search filter
-      const matchesSearch =
-        house.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        house.type.toLowerCase().includes(searchQuery.toLowerCase());
-
-      // Type filter
-      const matchesType = typeFilter === "all" || house.type === typeFilter;
-
-      // Status filter
-      const matchesStatus =
-        statusFilter === "all" || house.status === statusFilter;
-
-      return matchesSearch && matchesType && matchesStatus;
-    })
-    .sort((a, b) => {
-      if (sortBy === "name") {
-        return a.name.localeCompare(b.name);
-      } else if (sortBy === "type") {
-        return a.type.localeCompare(b.type);
-      } else if (sortBy === "capacity") {
-        return b.capacity - a.capacity;
-      } else if (sortBy === "occupancy") {
-        return b.occupancy / b.capacity - a.occupancy / a.capacity;
-      } else if (sortBy === "inspection") {
-        return (
-          new Date(b.lastInspection).valueOf() -
-          new Date(a.lastInspection).valueOf()
-        );
-      }
-      return 0;
-    });
-
   // Get unique house types for filter
   const houseTypes = ["all", ...new Set(houses.map((house) => house.type))];
 
   // Function to get status color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "operational":
+      case HousingStatus.Operational:
         return "bg-green-100 text-green-800";
-      case "maintenance":
+      case HousingStatus.Maintenance:
         return "bg-yellow-100 text-yellow-800";
-      case "under construction":
+      case HousingStatus.Empty:
         return "bg-blue-100 text-blue-800";
-      case "closed":
+      case HousingStatus.Full:
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -220,22 +199,45 @@ export default function HouseListingPage() {
     return ((occupancy / capacity) * 100).toFixed(0);
   };
 
-  // House stats
-  const houseStats = {
-    total: houses.length,
-    operational: houses.filter((h) => h.status === "operational").length,
-    maintenance: houses.filter((h) => h.status === "maintenance").length,
-    alertsCount: houses.filter(
-      (h) =>
-        h.temperatureStatus !== "normal" ||
-        h.humidityStatus !== "normal" ||
-        h.ventilationStatus !== "normal" ||
-        h.maintenanceStatus === "needs attention" ||
-        h.maintenanceStatus === "under repair",
-    ).length,
-    totalCapacity: houses.reduce((sum, house) => sum + house.capacity, 0),
-    totalOccupancy: houses.reduce((sum, house) => sum + house.occupancy, 0),
+  const barnOccupancy = (barnId: string) => {
+    const barn = farmBarns.find((barn) => barn.id === barnId);
+    if (!barn || !barn.pens) return 0;
+    return barn.pens.reduce(
+      (penAcc, pen) => penAcc + (pen?.livestock?.length || 0),
+      0
+    );
   };
+
+  const totalBarnOccupancy = () => {
+    return farmBarns
+      .map((barn) => barn.pens)
+      .reduce((acc, pens) => {
+        if (!pens) return acc;
+        const barnOccupancy = pens.reduce(
+          (penAcc, pen) => penAcc + (pen?.livestock?.length || 0),
+          0
+        );
+        return acc + barnOccupancy;
+      }, 0);
+  };
+
+  useEffect(() => {
+    fetchFarms({ searchTerm: searchQuery, filter: { id: Number(farmId) } });
+  }, [searchQuery, farmId]);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      router.push("/auth/admin/login");
+    }
+    if (farms && farms.length > 0) {
+      setFarmBarns(
+        farms[0].barns
+          ? farms[0].barns.filter((barn): barn is Barn => barn !== null)
+          : []
+      );
+    }
+  }, [farms]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -244,7 +246,7 @@ export default function HouseListingPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <Link href="/farms/1" className="mr-3 sm:mr-4">
+              <Link href={`/farms/${farmId}`} className="mr-3 sm:mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
               </Link>
               <div>
@@ -259,6 +261,11 @@ export default function HouseListingPage() {
             <button
               type="button"
               className="mt-3 sm:mt-0 sm:ml-auto bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
+              onClick={() => {
+                onOpen("add-house-to-farm", {
+                  farmTag: farms?.[0]?.farm_tag,
+                });
+              }}
             >
               <Plus size={16} />
               <span>Add House</span>
@@ -351,7 +358,11 @@ export default function HouseListingPage() {
             <button
               type="button"
               onClick={() => setViewMode("grid")}
-              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${viewMode === "grid" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${
+                viewMode === "grid"
+                  ? "bg-green-50 border-green-500 text-green-700"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
             >
               <Grid size={16} className="mr-1 sm:mr-2" />
               Grid
@@ -359,7 +370,11 @@ export default function HouseListingPage() {
             <button
               type="button"
               onClick={() => setViewMode("list")}
-              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${viewMode === "list" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${
+                viewMode === "list"
+                  ? "bg-green-50 border-green-500 text-green-700"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
             >
               <List size={16} className="mr-1 sm:mr-2" />
               List
@@ -466,7 +481,7 @@ export default function HouseListingPage() {
                       Total Houses
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {houseStats.total}
+                      {farmBarns?.length}
                     </dd>
                   </dl>
                 </div>
@@ -485,7 +500,11 @@ export default function HouseListingPage() {
                       Operational
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {houseStats.operational}
+                      {
+                        farmBarns?.filter(
+                          (barn) => barn?.status === HousingStatus.Operational
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -504,7 +523,11 @@ export default function HouseListingPage() {
                       Active Alerts
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {houseStats.alertsCount}
+                      {
+                        farmBarns?.filter(
+                          (barn) => barn?.status === HousingStatus.Maintenance
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -524,8 +547,11 @@ export default function HouseListingPage() {
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
                       {calculateOccupancy(
-                        houseStats.totalOccupancy,
-                        houseStats.totalCapacity,
+                        totalBarnOccupancy(),
+                        farmBarns?.reduce(
+                          (total, barn) => total + barn?.capacity,
+                          0
+                        )
                       )}
                       %
                     </dd>
@@ -542,36 +568,37 @@ export default function HouseListingPage() {
         {/* Results count */}
         <div className="flex justify-between items-center mb-3 sm:mb-4">
           <h2 className="text-base sm:text-xl font-semibold text-gray-900">
-            {filteredHouses.length}{" "}
-            {filteredHouses.length === 1 ? "house" : "houses"} found
+            {farmBarns.length} {farmBarns.length === 1 ? "barn" : "barns"} found
           </h2>
         </div>
 
         {/* Grid View */}
         {viewMode === "grid" && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
-            {filteredHouses.map((house) => (
+            {farmBarns.map((barn) => (
               <div
-                key={house.id}
+                key={barn.id}
                 className="bg-white overflow-hidden shadow rounded-lg"
               >
                 <div className="relative">
                   <Image
                     className="h-36 sm:h-48 w-full object-cover"
-                    src={ProfilePic}
-                    alt={house.name}
+                    src={animalPic}
+                    alt={barn.name}
                   />
                   <div className="absolute top-0 right-0 m-2">
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(house.status)}`}
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                        barn.status
+                      )}`}
                     >
-                      {house.status.charAt(0).toUpperCase() +
-                        house.status.slice(1)}
+                      {barn.status.charAt(0).toUpperCase() +
+                        barn.status.slice(1)}
                     </span>
                   </div>
-                  {(house.temperatureStatus !== "normal" ||
-                    house.humidityStatus !== "normal" ||
-                    house.ventilationStatus !== "normal") && (
+                  {(houses[0].temperatureStatus !== "normal" ||
+                    houses[0].humidityStatus !== "normal" ||
+                    houses[0].ventilationStatus !== "normal") && (
                     <div className="absolute bottom-0 right-0 m-2">
                       <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
                         Alert
@@ -581,32 +608,40 @@ export default function HouseListingPage() {
                 </div>
                 <div className="p-3 sm:p-5">
                   <h3 className="text-base sm:text-lg font-medium text-gray-900">
-                    {house.name}
+                    {barn.name}
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-500">
-                    {house.type}
+                    {barn.ventilation_type}
                   </p>
 
                   <div className="mt-3 sm:mt-4 grid grid-cols-2 gap-3 sm:gap-4">
                     <div className="text-xs sm:text-sm">
                       <span className="text-gray-500">Size:</span>
-                      <p className="font-medium text-gray-900">{house.size}</p>
+                      <p className="font-medium text-gray-900">
+                        {barn.area_sqm}
+                      </p>
                     </div>
                     <div className="text-xs sm:text-sm">
                       <span className="text-gray-500">Rooms:</span>
-                      <p className="font-medium text-gray-900">{house.rooms}</p>
+                      <p className="font-medium text-gray-900">
+                        {barn?.pens?.length}
+                      </p>
                     </div>
                     <div className="text-xs sm:text-sm">
                       <span className="text-gray-500">Capacity:</span>
                       <p className="font-medium text-gray-900">
-                        {house.capacity} animals
+                        {barn.capacity} animals
                       </p>
                     </div>
                     <div className="text-xs sm:text-sm">
                       <span className="text-gray-500">Occupancy:</span>
                       <p className="font-medium text-gray-900">
-                        {house.occupancy} (
-                        {calculateOccupancy(house.occupancy, house.capacity)}%)
+                        {barnOccupancy(barn.id)} (
+                        {calculateOccupancy(
+                          barnOccupancy(barn.id),
+                          barn.capacity
+                        )}
+                        %)
                       </p>
                     </div>
                   </div>
@@ -614,23 +649,29 @@ export default function HouseListingPage() {
                   <div className="mt-3 sm:mt-4 grid grid-cols-3 gap-2">
                     <div className="flex flex-col items-center">
                       <ThermometerSnowflake
-                        className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(house.temperatureStatus)}`}
+                        className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
+                          houses[0].temperatureStatus
+                        )}`}
                       />
                       <span className="text-xs text-gray-500 mt-1">
-                        {house.temperature}°C
+                        {houses[0].temperature}°C
                       </span>
                     </div>
                     <div className="flex flex-col items-center">
                       <Droplets
-                        className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(house.humidityStatus)}`}
+                        className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
+                          houses[0].humidityStatus
+                        )}`}
                       />
                       <span className="text-xs text-gray-500 mt-1">
-                        {house.humidity}%
+                        {houses[0].humidity}%
                       </span>
                     </div>
                     <div className="flex flex-col items-center">
                       <Wind
-                        className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(house.ventilationStatus)}`}
+                        className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
+                          houses[0].ventilationStatus
+                        )}`}
                       />
                       <span className="text-xs text-gray-500 mt-1">
                         Ventilation
@@ -640,7 +681,7 @@ export default function HouseListingPage() {
 
                   <div className="mt-4 sm:mt-5">
                     <Link
-                      href={`/farms/1/houses/${house.id}`}
+                      href={`/farms/${farmId}/barns/${barn.unit_id}`}
                       className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                     >
                       View Rooms
@@ -656,10 +697,10 @@ export default function HouseListingPage() {
         {viewMode === "list" && (
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
             <ul className="divide-y divide-gray-200">
-              {filteredHouses.map((house) => (
-                <li key={house.id}>
+              {farmBarns.map((barn) => (
+                <li key={barn.id}>
                   <Link
-                    href={`/farms/1/houses/${house.id}`}
+                    href={`/farms/${farmId}/barns/${barn.id}`}
                     className="block hover:bg-gray-50"
                   >
                     <div className="px-3 py-3 sm:px-4 sm:py-4">
@@ -667,24 +708,26 @@ export default function HouseListingPage() {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 sm:h-12 sm:w-12 bg-gray-200 rounded-md overflow-hidden">
                             <Image
-                              src={ProfilePic}
-                              alt={house.name}
+                              src={animalPic}
+                              alt={barn.name}
                               className="h-10 w-10 sm:h-12 sm:w-12 object-cover"
                             />
                           </div>
                           <div className="ml-3 sm:ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {house.name}
+                              {barn.name}
                             </div>
                             <div className="flex flex-wrap items-center">
                               <div className="text-xs sm:text-sm text-gray-500 mr-2">
-                                {house.type}
+                                {barn.ventilation_type}
                               </div>
                               <span
-                                className={`mt-1 sm:mt-0 px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(house.status)}`}
+                                className={`mt-1 sm:mt-0 px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
+                                  barn.status
+                                )}`}
                               >
-                                {house.status.charAt(0).toUpperCase() +
-                                  house.status.slice(1)}
+                                {barn.status.charAt(0).toUpperCase() +
+                                  barn.status.slice(1)}
                               </span>
                             </div>
                           </div>
@@ -693,13 +736,13 @@ export default function HouseListingPage() {
                           <div className="mr-3 sm:mr-4 flex flex-col items-end">
                             <div className="text-xs sm:text-sm text-gray-900">
                               <span className="font-medium">Capacity:</span>{" "}
-                              {house.capacity}
+                              {barn.capacity}
                             </div>
                             <div className="text-xs sm:text-sm text-gray-500">
                               <span className="font-medium">Occupancy:</span>{" "}
                               {calculateOccupancy(
-                                house.occupancy,
-                                house.capacity,
+                                barnOccupancy(barn.id),
+                                barn.capacity
                               )}
                               %
                             </div>
@@ -717,23 +760,29 @@ export default function HouseListingPage() {
                         <div className="sm:flex flex-wrap gap-2 sm:gap-4">
                           <div className="flex items-center text-xs sm:text-sm text-gray-500">
                             <Home className="flex-shrink-0 mr-1 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                            <span>{house.rooms} rooms</span>
+                            <span>{barn?.pens?.length} rooms</span>
                           </div>
                           <div className="flex items-center mt-1 sm:mt-0 text-xs sm:text-sm text-gray-500">
                             <ThermometerSnowflake
-                              className={`flex-shrink-0 mr-1 h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(house.temperatureStatus)}`}
+                              className={`flex-shrink-0 mr-1 h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
+                                houses[0].temperatureStatus
+                              )}`}
                             />
-                            <span>{house.temperature}°C</span>
+                            <span>{houses[0].temperature}°C</span>
                           </div>
                           <div className="flex items-center mt-1 sm:mt-0 text-xs sm:text-sm text-gray-500">
                             <Droplets
-                              className={`flex-shrink-0 mr-1 h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(house.humidityStatus)}`}
+                              className={`flex-shrink-0 mr-1 h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
+                                houses[0].humidityStatus
+                              )}`}
                             />
-                            <span>{house.humidity}%</span>
+                            <span>{houses[0].humidity}%</span>
                           </div>
                           <div className="flex items-center mt-1 sm:mt-0 text-xs sm:text-sm text-gray-500">
                             <Wind
-                              className={`flex-shrink-0 mr-1 h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(house.ventilationStatus)}`}
+                              className={`flex-shrink-0 mr-1 h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
+                                houses[0].ventilationStatus
+                              )}`}
                             />
                             <span>Ventilation</span>
                           </div>
@@ -742,7 +791,7 @@ export default function HouseListingPage() {
                           <span>
                             Last inspection:{" "}
                             {new Date(
-                              house.lastInspection,
+                              houses[0].lastInspection
                             ).toLocaleDateString()}
                           </span>
                         </div>
@@ -759,65 +808,59 @@ export default function HouseListingPage() {
         <div className="mt-4 sm:mt-6">
           <nav className="flex items-center justify-between border-t border-gray-200 px-2 sm:px-4">
             <div className="-mt-px flex w-0 flex-1">
-              <Link
-                href="#"
-                className="inline-flex items-center border-t-2 border-transparent pt-4 pr-1 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                <svg
-                  className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-gray-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
+              {pageInfo?.hasPreviousPage && (
+                <button
+                  onClick={() => fetchMoreBarns({ searchTerm: searchQuery })}
+                  className="inline-flex items-center border-t-2 border-transparent pt-4 pr-1 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Previous
-              </Link>
+                  <svg
+                    className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-gray-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Previous
+                </button>
+              )}
             </div>
             <div className="hidden md:-mt-px md:flex">
-              <Link
-                href="#"
-                className="inline-flex items-center border-t-2 border-green-500 px-4 pt-4 text-sm font-medium text-green-600"
-                aria-current="page"
-              >
-                1
-              </Link>
-              <Link
-                href="#"
-                className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                2
-              </Link>
+              <span className="inline-flex items-center border-t-2 border-green-500 px-4 pt-4 text-sm font-medium text-green-600">
+                Page {pageInfo?.startCursor || 1}
+              </span>
             </div>
             <div className="-mt-px flex w-0 flex-1 justify-end">
-              <Link
-                href="#"
-                className="inline-flex items-center border-t-2 border-transparent pt-4 pl-1 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                Next
-                <svg
-                  className="ml-2 sm:ml-3 h-4 w-4 sm:h-5 sm:w-5 text-gray-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
+              {pageInfo?.hasNextPage && (
+                <button
+                  onClick={() => fetchMoreBarns({ searchTerm: searchQuery })}
+                  className="inline-flex items-center border-t-2 border-transparent pt-4 pl-1 text-xs sm:text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </Link>
+                  Next
+                  <svg
+                    className="ml-2 sm:ml-3 h-4 w-4 sm:h-5 sm:w-5 text-gray-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
           </nav>
         </div>
 
         {/* Alerts Summary */}
-        <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">
+        {/* <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">
           <div className="px-3 py-3 sm:px-4 sm:py-5 border-b border-gray-200">
             <h3 className="text-base sm:text-lg leading-6 font-medium text-gray-900">
               Active House Alerts
@@ -835,7 +878,7 @@ export default function HouseListingPage() {
                     h.humidityStatus !== "normal" ||
                     h.ventilationStatus !== "normal" ||
                     h.maintenanceStatus === "needs attention" ||
-                    h.maintenanceStatus === "under repair",
+                    h.maintenanceStatus === "under repair"
                 )
                 .map((house) => (
                   <div
@@ -861,7 +904,9 @@ export default function HouseListingPage() {
                         </div>
                       </div>
                       <span
-                        className={`mt-2 sm:mt-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(house.status)}`}
+                        className={`mt-2 sm:mt-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                          house.status
+                        )}`}
                       >
                         {house.status.charAt(0).toUpperCase() +
                           house.status.slice(1)}
@@ -871,7 +916,9 @@ export default function HouseListingPage() {
                       {house.temperatureStatus !== "normal" && (
                         <div className="flex items-center text-xs sm:text-sm">
                           <ThermometerSnowflake
-                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(house.temperatureStatus)} mr-1 sm:mr-2`}
+                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(
+                              house.temperatureStatus
+                            )} mr-1 sm:mr-2`}
                           />
                           <span className="text-gray-700">
                             Temperature {house.temperatureStatus.toUpperCase()}:
@@ -882,7 +929,9 @@ export default function HouseListingPage() {
                       {house.humidityStatus !== "normal" && (
                         <div className="flex items-center text-xs sm:text-sm">
                           <Droplets
-                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(house.humidityStatus)} mr-1 sm:mr-2`}
+                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(
+                              house.humidityStatus
+                            )} mr-1 sm:mr-2`}
                           />
                           <span className="text-gray-700">
                             Humidity {house.humidityStatus.toUpperCase()}:
@@ -893,7 +942,9 @@ export default function HouseListingPage() {
                       {house.ventilationStatus !== "normal" && (
                         <div className="flex items-center text-xs sm:text-sm">
                           <Wind
-                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(house.ventilationStatus)} mr-1 sm:mr-2`}
+                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(
+                              house.ventilationStatus
+                            )} mr-1 sm:mr-2`}
                           />
                           <span className="text-gray-700">
                             Ventilation system requires attention
@@ -904,7 +955,9 @@ export default function HouseListingPage() {
                         house.maintenanceStatus === "under repair") && (
                         <div className="flex items-center text-xs sm:text-sm">
                           <AlertTriangle
-                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(house.maintenanceStatus)} mr-1 sm:mr-2`}
+                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(
+                              house.maintenanceStatus
+                            )} mr-1 sm:mr-2`}
                           />
                           <span className="text-gray-700">
                             Maintenance status: {house.maintenanceStatus}
@@ -935,7 +988,7 @@ export default function HouseListingPage() {
                   h.humidityStatus !== "normal" ||
                   h.ventilationStatus !== "normal" ||
                   h.maintenanceStatus === "needs attention" ||
-                  h.maintenanceStatus === "under repair",
+                  h.maintenanceStatus === "under repair"
               ).length === 0 && (
                 <div className="text-center py-4 sm:py-6">
                   <div className="mx-auto flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-green-100">
@@ -963,10 +1016,10 @@ export default function HouseListingPage() {
               )}
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Maintenance Schedule */}
-        <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">
+        {/* <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">
           <div className="px-3 py-3 sm:px-4 sm:py-5 border-b border-gray-200">
             <h3 className="text-base sm:text-lg leading-6 font-medium text-gray-900">
               Upcoming Maintenance
@@ -1155,10 +1208,10 @@ export default function HouseListingPage() {
               <span aria-hidden="true">&rarr;</span>
             </Link>
           </div>
-        </div>
+        </div> */}
 
         {/* Environmental Dashboard Summary */}
-        <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">
+        {/* <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">
           <div className="px-3 py-3 sm:px-4 sm:py-5 border-b border-gray-200">
             <h3 className="text-base sm:text-lg leading-6 font-medium text-gray-900">
               Environmental Dashboard
@@ -1166,11 +1219,11 @@ export default function HouseListingPage() {
             <p className="mt-1 max-w-2xl text-xs sm:text-sm text-gray-500">
               Average house conditions across the farm
             </p>
-          </div>
-          <div className="px-3 py-3 sm:px-4 sm:py-5">
-            <div className="grid grid-cols-1 gap-3 sm:gap-6 md:grid-cols-3">
-              {/* Temperature card */}
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-5">
+          </div> */}
+        {/* <div className="px-3 py-3 sm:px-4 sm:py-5">
+            <div className="grid grid-cols-1 gap-3 sm:gap-6 md:grid-cols-3"> */}
+        {/* Temperature card */}
+        {/* <div className="bg-gray-50 rounded-lg p-3 sm:p-5">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <h4 className="text-sm sm:text-base font-medium text-gray-900">
                     Temperature
@@ -1182,7 +1235,7 @@ export default function HouseListingPage() {
                     {(
                       houses.reduce(
                         (sum, house) => sum + house.temperature,
-                        0,
+                        0
                       ) / houses.length
                     ).toFixed(1)}
                     °C
@@ -1204,10 +1257,10 @@ export default function HouseListingPage() {
                     <span>Hot</span>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
-              {/* Humidity card */}
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-5">
+        {/* Humidity card */}
+        {/* <div className="bg-gray-50 rounded-lg p-3 sm:p-5">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <h4 className="text-sm sm:text-base font-medium text-gray-900">
                     Humidity
@@ -1239,10 +1292,10 @@ export default function HouseListingPage() {
                     <span>Humid</span>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
-              {/* Ventilation card */}
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-5">
+        {/* Ventilation card */}
+        {/* <div className="bg-gray-50 rounded-lg p-3 sm:p-5">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <h4 className="text-sm sm:text-base font-medium text-gray-900">
                     Ventilation
@@ -1253,7 +1306,7 @@ export default function HouseListingPage() {
                   <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                     {(() => {
                       const operational = houses.filter(
-                        (h) => h.ventilationStatus === "normal",
+                        (h) => h.ventilationStatus === "normal"
                       ).length;
                       const total = houses.length;
                       return `${operational}/${total}`;
@@ -1267,7 +1320,13 @@ export default function HouseListingPage() {
                   <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
                     <div
                       style={{
-                        width: `${(houses.filter((h) => h.ventilationStatus === "normal").length / houses.length) * 100}%`,
+                        width: `${
+                          (houses.filter(
+                            (h) => h.ventilationStatus === "normal"
+                          ).length /
+                            houses.length) *
+                          100
+                        }%`,
                       }}
                       className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
                     />
@@ -1277,8 +1336,8 @@ export default function HouseListingPage() {
                     <span>Operational</span>
                   </div>
                 </div>
-              </div>
-            </div>
+              </div> */}
+        {/* </div>
             <div className="mt-4 sm:mt-6 text-center">
               <button
                 type="button"
@@ -1286,9 +1345,9 @@ export default function HouseListingPage() {
               >
                 View Full Environmental Dashboard
               </button>
-            </div>
-          </div>
-        </div>
+            </div> */}
+        {/* </div> */}
+        {/* </div> */}
 
         {/* Quick Actions */}
         <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">

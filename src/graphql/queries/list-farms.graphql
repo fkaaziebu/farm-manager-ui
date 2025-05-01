@@ -1,15 +1,22 @@
 query ListFarms(
-  $searchTerm: String!
   $pagination: PaginationInput
   $sort: [FarmSortInput!]
+  $searchTerm: String!
+  $filter: FarmFilterInput
 ) {
-  listFarms(searchTerm: $searchTerm, pagination: $pagination, sort: $sort) {
+  listFarms(
+    pagination: $pagination
+    sort: $sort
+    searchTerm: $searchTerm
+    filter: $filter
+  ) {
     edges {
       node {
         barns {
           capacity
           pens {
             livestock {
+              breed
               weight
               updated_at
               birth_date
@@ -32,9 +39,16 @@ query ListFarms(
         location
         livestock {
           id
+          health_status
+          livestock_tag
+          livestock_type
+          breed
         }
         workers {
           id
+          name
+          roles
+          worker_tag
         }
         farm_tag
         id

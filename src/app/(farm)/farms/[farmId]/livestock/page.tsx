@@ -14,25 +14,33 @@ import {
   Grid,
   List,
 } from "lucide-react";
-import { useFetchFarms } from "@/hooks/queries";
+
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import { Animal, HealthStatus } from "@/graphql/generated/graphql";
+import { Livestock, HealthStatus } from "@/graphql/generated/graphql";
 import formatDateOfBirth from "@/components/common/format-date-of-birth";
 import { formatDate } from "@/components/common";
 import { timeAgo } from "@/components/common/time-ago";
 import { EmptyStateAnimalEvents } from "@/components/pages/farms/animals";
 import { useModal } from "@/hooks/use-modal-store";
+import { useFetchLivestocks } from "@/hooks/queries";
+import { useSearchParams } from "next/navigation";
 
-type AnimalProp = NonNullable<Animal>;
+type AnimalProp = NonNullable<Livestock>;
 
 export default function AnimalsListingPage() {
   const router = useRouter();
-  const { farms, fetchFarms } = useFetchFarms();
+  const {
+    fetchLivestocks,
+    livestocks,
+    fetchMoreLivestocks,
+    loadingLivestocks,
+    pageInfo,
+  } = useFetchLivestocks();
   const pathname = usePathname();
   const [farmAnimals, setFarmAnimals] = useState<AnimalProp[]>([]);
   const farmId = pathname.split("/")[2]; //
-
+  const searchParams = useSearchParams();
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -43,19 +51,18 @@ export default function AnimalsListingPage() {
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { onOpen } = useModal();
+  const livestockType = searchParams.get("type");
   // Filter and sort animals
   const filteredAnimals = farmAnimals
     .filter((animal) => {
       // Search filter
       const matchesSearch =
-        animal.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        animal.breed.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        animal.room?.room_number
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase());
+        animal?.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        animal?.breed?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        animal?.pen?.unit_id.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Type filter
-      const matchesType = typeFilter === "all" || animal.type === typeFilter;
+      const matchesType = typeFilter === "all" || animal.breed === typeFilter;
 
       // Status filter
       const matchesStatus =
@@ -71,7 +78,7 @@ export default function AnimalsListingPage() {
       if (sortBy === "id") {
         return a.id.localeCompare(b.id);
       } else if (sortBy === "type") {
-        return a.type.localeCompare(b.type);
+        return a.breed.localeCompare(b.breed);
       } else if (sortBy === "age") {
         return (
           new Date(a.birth_date).valueOf() - new Date(b.birth_date).valueOf()
@@ -89,7 +96,7 @@ export default function AnimalsListingPage() {
   // Get unique animal types for filter
   const animalTypes = [
     "all",
-    ...new Set(farmAnimals.map((animal) => animal.type)),
+    ...new Set(farmAnimals.map((animal) => animal.breed)),
   ];
   const statusTypes = [
     "all",
@@ -155,21 +162,22 @@ export default function AnimalsListingPage() {
   };
 
   useEffect(() => {
-    fetchFarms({
-      filter: {
-        id: {
-          eq: Number(farmId),
-        },
-      },
-    });
-  }, []);
+    fetchLivestocks({ searchTerm: searchQuery });
+  }, [searchQuery]);
 
   useEffect(() => {
-    if (farms && farms.length > 0) {
-      const selectedFarm = farms.find((farm) => farm.id === farmId);
-      setFarmAnimals(selectedFarm?.animals ?? []);
+    if (livestocks && livestocks.length > 0) {
+      setFarmAnimals(
+        livestocks.filter(
+          (livestock) =>
+            livestockType === null ||
+            livestock.livestock_type.toLowerCase() ===
+              livestockType?.toLowerCase()
+        )
+      );
     }
-  }, [farms, farmId]);
+  }, [livestocks]);
+
   console.log("Farm Animals", farmAnimals);
   return (
     <div className="min-h-screen bg-gray-50">
@@ -197,7 +205,11 @@ export default function AnimalsListingPage() {
             <button
               type="button"
               className="mt-3 sm:mt-0 sm:ml-auto bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
-              onClick={() => onOpen("add-animals-to-farm", { farmId })}
+              onClick={() =>
+                onOpen("add-livestock-to-pen", {
+                  penUnitId: livestocks?.[0].pen?.unit_id,
+                })
+              }
             >
               <Plus size={16} />
               <span>Add Animal</span>
@@ -516,92 +528,116 @@ export default function AnimalsListingPage() {
         {/* Results count */}
         <div className="flex justify-between items-center mb-3 sm:mb-4">
           <h2 className="text-base sm:text-xl font-semibold text-gray-900">
-            {filteredAnimals.length}{" "}
-            {filteredAnimals.length === 1 ? "animal" : "animals"} found
+            {
+              livestocks?.filter(
+                (livestock) =>
+                  livestockType === null ||
+                  livestock.livestock_type.toLowerCase() ===
+                    livestockType?.toLowerCase()
+              ).length
+            }{" "}
+            {livestocks?.filter(
+              (livestock) =>
+                livestockType === null ||
+                livestock.livestock_type.toLowerCase() ===
+                  livestockType?.toLowerCase()
+            ).length === 1
+              ? "animal"
+              : "animals"}{" "}
+            found
           </h2>
         </div>
 
         {/* Grid View */}
         {viewMode === "grid" && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
-            {filteredAnimals.map((animal) => (
-              <div
-                key={animal.id}
-                className="bg-white overflow-hidden shadow rounded-lg"
-              >
-                <div className="p-3 sm:p-5">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center">
-                        <span
-                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTagColorClass(
-                            "green"
-                          )}`}
-                        >
-                          {animal.tag_number}
-                        </span>
-                        <span
-                          className={`ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColorClass(
-                            animal.health_status
-                          )}`}
-                        >
-                          {animal.health_status[0].toUpperCase()}
-                          {animal.health_status.slice(1).toLowerCase()}
+            {livestocks
+              ?.filter(
+                (livestock) =>
+                  livestockType === null ||
+                  livestock.livestock_type.toLowerCase() ===
+                    livestockType?.toLowerCase()
+              )
+              ?.map((livestock) => (
+                <div
+                  key={livestock.id}
+                  className="bg-white overflow-hidden shadow rounded-lg"
+                >
+                  <div className="p-3 sm:p-5">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center">
+                          <span
+                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTagColorClass(
+                              "green"
+                            )}`}
+                          >
+                            {livestock?.livestock_tag}
+                          </span>
+                          <span
+                            className={`ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColorClass(
+                              livestock?.health_status
+                            )}`}
+                          >
+                            {livestock?.health_status[0].toUpperCase()}
+                            {livestock?.health_status.slice(1).toLowerCase()}
+                          </span>
+                        </div>
+                        <h3 className="mt-2 text-sm sm:text-lg font-medium text-gray-900">
+                          {livestock?.breed} {livestock?.livestock_type}
+                        </h3>
+                      </div>
+                      <div className="bg-gray-100 p-2 rounded-full">
+                        <span className="text-xs font-medium text-gray-500">
+                          {livestock.gender.charAt(0).toUpperCase()}
                         </span>
                       </div>
-                      <h3 className="mt-2 text-sm sm:text-lg font-medium text-gray-900">
-                        {animal.breed} {animal.type}
-                      </h3>
                     </div>
-                    <div className="bg-gray-100 p-2 rounded-full">
-                      <span className="text-xs font-medium text-gray-500">
-                        {animal.gender.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
 
-                  <div className="mt-3 sm:mt-4 grid grid-cols-2 gap-3 sm:gap-4">
-                    <div className="text-xs sm:text-sm">
-                      <span className="text-gray-500">Age:</span>
-                      <p className="font-medium text-gray-900">
-                        {formatDateOfBirth(animal.birth_date)}
-                      </p>
+                    <div className="mt-3 sm:mt-4 grid grid-cols-2 gap-3 sm:gap-4">
+                      <div className="text-xs sm:text-sm">
+                        <span className="text-gray-500">Age:</span>
+                        <p className="font-medium text-gray-900">
+                          {formatDateOfBirth(livestock.birth_date)}
+                        </p>
+                      </div>
+                      <div className="text-xs sm:text-sm">
+                        <span className="text-gray-500">Weight:</span>
+                        <p className="font-medium text-gray-900">
+                          {livestock.weight === 0
+                            ? "N/A"
+                            : livestock.weight + " kg"}
+                        </p>
+                      </div>
+                      <div className="text-xs sm:text-sm">
+                        <span className="text-gray-500">Location:</span>
+                        <p className="font-medium text-gray-900">
+                          {livestock?.pen?.barn?.unit_id}{" "}
+                          {livestock?.pen?.unit_id}
+                        </p>
+                      </div>
+                      <div className="text-xs sm:text-sm">
+                        <span className="text-gray-500">Last Check:</span>
+                        <p className="font-medium text-gray-900">
+                          {formatDate(livestock.updated_at)}
+                        </p>
+                        <p className="text-gray-500">
+                          {timeAgo(livestock.updated_at)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-xs sm:text-sm">
-                      <span className="text-gray-500">Weight:</span>
-                      <p className="font-medium text-gray-900">
-                        {animal.weight === 0 ? "N/A" : animal.weight + " kg"}
-                      </p>
-                    </div>
-                    <div className="text-xs sm:text-sm">
-                      <span className="text-gray-500">Location:</span>
-                      <p className="font-medium text-gray-900">
-                        {animal?.room?.house?.house_number}{" "}
-                        {animal?.room?.room_number}
-                      </p>
-                    </div>
-                    <div className="text-xs sm:text-sm">
-                      <span className="text-gray-500">Last Check:</span>
-                      <p className="font-medium text-gray-900">
-                        {formatDate(animal.updated_at)}
-                      </p>
-                      <p className="text-gray-500">
-                        {timeAgo(animal.updated_at)}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="mt-4 sm:mt-5">
-                    <a
-                      href={`/farms/${farmId}/animals/${animal.id}`}
-                      className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
-                    >
-                      View Details
-                    </a>
+                    <div className="mt-4 sm:mt-5">
+                      <a
+                        href={`/farms/${farmId}/livestock/${livestock.livestock_tag}`}
+                        className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
+                      >
+                        View Details
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         )}
 
@@ -609,79 +645,86 @@ export default function AnimalsListingPage() {
         {viewMode === "list" && (
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
             <ul className="divide-y divide-gray-200">
-              {filteredAnimals.map((animal) => (
-                <li key={animal.id}>
-                  <a
-                    href={`/farms/1/animals/${animal.id}`}
-                    className="block hover:bg-gray-50"
-                  >
-                    <div className="px-3 py-3 sm:px-4 sm:py-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center">
-                          <span
-                            className={`px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getTagColorClass(
-                              "green"
-                            )}`}
-                          >
-                            {animal.tag_number}
-                          </span>
-                          <p className="ml-2 text-xs sm:text-sm font-medium text-gray-900">
-                            {animal.breed} {animal.type}
-                          </p>
-                          <span
-                            className={`ml-2 px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColorClass(
-                              animal.health_status
-                            )}`}
-                          >
-                            {animal.health_status[0].toUpperCase()}
-                            {animal.health_status.slice(1).toLowerCase()}
-                          </span>
-                        </div>
-                        <div className="flex items-center mt-2 sm:mt-0">
-                          <div className="mr-2 sm:mr-4 flex flex-col items-end">
-                            <div className="text-xs sm:text-sm text-gray-900">
-                              {animal.weight === 0
-                                ? "N/A"
-                                : animal.weight + " kg"}
-                            </div>
-                            <div className="text-xs sm:text-sm text-gray-500">
-                              {formatDateOfBirth(animal.birth_date)}
-                            </div>
-                          </div>
-                          <div className="flex-shrink-0">
-                            <span className="inline-flex items-center justify-center h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-gray-100">
-                              <span className="text-xs font-medium text-gray-800">
-                                {animal.gender.charAt(0).toUpperCase()}
-                              </span>
+              {livestocks
+                ?.filter(
+                  (livestock) =>
+                    livestockType === null ||
+                    livestock.livestock_type.toLowerCase() ===
+                      livestockType?.toLowerCase()
+                )
+                .map((livestock) => (
+                  <li key={livestock.id}>
+                    <a
+                      href={`/farms/${farmId}/livestock/${livestock.id}`}
+                      className="block hover:bg-gray-50"
+                    >
+                      <div className="px-3 py-3 sm:px-4 sm:py-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center">
+                            <span
+                              className={`px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getTagColorClass(
+                                "green"
+                              )}`}
+                            >
+                              {livestock.livestock_tag}
+                            </span>
+                            <p className="ml-2 text-xs sm:text-sm font-medium text-gray-900">
+                              {livestock.breed} {livestock.livestock_type}
+                            </p>
+                            <span
+                              className={`ml-2 px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColorClass(
+                                livestock.health_status
+                              )}`}
+                            >
+                              {livestock.health_status[0].toUpperCase()}
+                              {livestock.health_status.slice(1).toLowerCase()}
                             </span>
                           </div>
-                        </div>
-                      </div>
-                      <div className="mt-2 flex flex-col sm:flex-row sm:justify-between">
-                        <div className="sm:flex items-center">
-                          <div className="flex items-center">
-                            <div className="text-xs sm:text-sm text-gray-500">
-                              <span className="font-medium">Location:</span>{" "}
-                              {animal?.room?.house?.house_number ?? "N/A"}{" "}
-                              {animal?.room?.room_number}
+                          <div className="flex items-center mt-2 sm:mt-0">
+                            <div className="mr-2 sm:mr-4 flex flex-col items-end">
+                              <div className="text-xs sm:text-sm text-gray-900">
+                                {livestock.weight === 0
+                                  ? "N/A"
+                                  : livestock.weight + " kg"}
+                              </div>
+                              <div className="text-xs sm:text-sm text-gray-500">
+                                {formatDateOfBirth(livestock.birth_date)}
+                              </div>
+                            </div>
+                            <div className="flex-shrink-0">
+                              <span className="inline-flex items-center justify-center h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-gray-100">
+                                <span className="text-xs font-medium text-gray-800">
+                                  {livestock.gender.charAt(0).toUpperCase()}
+                                </span>
+                              </span>
                             </div>
                           </div>
                         </div>
-                        <div className="mt-1 flex items-center text-xs sm:text-sm text-gray-500 sm:mt-0">
-                          <Calendar className="flex-shrink-0 mr-1 h-3 w-3 sm:h-5 sm:w-5 text-gray-400" />
-                          <p>
-                            <span className="font-medium">Last check:</span>{" "}
-                            {formatDate(animal.updated_at)}
-                          </p>
-                          <p className="text-gray-500">
-                            {timeAgo(animal.updated_at)}
-                          </p>
+                        <div className="mt-2 flex flex-col sm:flex-row sm:justify-between">
+                          <div className="sm:flex items-center">
+                            <div className="flex items-center">
+                              <div className="text-xs sm:text-sm text-gray-500">
+                                <span className="font-medium">Location:</span>{" "}
+                                {livestock?.pen?.barn?.unit_id}{" "}
+                                {livestock?.pen?.unit_id}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-1 flex items-center text-xs sm:text-sm text-gray-500 sm:mt-0">
+                            <Calendar className="flex-shrink-0 mr-1 h-3 w-3 sm:h-5 sm:w-5 text-gray-400" />
+                            <p>
+                              <span className="font-medium">Last check:</span>{" "}
+                              {formatDate(livestock.updated_at)}
+                            </p>
+                            <p className="text-gray-500">
+                              {timeAgo(livestock.updated_at)}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </a>
-                </li>
-              ))}
+                    </a>
+                  </li>
+                ))}
             </ul>
           </div>
         )}

@@ -1,0 +1,11 @@
+mutation AddLivestockExpenseRecord(
+  $livestockTag: String!
+  $expenseRecord: ExpenseRecordInput!
+) {
+  addLivestockExpenseRecord(
+    livestockTag: $livestockTag
+    expenseRecord: $expenseRecord
+  ) {
+    id
+  }
+}

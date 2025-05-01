@@ -1,19 +1,22 @@
-import { Animal } from "@/graphql/generated/graphql";
+import { Livestock } from "@/graphql/generated/graphql";
 
 export default function transformAnimalData({
-  animals = [],
+  livestocks = [],
 }: {
-  animals: Array<Animal>;
+  livestocks: Array<Livestock>;
 }) {
   // Extract the animals array from the input data
 
   // Group animals by type
-  const groupedByType = {};
+  const groupedByType: Record<
+    string,
+    { type: string; breed: string; count: number; statuses: string[] }
+  > = {};
 
-  for (const animal of animals) {
-    const type = animal.type || "Unknown";
-    const breed = animal.breed || "Unknown";
-    const status = animal.health_status || "Unknown"; // Using the status field you mentioned
+  for (const livestock of livestocks) {
+    const type = livestock.livestock_type || "Unknown";
+    const breed = livestock.breed || "Unknown";
+    const status = livestock.health_status || "Unknown"; // Using the status field you mentioned
 
     // Initialize the group if it doesn't exist
     if (!groupedByType[type]) {
@@ -50,14 +53,14 @@ function determineHealthStatus(statuses: Array<string>) {
   if (!statuses.length) return "Unknown";
 
   // Count occurrences of each status
-  const statusCounts = {};
+  const statusCounts: Record<string, number> = {};
   statuses.forEach((status) => {
     statusCounts[status] = (statusCounts[status] || 0) + 1;
   });
 
   // Calculate percentages
   const total = statuses.length;
-  const percentages = {};
+  const percentages: Record<string, number> = {};
   Object.keys(statusCounts).forEach((status) => {
     percentages[status] = (statusCounts[status] / total) * 100;
   });

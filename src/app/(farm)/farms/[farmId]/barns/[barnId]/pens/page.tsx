@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Search,
@@ -19,9 +19,21 @@ import {
   Check,
 } from "lucide-react";
 import Link from "next/link";
+import { useFetchPens, useFetchBarn } from "@/hooks/queries";
+import { useRouter, usePathname } from "next/navigation";
+import { HousingStatus, Pen } from "@/graphql/generated/graphql";
+import { useModal } from "@/hooks/use-modal-store";
 
 export default function RoomListingPage() {
-  // Sample rooms data
+  const { pens } = useFetchPens();
+  const { barn, fetchBarn } = useFetchBarn();
+  const router = useRouter();
+  const [farmPens, setFarmPens] = useState<Pen[]>();
+  const pathname = usePathname();
+  const farmId = pathname.split("/")[pathname.split("/").length - 4];
+  const barnId = pathname.split("/")[pathname.split("/").length - 2];
+
+  const { onOpen } = useModal();
   const [rooms] = useState([
     {
       id: 101,
@@ -226,47 +238,6 @@ export default function RoomListingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Filter and sort rooms
-  const filteredRooms = rooms
-    .filter((room) => {
-      // Search filter
-      const matchesSearch =
-        room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        room.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        room.houseName.toLowerCase().includes(searchQuery.toLowerCase());
-
-      // Type filter
-      const matchesType = typeFilter === "all" || room.type === typeFilter;
-
-      // House filter
-      const matchesHouse =
-        houseFilter === "all" ||
-        room.houseName === houseFilter ||
-        room.houseId.toString() === houseFilter;
-
-      // Status filter
-      const matchesStatus =
-        statusFilter === "all" || room.status === statusFilter;
-
-      return matchesSearch && matchesType && matchesHouse && matchesStatus;
-    })
-    .sort((a, b) => {
-      if (sortBy === "name") {
-        return a.name.localeCompare(b.name);
-      } else if (sortBy === "type") {
-        return a.type.localeCompare(b.type);
-      } else if (sortBy === "house") {
-        return a.houseName.localeCompare(b.houseName);
-      } else if (sortBy === "capacity") {
-        return b.capacity - a.capacity;
-      } else if (sortBy === "occupancy") {
-        return b.occupancy / b.capacity - a.occupancy / a.capacity;
-      } else if (sortBy === "lastCleaned") {
-        return (
-          new Date(b.lastCleaned).valueOf() - new Date(a.lastCleaned).valueOf()
-        );
-      }
-      return 0;
-    });
 
   // Get unique room types for filter
   const roomTypes = ["all", ...new Set(rooms.map((room) => room.type))];
@@ -275,13 +246,13 @@ export default function RoomListingPage() {
   // Function to get status color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "operational":
+      case HousingStatus.Operational:
         return "bg-green-100 text-green-800";
-      case "maintenance":
+      case HousingStatus.Maintenance:
         return "bg-yellow-100 text-yellow-800";
-      case "under construction":
+      case HousingStatus.Empty:
         return "bg-blue-100 text-blue-800";
-      case "closed":
+      case HousingStatus.Full:
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -309,7 +280,7 @@ export default function RoomListingPage() {
 
   // Calculate occupancy percentage
   const calculateOccupancy = (occupancy: number, capacity: number) => {
-    return ((occupancy / capacity) * 100).toFixed(0);
+    return Number(((occupancy / capacity) * 100).toFixed(0));
   };
 
   // Format date for display
@@ -330,7 +301,7 @@ export default function RoomListingPage() {
       (r) =>
         r.temperatureStatus !== "normal" ||
         r.humidityStatus !== "normal" ||
-        r.ventilationStatus !== "normal",
+        r.ventilationStatus !== "normal"
     ).length,
     totalCapacity: rooms.reduce((sum, room) => sum + room.capacity, 0),
     totalOccupancy: rooms.reduce((sum, room) => sum + room.occupancy, 0),
@@ -343,6 +314,24 @@ export default function RoomListingPage() {
     }).length,
   };
 
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      router.push("/auth/admin/login");
+    }
+
+    fetchBarn({ barnUnitId: barnId });
+  }, []);
+
+  useEffect(() => {
+    if (barn) {
+      setFarmPens(
+        barn.pens ? barn.pens.filter((pen): pen is Pen => pen !== null) : []
+      );
+    }
+  }, [barn]);
+
+  console.log("Farm Pens", farmPens);
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -350,12 +339,15 @@ export default function RoomListingPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <Link href="/farms/1" className="mr-3 sm:mr-4">
+              <Link
+                href={`/farms/${farmId}/barns/${barnId}`}
+                className="mr-3 sm:mr-4"
+              >
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
               </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-                  Room Inventory
+                  {farmPens?.[0]?.barn?.name} Inventory
                 </h1>
                 <p className="mt-1 text-xs sm:text-sm text-gray-500">
                   Manage your farm&apos;s rooms and sections
@@ -457,7 +449,11 @@ export default function RoomListingPage() {
             <button
               type="button"
               onClick={() => setViewMode("grid")}
-              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${viewMode === "grid" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${
+                viewMode === "grid"
+                  ? "bg-green-50 border-green-500 text-green-700"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
             >
               <Grid size={16} className="mr-1 sm:mr-2" />
               Grid
@@ -465,7 +461,11 @@ export default function RoomListingPage() {
             <button
               type="button"
               onClick={() => setViewMode("list")}
-              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${viewMode === "list" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`hidden md:flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${
+                viewMode === "list"
+                  ? "bg-green-50 border-green-500 text-green-700"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
             >
               <List size={16} className="mr-1 sm:mr-2" />
               List
@@ -593,7 +593,7 @@ export default function RoomListingPage() {
                       Total Rooms
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {roomStats.total}
+                      {farmPens?.length}
                     </dd>
                   </dl>
                 </div>
@@ -613,7 +613,11 @@ export default function RoomListingPage() {
                       Operational
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {roomStats.operational}
+                      {
+                        farmPens?.filter(
+                          (room) => room?.status === HousingStatus.Operational
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -630,10 +634,14 @@ export default function RoomListingPage() {
                 <div className="ml-3 sm:ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
-                      Alerts
+                      Maintennce
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {roomStats.alertsCount}
+                      {
+                        farmPens?.filter(
+                          (room) => room?.status === HousingStatus.Maintenance
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -652,13 +660,22 @@ export default function RoomListingPage() {
                     <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
                       Occupancy
                     </dt>
-                    <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {calculateOccupancy(
-                        roomStats.totalOccupancy,
-                        roomStats.totalCapacity,
-                      )}
-                      %
-                    </dd>
+                    {farmPens?.length && (
+                      <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
+                        {calculateOccupancy(
+                          farmPens?.reduce(
+                            (total, pen) =>
+                              total + (pen?.livestock?.length || 0),
+                            0
+                          ),
+                          farmPens?.reduce(
+                            (total, pen) => total + pen?.capacity,
+                            0
+                          )
+                        )}
+                        %
+                      </dd>
+                    )}
                   </dl>
                 </div>
               </div>
@@ -697,103 +714,117 @@ export default function RoomListingPage() {
         {/* Results count */}
         <div className="flex justify-between items-center mb-3 sm:mb-4">
           <h2 className="text-base sm:text-xl font-semibold text-gray-900">
-            {filteredRooms.length}{" "}
-            {filteredRooms.length === 1 ? "room" : "rooms"} found
+            {farmPens?.length} {farmPens?.length === 1 ? "pen" : "pens"} found
           </h2>
         </div>
 
         {/* Grid View */}
         {viewMode === "grid" && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
-            {filteredRooms.map((room) => (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {farmPens?.map((pen) => (
               <div
-                key={room.id}
-                className="bg-white overflow-hidden shadow rounded-lg"
+                key={pen.id}
+                className="bg-white overflow-hidden shadow-sm border border-gray-100 rounded-lg hover:shadow transition-shadow duration-200"
               >
-                <div className="p-3 sm:p-5">
+                <div className="p-4 sm:p-5">
+                  {/* Header section with name and status */}
                   <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-sm sm:text-lg font-medium text-gray-900">
-                        {room.name}
+                    <div className="flex-1">
+                      <h3 className="text-base font-medium text-gray-900 truncate">
+                        {pen.name}
                       </h3>
-                      <div className="mt-1 flex items-center flex-wrap">
-                        <span className="text-xs sm:text-sm text-gray-500 mr-2">
-                          {room.type}
-                        </span>
-                        <span
-                          className={`mt-1 sm:mt-0 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(room.status)}`}
-                        >
-                          {room.status.charAt(0).toUpperCase() +
-                            room.status.slice(1)}
+                      <p className="text-xs text-gray-500">{pen.unit_id}</p>
+                    </div>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                        pen.status
+                      )}`}
+                    >
+                      {pen.status.charAt(0).toUpperCase() +
+                        pen.status.slice(1).toLowerCase()}
+                    </span>
+                  </div>
+
+                  {/* Occupancy indicator */}
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-xs font-medium text-gray-500">
+                        Occupancy
+                      </span>
+                      <span className="text-xs font-medium text-gray-700">
+                        {pen.livestock?.length || 0}/{pen.capacity}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-green-500 h-2 rounded-full"
+                        style={{
+                          width: `${Math.min(
+                            calculateOccupancy(
+                              pen?.livestock?.length || 0,
+                              pen?.capacity
+                            ),
+                            100
+                          )}%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Details section */}
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-500">Size</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {pen.area_sqm} m²
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Bedding</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {pen.bedding_type
+                          ? pen.bedding_type.charAt(0).toUpperCase() +
+                            pen.bedding_type.slice(1).toLowerCase()
+                          : "None"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Animals tags/chips */}
+                  {pen?.livestock && pen?.livestock?.length > 0 ? (
+                    <div className="mt-4">
+                      <p className="text-xs text-gray-500 mb-2">Animals</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {pen.livestock &&
+                          Array.from(
+                            new Set(pen.livestock.map((l) => l.livestock_type))
+                          ).map((type, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700"
+                            >
+                              {type?.charAt(0).toUpperCase() +
+                                type?.slice(1).toLowerCase()}
+                            </span>
+                          ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-4">
+                      <p className="text-xs text-gray-500 mb-2">Animals</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-amber-700">
+                          No animals yet
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {room.houseName}
-                      </p>
                     </div>
-                    <div className="bg-gray-100 p-2 rounded-md">
-                      <div className="text-xs font-medium text-gray-500 text-center">
-                        {calculateOccupancy(room.occupancy, room.capacity)}%
-                      </div>
-                    </div>
-                  </div>
+                  )}
 
-                  <div className="mt-3 sm:mt-4 grid grid-cols-2 gap-3 sm:gap-4">
-                    <div className="text-xs sm:text-sm">
-                      <span className="text-gray-500">Size:</span>
-                      <p className="font-medium text-gray-900">{room.size}</p>
-                    </div>
-                    <div className="text-xs sm:text-sm">
-                      <span className="text-gray-500">Capacity:</span>
-                      <p className="font-medium text-gray-900">
-                        {room.occupancy}/{room.capacity}
-                      </p>
-                    </div>
-                    <div className="text-xs sm:text-sm">
-                      <span className="text-gray-500">Animals:</span>
-                      <p className="font-medium text-gray-900">
-                        {room.animalTypes.join(", ")}
-                      </p>
-                    </div>
-                    <div className="text-xs sm:text-sm">
-                      <span className="text-gray-500">Last Cleaned:</span>
-                      <p className="font-medium text-gray-900">
-                        {formatDate(room.lastCleaned)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 sm:mt-4 grid grid-cols-3 gap-2">
-                    <div className="flex flex-col items-center">
-                      <ThermometerSnowflake
-                        className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(room.temperatureStatus)}`}
-                      />
-                      <span className="text-xs text-gray-500 mt-1">
-                        {room.temperature}°C
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <Droplets
-                        className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(room.humidityStatus)}`}
-                      />
-                      <span className="text-xs text-gray-500 mt-1">
-                        {room.humidity}%
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <Wind
-                        className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(room.ventilationStatus)}`}
-                      />
-                      <span className="text-xs text-gray-500 mt-1">
-                        {room.airQuality}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 sm:mt-5">
+                  {/* Footer with link */}
+                  <div className="mt-5 pt-4 border-t border-gray-100 flex justify-between items-center">
                     <Link
-                      href={`/farms/1/houses/${room.houseId}/rooms/${room.id}`}
-                      className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
+                      href={`/farms/${farmId}/barns/${barnId}/pens/${pen.unit_id}`}
+                      className="text-sm font-medium text-green-600 hover:text-green-800"
                     >
                       View Details
                     </Link>
@@ -801,6 +832,44 @@ export default function RoomListingPage() {
                 </div>
               </div>
             ))}
+
+            {/* Empty state - add a pen card */}
+            <div className="bg-white overflow-hidden border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors duration-200 flex items-center justify-center">
+              <div className="p-8 text-center">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-50 mb-4">
+                  <svg
+                    className="h-6 w-6 text-green-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-sm font-medium text-gray-900">
+                  Add new pen
+                </h3>
+                <p className="mt-1 text-xs text-gray-500">
+                  Create a new pen for your livestock
+                </p>
+                <button
+                  className="mt-4 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                  onClick={() => {
+                    onOpen("add-pens-to-barn", {
+                      barnUnitId: pens?.[0]?.unit_id,
+                      barnName: pens?.[0]?.barn?.name,
+                    });
+                  }}
+                >
+                  Add Pen
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -808,10 +877,10 @@ export default function RoomListingPage() {
         {viewMode === "list" && (
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
             <ul className="divide-y divide-gray-200">
-              {filteredRooms.map((room) => (
-                <li key={room.id}>
+              {farmPens?.map((pen) => (
+                <li key={pen.id}>
                   <Link
-                    href={`/farms/1/houses/${room.houseId}/rooms/${room.id}`}
+                    href={`/farms/${farmId}/barns/${barnId}/pens/${pen.unit_id}`}
                     className="block hover:bg-gray-50"
                   >
                     <div className="px-3 py-3 sm:px-4 sm:py-4">
@@ -819,19 +888,24 @@ export default function RoomListingPage() {
                         <div>
                           <div className="flex items-center flex-wrap">
                             <p className="text-xs sm:text-sm font-medium text-gray-900 mr-2">
-                              {room.name}
+                              {pen.name}
                             </p>
                             <span
-                              className={`mt-1 sm:mt-0 px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColor(room.status)}`}
+                              className={`mt-1 sm:mt-0 px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColor(
+                                pen.status
+                              )}`}
                             >
-                              {room.status.charAt(0).toUpperCase() +
-                                room.status.slice(1)}
+                              {pen.status.charAt(0).toUpperCase() +
+                                pen.status.slice(1).toLowerCase()}
                             </span>
                           </div>
                           <div className="mt-1 flex items-center text-xs text-gray-500">
-                            <span className="mr-2">{room.type}</span>
+                            <span className="mr-2">
+                              {pen?.livestock?.[0]?.livestock_type ||
+                                "no livestock"}
+                            </span>
                             <span>•</span>
-                            <span className="ml-2">{room.houseName}</span>
+                            <span className="ml-2">{pen.unit_id}</span>
                           </div>
                         </div>
                         <div className="mt-2 sm:mt-0 flex items-center">
@@ -839,37 +913,46 @@ export default function RoomListingPage() {
                             <div className="flex items-center">
                               <Users className="h-4 w-4 text-gray-400 mr-1" />
                               <span className="text-xs sm:text-sm text-gray-500">
-                                {room.occupancy}/{room.capacity}
+                                {pen.livestock?.length || 0}/{pen.capacity}
                               </span>
                             </div>
                           </div>
-                          <div className="flex space-x-2">
+                          {/* <div className="flex space-x-2">
                             <ThermometerSnowflake
-                              className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(room.temperatureStatus)}`}
+                              className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
+                                pen.temperatureStatus
+                              )}`}
                             />
                             <Droplets
-                              className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(room.humidityStatus)}`}
+                              className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
+                                pen.humidityStatus
+                              )}`}
                             />
                             <Wind
-                              className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(room.ventilationStatus)}`}
+                              className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
+                                pen.ventilationStatus
+                              )}`}
                             />
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="mt-2 sm:flex sm:justify-between text-xs sm:text-sm">
                         <div className="sm:flex flex-wrap">
                           <div className="text-gray-500 mr-4">
                             <span className="font-medium">Size:</span>{" "}
-                            {room.size}
+                            {pen.area_sqm}
                           </div>
                           <div className="text-gray-500 mr-4">
                             <span className="font-medium">Animals:</span>{" "}
-                            {room.animalTypes.join(", ")}
+                            {pen.livestock
+                              ?.map((livestock) => livestock.livestock_type)
+                              .join(", ")}
                           </div>
                         </div>
                         <div className="mt-1 sm:mt-0 flex items-center text-gray-500">
-                          <span className="font-medium">Last cleaned:</span>{" "}
-                          {formatDate(room.lastCleaned)}
+                          <span className="font-medium">Bedding Type:</span>{" "}
+                          {pen?.bedding_type?.charAt(0).toUpperCase() +
+                            pen?.bedding_type?.slice(1).toLowerCase()}
                         </div>
                       </div>
                     </div>
@@ -942,122 +1025,6 @@ export default function RoomListingPage() {
         </div>
 
         {/* Environmental Alerts */}
-        <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">
-          <div className="px-3 py-3 sm:px-4 sm:py-5 border-b border-gray-200">
-            <h3 className="text-base sm:text-lg leading-6 font-medium text-gray-900">
-              Environmental Alerts
-            </h3>
-            <p className="mt-1 max-w-2xl text-xs sm:text-sm text-gray-500">
-              Rooms with environmental conditions that need attention
-            </p>
-          </div>
-          <div className="px-3 py-3 sm:px-4 sm:py-5">
-            <div className="space-y-3 sm:space-y-4">
-              {rooms
-                .filter(
-                  (r) =>
-                    r.temperatureStatus !== "normal" ||
-                    r.humidityStatus !== "normal" ||
-                    r.ventilationStatus !== "normal",
-                )
-                .map((room) => (
-                  <div
-                    key={room.id}
-                    className="border border-gray-200 rounded-md p-3 sm:p-4"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <Home className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
-                        </div>
-                        <div className="ml-3">
-                          <h4 className="text-xs sm:text-sm font-medium text-gray-900">
-                            {room.name}
-                          </h4>
-                          <p className="text-xs sm:text-sm text-gray-500">
-                            {room.houseName} • {room.type}
-                          </p>
-                        </div>
-                      </div>
-                      <span
-                        className={`mt-2 sm:mt-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(room.status)}`}
-                      >
-                        {room.status.charAt(0).toUpperCase() +
-                          room.status.slice(1)}
-                      </span>
-                    </div>
-                    <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2">
-                      {room.temperatureStatus !== "normal" && (
-                        <div className="flex items-center text-xs sm:text-sm">
-                          <ThermometerSnowflake
-                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(room.temperatureStatus)} mr-1 sm:mr-2`}
-                          />
-                          <span className="text-gray-700">
-                            Temperature {room.temperatureStatus.toUpperCase()}:
-                            Current {room.temperature}°C
-                          </span>
-                        </div>
-                      )}
-                      {room.humidityStatus !== "normal" && (
-                        <div className="flex items-center text-xs sm:text-sm">
-                          <Droplets
-                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(room.humidityStatus)} mr-1 sm:mr-2`}
-                          />
-                          <span className="text-gray-700">
-                            Humidity {room.humidityStatus.toUpperCase()}:
-                            Current {room.humidity}%
-                          </span>
-                        </div>
-                      )}
-                      {room.ventilationStatus !== "normal" && (
-                        <div className="flex items-center text-xs sm:text-sm">
-                          <Wind
-                            className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(room.ventilationStatus)} mr-1 sm:mr-2`}
-                          />
-                          <span className="text-gray-700">
-                            Ventilation system requires attention
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-3 sm:mt-4 flex space-x-2 sm:space-x-3">
-                      <button
-                        type="button"
-                        className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                      >
-                        Resolve
-                      </button>
-                      <Link
-                        href={`/farms/1/houses/${room.houseId}/rooms/${room.id}`}
-                        className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                      >
-                        View Details
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-
-              {rooms.filter(
-                (r) =>
-                  r.temperatureStatus !== "normal" ||
-                  r.humidityStatus !== "normal" ||
-                  r.ventilationStatus !== "normal",
-              ).length === 0 && (
-                <div className="text-center py-4 sm:py-6">
-                  <div className="mx-auto flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-green-100">
-                    <Check className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
-                  </div>
-                  <h3 className="mt-2 text-xs sm:text-sm font-medium text-gray-900">
-                    No active alerts
-                  </h3>
-                  <p className="mt-1 text-xs sm:text-sm text-gray-500">
-                    All rooms are operating within normal parameters.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
 
         {/* Cleaning Schedule */}
         <div className="mt-4 sm:mt-6 bg-white shadow sm:rounded-lg">
@@ -1113,14 +1080,14 @@ export default function RoomListingPage() {
                       const currentDate = new Date().valueOf();
                       const diffTime = Math.abs(currentDate - lastCleaned);
                       const diffDays = Math.ceil(
-                        diffTime / (1000 * 60 * 60 * 24),
+                        diffTime / (1000 * 60 * 60 * 24)
                       );
                       return diffDays > 5;
                     })
                     .sort(
                       (a, b) =>
                         new Date(a.lastCleaned).valueOf() -
-                        new Date(b.lastCleaned).valueOf(),
+                        new Date(b.lastCleaned).valueOf()
                     )
                     .slice(0, 5)
                     .map((room) => {

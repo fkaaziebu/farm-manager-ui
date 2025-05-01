@@ -1,0 +1,25 @@
+query GetPen($penUnitId: String!) {
+  getPen(penUnitId: $penUnitId) {
+    area_sqm
+    bedding_type
+    capacity
+    status
+    waterer_type
+    unit_id
+    name
+    id
+    feeder_type
+    livestock {
+      id
+      livestock_type
+      livestock_tag
+      inserted_at
+      birth_date
+      weight
+      updated_at
+      gender
+      breed
+      health_status
+    }
+  }
+}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Search,
@@ -18,7 +18,32 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { useRouter, usePathname } from "next/navigation";
+import { useFetchPen } from "@/hooks/queries";
+import { HealthStatus } from "@/graphql/generated/graphql";
+import formatDateOfBirth from "@/components/common/format-date-of-birth";
+import { useModal } from "@/hooks/use-modal-store";
+
 export default function RoomAnimalsPage() {
+  const { fetchPen, pen } = useFetchPen();
+  const { onOpen } = useModal();
+  const pathname = usePathname();
+  const router = useRouter();
+  const penUnitId = decodeURIComponent(
+    pathname.split("/")[pathname.split("/").length - 2]
+  );
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+
+    if (!token) {
+      router.push("/auth/admin/login");
+    }
+    fetchPen({ penUnitId });
+  }, []);
+
+  console.log("pen", pen?.livestock?.length);
+
   // Sample room data
   const room = {
     id: 101,
@@ -40,152 +65,152 @@ export default function RoomAnimalsPage() {
   };
 
   // Sample animals in room
-  const [animals] = useState([
-    {
-      id: "HC-001",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "3 years",
-      weight: "1450 lbs",
-      status: "Healthy",
-      dateAdded: "2022-03-15",
-      lastCheckup: "2024-08-22",
-      feedIntake: "High",
-      notes: "Regular milking, good production",
-    },
-    {
-      id: "HC-002",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "4 years",
-      weight: "1520 lbs",
-      status: "Healthy",
-      dateAdded: "2021-05-12",
-      lastCheckup: "2024-08-22",
-      feedIntake: "Medium",
-      notes: "Consistent producer",
-    },
-    {
-      id: "HC-003",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "3 years",
-      weight: "1480 lbs",
-      status: "Healthy",
-      dateAdded: "2022-06-01",
-      lastCheckup: "2024-08-23",
-      feedIntake: "High",
-      notes: "",
-    },
-    {
-      id: "HC-004",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "5 years",
-      weight: "1550 lbs",
-      status: "Monitoring",
-      dateAdded: "2020-07-08",
-      lastCheckup: "2024-08-25",
-      feedIntake: "Low",
-      notes: "Decreased milk production, monitoring closely",
-    },
-    {
-      id: "HC-005",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "2 years",
-      weight: "1320 lbs",
-      status: "Healthy",
-      dateAdded: "2023-02-19",
-      lastCheckup: "2024-08-22",
-      feedIntake: "Medium",
-      notes: "First lactation",
-    },
-    {
-      id: "HC-006",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "4 years",
-      weight: "1510 lbs",
-      status: "Healthy",
-      dateAdded: "2021-08-05",
-      lastCheckup: "2024-08-22",
-      feedIntake: "High",
-      notes: "",
-    },
-    {
-      id: "HC-007",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "3 years",
-      weight: "1470 lbs",
-      status: "Healthy",
-      dateAdded: "2022-04-20",
-      lastCheckup: "2024-08-23",
-      feedIntake: "Medium",
-      notes: "",
-    },
-    {
-      id: "HC-008",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "6 years",
-      weight: "1580 lbs",
-      status: "Treatment",
-      dateAdded: "2019-03-10",
-      lastCheckup: "2024-08-27",
-      feedIntake: "Low",
-      notes: "Receiving antibiotics for mastitis",
-    },
-    {
-      id: "HC-009",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "3 years",
-      weight: "1460 lbs",
-      status: "Healthy",
-      dateAdded: "2022-05-14",
-      lastCheckup: "2024-08-23",
-      feedIntake: "High",
-      notes: "",
-    },
-    {
-      id: "HC-010",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "4 years",
-      weight: "1500 lbs",
-      status: "Healthy",
-      dateAdded: "2021-06-22",
-      lastCheckup: "2024-08-22",
-      feedIntake: "Medium",
-      notes: "",
-    },
-    {
-      id: "HC-011",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "2 years",
-      weight: "1350 lbs",
-      status: "Healthy",
-      dateAdded: "2023-01-15",
-      lastCheckup: "2024-08-22",
-      feedIntake: "Medium",
-      notes: "First lactation, good adaptation",
-    },
-    {
-      id: "HC-012",
-      type: "Holstein Cattle",
-      gender: "Female",
-      age: "3 years",
-      weight: "1440 lbs",
-      status: "Healthy",
-      dateAdded: "2022-04-05",
-      lastCheckup: "2024-08-23",
-      feedIntake: "High",
-      notes: "",
-    },
-  ]);
+  // const [animals] = useState([
+  //   {
+  //     id: "HC-001",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "3 years",
+  //     weight: "1450 lbs",
+  //     status: "Healthy",
+  //     dateAdded: "2022-03-15",
+  //     lastCheckup: "2024-08-22",
+  //     feedIntake: "High",
+  //     notes: "Regular milking, good production",
+  //   },
+  //   {
+  //     id: "HC-002",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "4 years",
+  //     weight: "1520 lbs",
+  //     status: "Healthy",
+  //     dateAdded: "2021-05-12",
+  //     lastCheckup: "2024-08-22",
+  //     feedIntake: "Medium",
+  //     notes: "Consistent producer",
+  //   },
+  //   {
+  //     id: "HC-003",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "3 years",
+  //     weight: "1480 lbs",
+  //     status: "Healthy",
+  //     dateAdded: "2022-06-01",
+  //     lastCheckup: "2024-08-23",
+  //     feedIntake: "High",
+  //     notes: "",
+  //   },
+  //   {
+  //     id: "HC-004",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "5 years",
+  //     weight: "1550 lbs",
+  //     status: "Monitoring",
+  //     dateAdded: "2020-07-08",
+  //     lastCheckup: "2024-08-25",
+  //     feedIntake: "Low",
+  //     notes: "Decreased milk production, monitoring closely",
+  //   },
+  //   {
+  //     id: "HC-005",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "2 years",
+  //     weight: "1320 lbs",
+  //     status: "Healthy",
+  //     dateAdded: "2023-02-19",
+  //     lastCheckup: "2024-08-22",
+  //     feedIntake: "Medium",
+  //     notes: "First lactation",
+  //   },
+  //   {
+  //     id: "HC-006",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "4 years",
+  //     weight: "1510 lbs",
+  //     status: "Healthy",
+  //     dateAdded: "2021-08-05",
+  //     lastCheckup: "2024-08-22",
+  //     feedIntake: "High",
+  //     notes: "",
+  //   },
+  //   {
+  //     id: "HC-007",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "3 years",
+  //     weight: "1470 lbs",
+  //     status: "Healthy",
+  //     dateAdded: "2022-04-20",
+  //     lastCheckup: "2024-08-23",
+  //     feedIntake: "Medium",
+  //     notes: "",
+  //   },
+  //   {
+  //     id: "HC-008",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "6 years",
+  //     weight: "1580 lbs",
+  //     status: "Treatment",
+  //     dateAdded: "2019-03-10",
+  //     lastCheckup: "2024-08-27",
+  //     feedIntake: "Low",
+  //     notes: "Receiving antibiotics for mastitis",
+  //   },
+  //   {
+  //     id: "HC-009",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "3 years",
+  //     weight: "1460 lbs",
+  //     status: "Healthy",
+  //     dateAdded: "2022-05-14",
+  //     lastCheckup: "2024-08-23",
+  //     feedIntake: "High",
+  //     notes: "",
+  //   },
+  //   {
+  //     id: "HC-010",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "4 years",
+  //     weight: "1500 lbs",
+  //     status: "Healthy",
+  //     dateAdded: "2021-06-22",
+  //     lastCheckup: "2024-08-22",
+  //     feedIntake: "Medium",
+  //     notes: "",
+  //   },
+  //   {
+  //     id: "HC-011",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "2 years",
+  //     weight: "1350 lbs",
+  //     status: "Healthy",
+  //     dateAdded: "2023-01-15",
+  //     lastCheckup: "2024-08-22",
+  //     feedIntake: "Medium",
+  //     notes: "First lactation, good adaptation",
+  //   },
+  //   {
+  //     id: "HC-012",
+  //     type: "Holstein Cattle",
+  //     gender: "Female",
+  //     age: "3 years",
+  //     weight: "1440 lbs",
+  //     status: "Healthy",
+  //     dateAdded: "2022-04-05",
+  //     lastCheckup: "2024-08-23",
+  //     feedIntake: "High",
+  //     notes: "",
+  //   },
+  // ]);
 
   // Filter and sort states
   const [searchQuery, setSearchQuery] = useState("");
@@ -194,7 +219,7 @@ export default function RoomAnimalsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
   const [ageFilter, setAgeFilter] = useState("all");
-  const [feedIntakeFilter, setFeedIntakeFilter] = useState("all");
+  const [breedFilter, setBreedFilter] = useState("all");
   const [sortBy, setSortBy] = useState("id");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
@@ -214,23 +239,22 @@ export default function RoomAnimalsPage() {
     if (selectAll) {
       setSelectedAnimals([]);
     } else {
-      setSelectedAnimals(filteredAnimals.map((animal) => animal.id));
+      setSelectedAnimals((filteredAnimals || []).map((animal) => animal.id));
     }
     setSelectAll(!selectAll);
   };
 
   // Filter and sort animals
-  const filteredAnimals = animals
-    .filter((animal) => {
+  const filteredAnimals = pen?.livestock
+    ?.filter((animal) => {
       // Search filter
       const matchesSearch =
         animal.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        animal.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        animal.notes.toLowerCase().includes(searchQuery.toLowerCase());
+        animal.livestock_type.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Status filter
       const matchesStatus =
-        statusFilter === "all" || animal.status === statusFilter;
+        statusFilter === "all" || animal.health_status === statusFilter;
 
       // Gender filter
       const matchesGender =
@@ -239,7 +263,7 @@ export default function RoomAnimalsPage() {
       // Age filter
       const matchesAge = (() => {
         if (ageFilter === "all") return true;
-        const ageNum = parseInt(animal.age);
+        const ageNum = parseInt(animal.birth_date);
 
         switch (ageFilter) {
           case "under2":
@@ -253,31 +277,31 @@ export default function RoomAnimalsPage() {
         }
       })();
 
-      // Feed intake filter
-      const matchesFeedIntake =
-        feedIntakeFilter === "all" || animal.feedIntake === feedIntakeFilter;
+      // Breed filter filter
+      const matchesBreed =
+        breedFilter === "all" || animal.breed === breedFilter;
 
       return (
         matchesSearch &&
         matchesStatus &&
         matchesGender &&
         matchesAge &&
-        matchesFeedIntake
+        matchesBreed
       );
     })
     .sort((a, b) => {
       if (sortBy === "id") {
         return a.id.localeCompare(b.id);
       } else if (sortBy === "age") {
-        return parseInt(a.age) - parseInt(b.age);
+        return parseInt(a.birth_date) - parseInt(b.birth_date);
       } else if (sortBy === "weight") {
-        return parseInt(a.weight) - parseInt(b.weight);
+        return a.weight - b.weight;
       } else if (sortBy === "lastCheckup") {
         return (
-          new Date(b.lastCheckup).getTime() - new Date(a.lastCheckup).getTime()
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         );
       } else if (sortBy === "status") {
-        return a.status.localeCompare(b.status);
+        return a.health_status.localeCompare(b.health_status);
       }
       return 0;
     });
@@ -285,13 +309,13 @@ export default function RoomAnimalsPage() {
   // Function to get animal status color
   const getAnimalStatusColor = (status: string) => {
     switch (status) {
-      case "Healthy":
+      case HealthStatus.Critical:
         return "bg-green-100 text-green-800";
-      case "Monitoring":
+      case HealthStatus.Recovering:
         return "bg-yellow-100 text-yellow-800";
-      case "Treatment":
+      case HealthStatus.Treated:
         return "bg-orange-100 text-orange-800";
-      case "Critical":
+      case HealthStatus.Sick:
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -309,20 +333,32 @@ export default function RoomAnimalsPage() {
 
   // Animal stats
   const animalStats = {
-    total: animals.length,
-    healthy: animals.filter((a) => a.status === "Healthy").length,
-    monitoring: animals.filter((a) => a.status === "Monitoring").length,
-    treatment: animals.filter((a) => a.status === "Treatment").length,
-    critical: animals.filter((a) => a.status === "Critical").length,
+    total: filteredAnimals?.length,
+    healthy: filteredAnimals?.filter(
+      (a) => a.health_status === HealthStatus.Healthy
+    ).length,
+    monitoring: filteredAnimals?.filter(
+      (a) => a.health_status === HealthStatus.Recovering
+    ).length,
+    treatment: filteredAnimals?.filter(
+      (a) => a.health_status === HealthStatus.Treated
+    ).length,
+    critical: filteredAnimals?.filter(
+      (a) => a.health_status === HealthStatus.Critical
+    ).length,
     averageWeight: Math.round(
-      animals.reduce((sum, animal) => sum + parseInt(animal.weight), 0) /
-        animals.length,
+      filteredAnimals?.reduce(
+        (sum, animal) => sum + parseInt(animal.weight),
+        0
+      ) / filteredAnimals?.length
     ),
     averageAge: parseFloat(
       (
-        animals.reduce((sum, animal) => sum + parseInt(animal.age), 0) /
-        animals.length
-      ).toFixed(1),
+        filteredAnimals?.reduce(
+          (sum, animal) => sum + parseInt(animal.age),
+          0
+        ) / filteredAnimals?.length
+      ).toFixed(1)
     ),
   };
 
@@ -334,17 +370,17 @@ export default function RoomAnimalsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
               <Link
-                href={`/farms/1/houses/${room.houseId}/rooms/${room.id}`}
+                href={`/farms//houses/${room.houseId}/rooms/${room.id}`}
                 className="mr-3 sm:mr-4"
               >
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
               </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-                  Animals in {room.name}
+                  Animals in {pen?.name}
                 </h1>
                 <p className="mt-1 text-xs sm:text-sm text-gray-500">
-                  {room.houseName} • {room.type} • {room.occupancy}/
+                  {pen?.unit_id} • {pen?.status} • {room.occupancy}/
                   {room.capacity} animals
                 </p>
               </div>
@@ -354,7 +390,15 @@ export default function RoomAnimalsPage() {
                 <Download size={14} className="mr-1.5 sm:mr-2" />
                 Export
               </button>
-              <button className="inline-flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700">
+              <button
+                className="inline-flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+                onClick={() => {
+                  onOpen("add-livestock-to-pen", {
+                    penUnitId,
+                    penName: pen?.name,
+                  });
+                }}
+              >
                 <Plus size={14} className="mr-1.5 sm:mr-2" />
                 Add Animal
               </button>
@@ -462,7 +506,7 @@ export default function RoomAnimalsPage() {
                       Total
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {animals.length}
+                      {pen?.livestock?.length}
                     </dd>
                   </dl>
                 </div>
@@ -482,7 +526,12 @@ export default function RoomAnimalsPage() {
                       Healthy
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {animalStats.healthy}
+                      {
+                        pen?.livestock?.filter(
+                          (animal) =>
+                            animal.health_status === HealthStatus.Healthy
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -499,10 +548,15 @@ export default function RoomAnimalsPage() {
                 <div className="ml-3 sm:ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
-                      Monitoring
+                      Recovering
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {animalStats.monitoring}
+                      {
+                        pen?.livestock?.filter(
+                          (animal) =>
+                            animal.health_status === HealthStatus.Recovering
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -522,7 +576,12 @@ export default function RoomAnimalsPage() {
                       Treatment
                     </dt>
                     <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
-                      {animalStats.treatment}
+                      {
+                        pen?.livestock?.filter(
+                          (animal) =>
+                            animal.health_status === HealthStatus.Treated
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -615,13 +674,21 @@ export default function RoomAnimalsPage() {
                 <div className="hidden sm:flex gap-2">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${viewMode === "grid" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+                    className={`flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${
+                      viewMode === "grid"
+                        ? "bg-green-50 border-green-500 text-green-700"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
                     Grid
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${viewMode === "list" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+                    className={`flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium ${
+                      viewMode === "list"
+                        ? "bg-green-50 border-green-500 text-green-700"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
                     List
                   </button>
@@ -791,7 +858,7 @@ export default function RoomAnimalsPage() {
           {/* Grid View */}
           {viewMode === "grid" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-              {filteredAnimals.map((animal) => (
+              {pen?.livestock?.map((animal) => (
                 <div
                   key={animal.id}
                   className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 ease-in-out"
@@ -810,23 +877,34 @@ export default function RoomAnimalsPage() {
                         </span>
                       </div>
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getAnimalStatusColor(animal.status)}`}
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getAnimalStatusColor(
+                          animal.health_status
+                        )}`}
                       >
-                        {animal.status}
+                        {animal.health_status.charAt(0) +
+                          animal.health_status.slice(1).toLowerCase()}
                       </span>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs text-gray-600">
                         <span>Type:</span>
-                        <span className="font-medium">{animal.type}</span>
+                        <span className="font-medium">
+                          {animal.livestock_type.charAt(0) +
+                            animal.livestock_type.slice(1).toLowerCase()}
+                        </span>
                       </div>
                       <div className="flex justify-between text-xs text-gray-600">
                         <span>Gender:</span>
-                        <span className="font-medium">{animal.gender}</span>
+                        <span className="font-medium">
+                          {animal.gender.charAt(0) +
+                            animal.gender.slice(1).toLowerCase()}
+                        </span>
                       </div>
                       <div className="flex justify-between text-xs text-gray-600">
                         <span>Age:</span>
-                        <span className="font-medium">{animal.age}</span>
+                        <span className="font-medium">
+                          {formatDateOfBirth(animal.birth_date)}
+                        </span>
                       </div>
                       <div className="flex justify-between text-xs text-gray-600">
                         <span>Weight:</span>
@@ -835,12 +913,15 @@ export default function RoomAnimalsPage() {
                       <div className="flex justify-between text-xs text-gray-600">
                         <span>Last Checkup:</span>
                         <span className="font-medium">
-                          {formatDate(animal.lastCheckup)}
+                          {formatDate(animal.updated_at)}
                         </span>
                       </div>
                       <div className="flex justify-between text-xs text-gray-600">
-                        <span>Feed Intake:</span>
-                        <span className="font-medium">{animal.feedIntake}</span>
+                        <span>Breed:</span>
+                        <span className="font-medium">
+                          {animal.breed.charAt(0) +
+                            animal.breed.slice(1).toLowerCase()}
+                        </span>
                       </div>
                     </div>
                     <div className="mt-4 flex space-x-2">
@@ -895,7 +976,7 @@ export default function RoomAnimalsPage() {
                       Last Checkup
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Feed Intake
+                      Breed
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -903,7 +984,7 @@ export default function RoomAnimalsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredAnimals.map((animal) => (
+                  {pen?.livestock?.map((animal) => (
                     <tr key={animal.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 whitespace-nowrap">
                         <input
@@ -917,29 +998,34 @@ export default function RoomAnimalsPage() {
                         {animal.id}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        {animal.type}
+                        {animal.livestock_type.charAt(0) +
+                          animal.livestock_type.slice(1).toLowerCase()}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        {animal.gender}
+                        {animal.gender.charAt(0) +
+                          animal.gender.slice(1).toLowerCase()}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        {animal.age}
+                        {formatDateOfBirth(animal.birth_date)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                         {animal.weight}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
-                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getAnimalStatusColor(animal.status)}`}
+                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getAnimalStatusColor(
+                            animal.health_status
+                          )}`}
                         >
-                          {animal.status}
+                          {animal.health_status.charAt(0) +
+                            animal.health_status.slice(1).toLowerCase()}
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(animal.lastCheckup)}
+                        {formatDate(animal.updated_at)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        {animal.feedIntake}
+                        {animal.breed}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
@@ -961,7 +1047,7 @@ export default function RoomAnimalsPage() {
           )}
 
           {/* No results state */}
-          {filteredAnimals.length === 0 && (
+          {pen?.livestock?.length === 0 && (
             <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
               <svg
                 className="h-12 w-12 text-gray-400 mb-4"

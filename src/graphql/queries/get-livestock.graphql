@@ -1,0 +1,73 @@
+query GetLivestock($livestockTag: String!) {
+  getLivestock(livestockTag: $livestockTag) {
+    availability_status
+    birth_date
+    livestock_tag
+    livestock_type
+    weight
+    gender
+    health_status
+    id
+    pen {
+      id
+      unit_id
+      livestock {
+        id
+        gender
+        livestock_tag
+        breed
+        livestock_tag
+      }
+    }
+    breeding_records {
+      id
+      status
+      mating_date
+      notes
+      breeding_method
+      expected_delivery
+      offspring_count_female
+      offspring_count_male
+      actual_delivery
+    }
+    health_records {
+      record_status
+      medication
+      notes
+      record_type
+      record_date
+      diagnosis
+      vet_name
+      id
+      issue
+      symptoms
+      treatment
+      dosage
+    }
+    farm {
+      workers {
+        roles
+        name
+      }
+    }
+    growth_records {
+      id
+      growth_rate
+      height
+      length
+      notes
+      period
+      record_date
+      record_type
+      weight
+    }
+    expense_records {
+      amount
+      expense_date
+      id
+
+      category
+      notes
+    }
+  }
+}

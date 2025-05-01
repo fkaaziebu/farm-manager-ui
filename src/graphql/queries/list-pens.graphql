@@ -1,0 +1,33 @@
+query ListPens(
+  $searchTerm: String!
+  $pagination: PaginationInput
+  $sort: [PenSortInput!]
+) {
+  listPens(searchTerm: $searchTerm, pagination: $pagination, sort: $sort) {
+    pageInfo {
+      endCursor
+      hasNextPage
+      hasPreviousPage
+      startCursor
+    }
+    edges {
+      node {
+        area_sqm
+        bedding_type
+        capacity
+        feeder_type
+        id
+        name
+        status
+        unit_id
+        barn {
+          name
+        }
+        livestock {
+          id
+          livestock_type
+        }
+      }
+    }
+  }
+}

@@ -8,8 +8,12 @@ import {
   FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
+import { usePathname } from "next/navigation";
+import { useModal } from "@/hooks/use-modal-store";
 const EmptyStateExpenses = () => {
+  const pathname = usePathname();
+  const initialAnimalTag = pathname.split("/").pop();
+  const { onOpen } = useModal();
   return (
     <div>
       {/* Empty Expenses Records */}
@@ -29,7 +33,14 @@ const EmptyStateExpenses = () => {
             patterns.
           </p>
           <div className="mt-4">
-            <Button className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+            <Button
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+              onClick={() =>
+                onOpen("add-livestock-expense-record", {
+                  livestockTag: initialAnimalTag,
+                })
+              }
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add First Expense
             </Button>
