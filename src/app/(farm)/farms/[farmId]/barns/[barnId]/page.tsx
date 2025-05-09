@@ -46,6 +46,7 @@ export default function HouseDetailPage() {
   const pathname = usePathname();
   const barnUnitId = pathname.split("/").pop() ?? "";
   const farmId = pathname.split("/")[pathname.split("/").length - 3];
+
   const totalOcupancy = barn?.pens
     ? barn.pens.reduce((acc, curr) => acc + curr?.livestock?.length, 0)
     : 0;
@@ -257,6 +258,12 @@ export default function HouseDetailPage() {
                 <button
                   type="button"
                   className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  onClick={() => {
+                    onOpen("update-barn", {
+                      barnUnitId: barn?.unit_id,
+                      barn: barn,
+                    });
+                  }}
                 >
                   <Edit size={14} className="mr-1 sm:mr-2" />
                   Edit

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useLoginAdmin } from "@/hooks/mutations";
 import { classname } from "@/components/common";
-
+import { useModal } from "@/hooks/use-modal-store";
 type LoginFormInput = {
   email: string;
   password: string;
@@ -17,6 +17,7 @@ export default function AuthLogin() {
   const router = useRouter();
   const [loginError, setLoginError] = useState<string>();
   const { loginAdmin, loading } = useLoginAdmin();
+  const { onOpen } = useModal();
 
   const {
     register,
@@ -51,12 +52,19 @@ export default function AuthLogin() {
       setLoginError("");
       sessionStorage.setItem("token", response.data.loginAdmin.token);
       sessionStorage.setItem("id", response.data.loginAdmin.id);
+      onOpen("notification", {
+        notificationType: "success",
+        notificationMessage: "Login successful",
+      });
       router.push("/farms");
     } catch (error) {
       //  @ts-expect-error ignore
       setLoginError(error.message);
       console.error(error);
-      toast.error("Login failed");
+      onOpen("notification", {
+        notificationType: "error",
+        notificationMessage: `Login unsuccessful: ${error}`,
+      });
     }
   };
 

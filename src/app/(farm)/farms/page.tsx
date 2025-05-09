@@ -21,7 +21,7 @@ export default function FarmsListingPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const { onOpen, type } = useModal();
+  const { onOpen } = useModal();
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");

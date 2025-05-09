@@ -5,6 +5,8 @@ import useFetchLivestocks from "./custom/use-fetch-livestocks";
 import useFetchPens from "./custom/use-fetch-pens";
 import useFetchBarns from "./custom/use-fetch-barns";
 import useFetchALivestock from "./custom/use-get-a-livestock";
+import useFetchASingleWorker from "./custom/use-get-a-worker";
+import useFetchTasks from "./custom/use-fetch-tasks";
 export {
   useFetchFarms,
   useFetchBarn,
@@ -13,4 +15,7 @@ export {
   useFetchPens,
   useFetchBarns,
   useFetchALivestock,
+  useFetchASingleWorker,
+  useFetchTasks,
 };
+

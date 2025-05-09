@@ -52,6 +52,7 @@ query ListFarms(
         }
         farm_tag
         id
+        tasks
       }
     }
     pageInfo {

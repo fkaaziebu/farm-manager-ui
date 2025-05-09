@@ -38,6 +38,7 @@ export default function useFetchPens() {
           pagination,
         },
       });
+      // @ts-expect-error error
       setPens(response?.data?.listPens?.edges.map((edge) => edge.node) || []);
       setPageInfo(response?.data?.listPens?.pageInfo);
     } catch (error) {
@@ -74,10 +75,11 @@ export default function useFetchPens() {
             },
           },
         });
+
         setPens([
           ...(pens || []),
-          // @ts-expect-error err
-          ...response.data.listPens.edges.map((edge) => edge.node),
+          // @ts-expect-error error
+          ...response?.data?.listPens?.edges?.map((edge) => edge.node),
         ]);
         setPageInfo(response.data?.listPens?.pageInfo);
       }

@@ -156,7 +156,7 @@ export const HealthRecordModal = () => {
         >
           <div className="flex items-center justify-center w-full h-full">
             <div
-              className=" w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden items-center justify-center m-auto "
+              className=" w-full max-w-xl bg-white rounded-lg shadow-xl overflow-hidden items-center justify-center m-auto "
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-4 border-b border-gray-200">

@@ -1,0 +1,24 @@
+query ListTask($filter: TaskFilterInput) {
+  listTask(filter: $filter) {
+    id
+    starting_date
+    status
+    type
+    worker {
+      name
+    }
+    completion_date
+    notes
+    barns {
+      id
+      unit_id
+      name
+    }
+    pens {
+      id
+      unit_id
+      name
+    }
+    description
+  }
+}

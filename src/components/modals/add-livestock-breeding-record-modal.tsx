@@ -56,6 +56,7 @@ const formSchema = z.object({
       BreedingStatus.Cancelled,
     ])
     .default(BreedingStatus.Planned),
+  cost: z.number().optional(),
 });
 
 export const BreedingRecordModal = () => {
@@ -103,6 +104,7 @@ export const BreedingRecordModal = () => {
       expectedBirthDate: null,
       notes: "",
       success: BreedingStatus.Planned,
+      cost: undefined,
     },
   });
 
@@ -118,15 +120,17 @@ export const BreedingRecordModal = () => {
         expectedBirthDate: null,
         notes: "",
         success: BreedingStatus.Planned,
+        cost: undefined,
       });
 
-      form.setValue("breedingDate", format(new Date(), "yyyy-MM-dd"));
-      form.setValue("expectedBirthDate", null);
-      form.setValue("notes", "");
-      form.setValue("success", BreedingStatus.Planned);
-      form.setValue("maleLivestockTag", initialAnimalTag || "");
-      form.setValue("femaleLivestockTag", initialAnimalTag || "");
-      form.setValue("success", BreedingStatus.Planned);
+      // form.setValue("breedingDate", format(new Date(), "yyyy-MM-dd"));
+      // form.setValue("expectedBirthDate", null);
+      // form.setValue("notes", "");
+      // form.setValue("success", BreedingStatus.Planned);
+      // form.setValue("maleLivestockTag", initialAnimalTag || "");
+      // form.setValue("femaleLivestockTag", initialAnimalTag || "");
+      // form.setValue("success", BreedingStatus.Planned);
+      // form.setValue("cost", undefined);
 
       setStartingGender(initialAnimalGender as "MALE" | "FEMALE");
     }
@@ -179,6 +183,7 @@ export const BreedingRecordModal = () => {
             matingDate: data.breedingDate,
             notes: data.notes || undefined,
             status: data.success, // Adjust status based on success
+            cost: data.cost || undefined,
           },
         },
       });
@@ -430,6 +435,25 @@ export const BreedingRecordModal = () => {
                               ))}
                             </SelectContent>
                           </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="cost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cost GHc</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="text"
+                              className="max-w-24"
+                              {...field}
+                              placeholder="0.00"
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}

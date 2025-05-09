@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { classname } from "@/components/common";
-
+import { useModal } from "@/hooks/use-modal-store";
 type RegisterFormInput = {
   name: string;
   email: string;
@@ -18,7 +18,7 @@ export default function AuthRegister() {
   const [registerError, setRegisterError] = useState<string>();
   const router = useRouter();
   const { registerAdmin, loading } = useRegisterAdmin();
-
+  const { onOpen } = useModal();
   const {
     register,
     handleSubmit,
@@ -59,12 +59,19 @@ export default function AuthRegister() {
       setRegisterError("");
       // sessionStorage.setItem("token", response.data.registerAdmin.token);
       // sessionStorage.setItem("id", response.data.registerAdmin.id);
+      onOpen("notification", {
+        notificationType: "success",
+        notificationMessage: "Registration successful",
+      });
       router.push("/auth/admin/login");
     } catch (error) {
       //  @ts-expect-error ignore
       setRegisterError(error.message);
       console.error(error);
-      toast.error("Registration failed");
+      onOpen("notification", {
+        notificationType: "error",
+        notificationMessage: `Registration unsuccessful: ${error}`,
+      });
     }
   };
 

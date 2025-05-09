@@ -35,12 +35,15 @@ import {
   FarmHouseEmptyState,
   EmptyStateFarmAnimals,
 } from "@/components/pages/farms/[farmId]";
+import TaskCard from "@/components/pages/farms/tasks/task-card";
+import { useModal } from "@/hooks/use-modal-store";
 
 export default function FarmDetailsPage() {
   const router = useRouter();
   const { farms, fetchFarms } = useFetchFarms();
   const pathname = usePathname();
   const farmId = Number(pathname.split("/").pop());
+  const { onOpen } = useModal();
 
   // Sample farm performance data for chart
   const performanceData = [
@@ -107,6 +110,12 @@ export default function FarmDetailsPage() {
             <button
               type="button"
               className="mt-4 sm:mt-0 sm:ml-auto inline-flex items-center justify-center px-3 py-1.5 sm:px-3 sm:py-1 w-full sm:w-auto border border-gray-300 text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              onClick={() => {
+                onOpen("update-farm", {
+                  farm: farms,
+                  farmTag: farms?.[0]?.farm_tag,
+                });
+              }}
             >
               <Edit className="mr-2 h-4 w-4 sm:h-4 sm:w-4" />
               <span>Edit</span>
@@ -445,7 +454,7 @@ export default function FarmDetailsPage() {
                           </div>
                           <div>
                             <Link
-                              href={`/farms/${farmId}/workers/${worker.id}`}
+                              href={`/farms/${farmId}/workers/${worker.worker_tag}`}
                               className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                             >
                               View
@@ -525,6 +534,21 @@ export default function FarmDetailsPage() {
           ) : (
             <EmptyStateFarmAnimals farmId={farmId.toString()} />
           )}
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2 mt-4">
+          {farms?.length &&
+            farms[0]?.tasks?.length &&
+            farms[0]?.tasks.map((task, indx) => (
+              <TaskCard
+                key={indx}
+                completion_date={null}
+                id={"1"}
+                type={"tasktype"}
+                status={"status"}
+                starting_date={"null"}
+                worker={null}
+              />
+            ))}
         </div>
       </div>
     </div>

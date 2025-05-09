@@ -11,6 +11,11 @@ import { NotificationModal } from "../modals/notification-modal";
 import { BreedingRecordModal } from "../modals/add-livestock-breeding-record-modal";
 import { GrowthRecordModal } from "../modals/add-livestock-growth-record-modal";
 import { ExpenseRecordModal } from "../modals/add-livestock-expense-record-modal";
+import { TaskModal } from "../modals/create-and-assign-task-to-worker-modal";
+import { UpdateBarnModal } from "../modals/update-barn-modal";
+import { UpdateFarmModal } from "../modals/update-farm-modal";
+import { UpdateLivestockModal } from "../modals/update-livestock-modal";
+import { UpdatePenModal } from "../modals/update-pen-modal";
 
 export const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -35,6 +40,11 @@ export const ModalProvider = () => {
       <BreedingRecordModal />
       <GrowthRecordModal />
       <ExpenseRecordModal />
+      <TaskModal />
+      <UpdateBarnModal />
+      <UpdateFarmModal />
+      <UpdatePenModal />
+      <UpdateLivestockModal />
     </>
   );
 };

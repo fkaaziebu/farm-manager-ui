@@ -925,7 +925,16 @@ export default function RoomAnimalsPage() {
                       </div>
                     </div>
                     <div className="mt-4 flex space-x-2">
-                      <button className="flex-1 inline-flex items-center justify-center px-2 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700">
+                      <button
+                        type="button"
+                        className="flex-1 inline-flex items-center justify-center px-2 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
+                        onClick={() => {
+                          onOpen("update-livestock", {
+                            livestockTag: animal.livestock_tag,
+                            penLivestock: pen?.livestock || [],
+                          });
+                        }}
+                      >
                         <Pencil size={12} className="mr-1" />
                         Edit
                       </button>
@@ -1029,7 +1038,17 @@ export default function RoomAnimalsPage() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
-                          <button className="text-green-600 hover:text-green-900 inline-flex items-center">
+                          <button
+                            type="button"
+                            className="text-green-600 hover:text-green-900 inline-flex items-center"
+                            onClick={() => {
+                              onOpen("update-livestock", {
+                                livestockTag: animal.livestock_tag,
+                                penLivestock: pen?.livestock || [],
+                              });
+                            }}
+                          >
+                            {JSON.stringify(animal.livestock_tag)}
                             <Pencil size={14} className="mr-1" />
                             Edit
                           </button>

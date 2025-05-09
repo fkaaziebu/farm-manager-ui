@@ -1,0 +1,17 @@
+mutation UpdateFarm(
+  $farmTag: String!
+  $name: String
+  $location: String
+  $area: String
+  $farmType: FarmType
+) {
+  updateFarm(
+    farmTag: $farmTag
+    name: $name
+    location: $location
+    area: $area
+    farmType: $farmType
+  ) {
+    id
+  }
+}

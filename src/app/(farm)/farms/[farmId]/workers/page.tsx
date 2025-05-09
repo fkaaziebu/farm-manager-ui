@@ -1,10 +1,7 @@
 "use client";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import * as z from "zod";
 import React, { useEffect, useState } from "react";
 import {
-  Plus,
   Search,
   Filter,
   ChevronDown,
@@ -15,61 +12,19 @@ import {
   X,
   Grid,
   List,
-  AlertTriangle,
-  UserPlus,
   Mail,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import ProfilePic from "@/../public/globe.svg";
-import { toast } from "sonner";
-import { useFetchFarms } from "@/hooks/queries";
+import { useFetchFarms, useFetchTasks } from "@/hooks/queries";
+import { useModal } from "@/hooks/use-modal-store";
 
-const formSchema = z
-  .object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-    email: z.string().email({ message: "Please enter a valid email address." }),
-    role: z.string().min(1, { message: "Please select a role." }),
-    password: z
-      .string()
-      .min(6, { message: "Password must be at least 6 characters." }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
 import { Farm } from "@/graphql/generated/graphql";
 import { useRouter, usePathname } from "next/navigation";
 import WorkersEmptyState from "@/components/pages/farms/workers/empty-workers-state";
+import { Button } from "@/components/ui/button";
 
 type WorkerProp = NonNullable<NonNullable<Farm>["workers"]>;
 
@@ -79,18 +34,8 @@ export default function WorkersListingPage() {
   const router = useRouter();
   const pathname = usePathname();
   const farmId = pathname.split("/")[pathname.split("/").length - 2];
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      role: "",
-      password: "",
-      confirmPassword: "",
-    },
-  });
-
+  const { onOpen } = useModal();
+  const { tasks, fetchTasks } = useFetchTasks();
   // Sample workers data
   const [workers] = useState([
     {
@@ -192,23 +137,6 @@ export default function WorkersListingPage() {
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleAddExistingWorker = (workerId) => {
-    console.log(`Adding worker with ID ${workerId} to the farm`);
-    // In a real application, you would update your backend
-
-    // Show success message (replace with a toast notification in a real app)
-    alert("Worker added to farm successfully!");
-  };
-
-  const handleDialogOpenChange = (open) => {
-    setIsDialogOpen(open);
-    if (!open) {
-      setActiveTab("search");
-      setSearchQuery("");
-      form.reset();
-    }
-  };
-
   // Filter and sort workers
   const filteredWorkers = workers
     .filter((worker) => {
@@ -292,12 +220,15 @@ export default function WorkersListingPage() {
       router.push("/auth/admin/login");
     }
 
-    fetchFarms({ searchTerm: searchQuery });
-  }, []);
+    fetchFarms({ searchTerm: searchQuery, filter: { id: Number(farmId) } });
+  }, [searchQuery, farmId]);
 
   useEffect(() => {
     if (farms && farms.length) {
       setworkersInfo(farms?.[0]?.workers ?? undefined);
+      fetchTasks({
+        farmTag: farms?.[0]?.farm_tag,
+      });
     }
   }, [farms]);
 
@@ -309,7 +240,7 @@ export default function WorkersListingPage() {
         <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex  justify-between sm:flex-row sm:items-center gap-4 sm:gap-0">
             <div className="flex items-center">
-              <Link href="/farms/1" className="mr-4">
+              <Link href={`/farms/${farmId}`} className="mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
               </Link>
               <div>
@@ -321,7 +252,15 @@ export default function WorkersListingPage() {
                 </p>
               </div>
             </div>
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                onOpen("add-workers-to-farm", {
+                  farmTag: farms?.[0]?.farm_tag,
+                  farmName: farms?.[0]?.name,
+                });
+              }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6"
@@ -628,7 +567,7 @@ export default function WorkersListingPage() {
                       Active Workers
                     </dt>
                     <dd className="text-xl sm:text-3xl font-semibold text-gray-900">
-                      {workerStats.active}
+                      {workersInfo?.length}
                     </dd>
                   </dl>
                 </div>
@@ -647,7 +586,7 @@ export default function WorkersListingPage() {
                       On Leave
                     </dt>
                     <dd className="text-xl sm:text-3xl font-semibold text-gray-900">
-                      {workerStats.onLeave}
+                      {0}
                     </dd>
                   </dl>
                 </div>
@@ -724,7 +663,7 @@ export default function WorkersListingPage() {
 
                       <div className="mt-5 pt-4 border-t border-gray-100">
                         <Link
-                          href={`/farms/${farmId}/workers/${worker.id}`}
+                          href={`/farms/${farmId}/workers/${worker.worker_tag}`}
                           className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
                         >
                           View Profile
@@ -923,6 +862,13 @@ export default function WorkersListingPage() {
               <button
                 type="button"
                 className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                onClick={() =>
+                  onOpen("task-modal", {
+                    farmWorkers: workersInfo,
+                    taskList: tasks,
+                    farmTag: farms?.[0]?.farm_tag,
+                  })
+                }
               >
                 Assign Tasks
               </button>

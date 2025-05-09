@@ -26,7 +26,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useAddPensToBarn } from "@/hooks/mutations";
-import { toast } from "sonner";
 
 // Define enums for dropdown options
 const BeddingType = {
@@ -169,12 +168,12 @@ export const AddPensModal = () => {
       // Format the data for the API
       const formattedPens = data.pens.map((pen) => ({
         name: pen.name,
-        areaSqm: pen.areaSqm || null,
-        capacity: pen.capacity || null,
+        areaSqm: pen.areaSqm ?? 0,
+        capacity: pen.capacity ?? 0,
         beddingType: pen.beddingType || null,
         feederType: pen.feederType || null,
         watererType: pen.watererType || null,
-        unitId: pen.unitId || null,
+        unitId: pen.unitId ?? "",
       }));
 
       await addPensToBarn({

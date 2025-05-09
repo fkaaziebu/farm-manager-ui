@@ -347,6 +347,12 @@ export default function RoomDetailPage() {
               <button
                 type="button"
                 className="inline-flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                onClick={() => {
+                  onOpen("update-pen", {
+                    penUnitId: penUnitId,
+                    pen: pen,
+                  });
+                }}
               >
                 <Edit size={14} className="mr-1.5 sm:mr-2" />
                 Edit

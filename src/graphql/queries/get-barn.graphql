@@ -11,6 +11,7 @@ query GetBarn($barnUnitId: String!) {
       bedding_type
       capacity
       status
+
       unit_id
       feeder_type
       livestock {
@@ -20,6 +21,7 @@ query GetBarn($barnUnitId: String!) {
       name
       waterer_type
     }
+    climate_controlled
     ventilation_type
     status
   }
