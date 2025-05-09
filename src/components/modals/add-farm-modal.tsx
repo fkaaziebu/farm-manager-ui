@@ -4,7 +4,6 @@ import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useModal } from "@/hooks/use-modal-store";
 import { FarmType } from "@/graphql/generated/graphql";
-import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +18,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Farm name must be at least 2 characters.",
@@ -37,7 +35,7 @@ const formSchema = z.object({
 export const AddFarmModal = () => {
   const { isOpen, onClose, type } = useModal();
   const { createFarm } = useCreateFarm();
-
+  const { onOpen } = useModal();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -64,10 +62,17 @@ export const AddFarmModal = () => {
 
       onClose();
       form.reset();
-      toast("Farm creation successful");
+      onOpen("notification", {
+        notificationType: "success",
+        notificationMessage: "Farm created successfully",
+      });
     } catch (error) {
-      toast("Farm Creation Error", {
-        description: `${error?.response?.data?.message}`,
+      onOpen("notification", {
+        notificationType: "error",
+        notificationMessage: `Farm creation failed: ${
+          // @ts-expect-error ignore
+          error.response?.message || "Unknown error"
+        }`,
       });
     }
   }

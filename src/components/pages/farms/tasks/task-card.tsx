@@ -8,6 +8,8 @@ type TaskCardProps = {
   starting_date: string;
   completion_date: string | null;
   worker: { name: string } | null;
+  farmTag: string;
+  farmId: string;
 };
 
 const TaskCard: React.FC<TaskCardProps> = ({
@@ -17,6 +19,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   starting_date,
   completion_date,
   worker,
+  farmTag,
+  farmId,
 }) => {
   return (
     <div className="border rounded-2xl shadow-md p-4 bg-white hover:shadow-lg transition">
@@ -52,7 +56,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       </div>
       <div className="mt-3 text-right">
         <Link
-          href={`/tasks/${id}`}
+          href={`${farmId}/tasks/${farmTag}`}
           className="text-blue-600 hover:underline text-sm font-medium"
         >
           View Details →

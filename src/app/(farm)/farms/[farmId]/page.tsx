@@ -547,6 +547,8 @@ export default function FarmDetailsPage() {
                 status={"status"}
                 starting_date={"null"}
                 worker={null}
+                farmTag={farms[0]?.farm_tag}
+                farmId={farms[0]?.id}
               />
             ))}
         </div>

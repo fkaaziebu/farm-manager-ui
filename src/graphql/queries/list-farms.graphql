@@ -52,7 +52,13 @@ query ListFarms(
         }
         farm_tag
         id
-        tasks
+        tasks {
+          id
+          starting_date
+          status
+          type
+          completion_date
+        }
       }
     }
     pageInfo {
