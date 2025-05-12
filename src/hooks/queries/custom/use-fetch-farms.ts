@@ -2,18 +2,19 @@ import { useState } from "react";
 import useListFarms from "../use-list-farms";
 import { toast } from "sonner";
 import {
-  Farm,
+  type Farm,
   FarmSortField,
-  PageInfo,
+  type PageInfo,
   SortDirection,
-  PaginationInput,
-  FarmFilterInput,
+  type PaginationInput,
+  type FarmFilterInput,
 } from "@/graphql/generated/graphql";
 
 type FarmProps = NonNullable<Farm>;
 
 export default function useFetchFarms() {
-  const [loadingFarms, setLoadingFarms] = useState(false);
+  const [loadingFarms, setLoadingFarms] = useState(true);
+  const [loadingMoreFarms, setLoadingMoreFarms] = useState(true);
   const [farms, setFarms] = useState<Array<FarmProps>>();
   const [pageInfo, setPageInfo] = useState<PageInfo>();
 
@@ -68,7 +69,7 @@ export default function useFetchFarms() {
   }) => {
     try {
       if (pageInfo?.hasNextPage && pageInfo.endCursor) {
-        setLoadingFarms(true);
+        setLoadingMoreFarms(true);
         const response = await listFarms({
           variables: {
             searchTerm: searchTerm || "",
@@ -101,13 +102,14 @@ export default function useFetchFarms() {
         description: `${error}`,
       });
     } finally {
-      setLoadingFarms(false);
+      setLoadingMoreFarms(false);
     }
   };
 
   return {
     farms,
     loadingFarms,
+    loadingMoreFarms,
     fetchFarms,
     fetchMoreFarms,
     pageInfo,

@@ -3,7 +3,7 @@ import { Plus, LandPlot, HouseIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-modal-store";
 
-const EmptyStateFarms = () => {
+const EmptyFarmSearchState = () => {
   const { onOpen } = useModal();
 
   return (
@@ -15,11 +15,10 @@ const EmptyStateFarms = () => {
           </div>
 
           <h3 className="mt-5 text-lg font-medium text-gray-900">
-            No farms yet
+            No farms found
           </h3>
           <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
-            Get started by creating your first farm. You&apos;ll be able to add
-            animals, workers, and manage houses once your farm is set up.
+            You can go on to create a farm with the search term entered
           </p>
 
           <div className="mt-8">
@@ -117,4 +116,4 @@ const EmptyStateFarms = () => {
   );
 };
 
-export default EmptyStateFarms;
+export default EmptyFarmSearchState;

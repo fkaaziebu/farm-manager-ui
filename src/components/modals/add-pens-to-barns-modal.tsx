@@ -155,7 +155,7 @@ export const AddPensModal = () => {
     if (currentPens.length > 1) {
       form.setValue(
         "pens",
-        currentPens.filter((_, i) => i !== index)
+        currentPens.filter((_, i) => i !== index),
       );
       setPenCount(penCount - 1);
     }
@@ -163,8 +163,6 @@ export const AddPensModal = () => {
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
-      console.log("Submitting form data:", data);
-
       // Format the data for the API
       const formattedPens = data.pens.map((pen) => ({
         name: pen.name,
@@ -200,10 +198,10 @@ export const AddPensModal = () => {
       });
       setPenCount(1);
 
-      onClose();
       onOpen("notification", {
         notificationType: "success",
-        notificationMessage: `Pens added successfully!`,
+        notificationMessage: "Pen(s) added successfully!",
+        addPensToBarnEvent: `${Math.random()}`,
       });
     } catch (error) {
       onOpen("notification", {

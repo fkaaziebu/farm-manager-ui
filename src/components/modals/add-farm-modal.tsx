@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useModal } from "@/hooks/use-modal-store";
 import { FarmType } from "@/graphql/generated/graphql";
@@ -33,9 +33,10 @@ const formSchema = z.object({
 });
 
 export const AddFarmModal = () => {
-  const { isOpen, onClose, type } = useModal();
+  const { isOpen, onClose, onOpen, type } = useModal();
   const { createFarm } = useCreateFarm();
-  const { onOpen } = useModal();
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,7 +51,9 @@ export const AddFarmModal = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      setIsLoading(true);
       const { name, location, area, farmType } = values;
+
       await createFarm({
         variables: {
           name,
@@ -60,20 +63,19 @@ export const AddFarmModal = () => {
         },
       });
 
-      onClose();
-      form.reset();
       onOpen("notification", {
+        notificationMessage: "Farm creation successful",
         notificationType: "success",
-        notificationMessage: "Farm created successfully",
+        createFarmEvent: `${Math.random()}`,
       });
+      form.reset();
     } catch (error) {
       onOpen("notification", {
+        notificationMessage: `Farm Creation Error ${error?.message}`,
         notificationType: "error",
-        notificationMessage: `Farm creation failed: ${
-          // @ts-expect-error ignore
-          error.response?.message || "Unknown error"
-        }`,
       });
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -131,7 +133,7 @@ export const AddFarmModal = () => {
                                     <option key={key} value={value}>
                                       {value}
                                     </option>
-                                  )
+                                  ),
                                 )}
                               </select>
                             </FormControl>
@@ -212,10 +214,11 @@ export const AddFarmModal = () => {
                 </Button>
                 <Button
                   type="submit"
+                  disabled={isLoading}
                   form="farm-form"
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="text-white bg-green-600 hover:bg-green-700"
                 >
-                  Create Farm
+                  {isLoading ? "Creating..." : "Create Farm"}
                 </Button>
               </div>
             </div>

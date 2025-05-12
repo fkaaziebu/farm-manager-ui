@@ -41,7 +41,7 @@ import { useModal } from "@/hooks/use-modal-store";
 import { Button } from "@/components/ui/button";
 
 export default function HouseDetailPage() {
-  const { onOpen } = useModal();
+  const { onOpen, data } = useModal();
   const { barn, loadingBarn, fetchBarn } = useFetchBarn();
   const pathname = usePathname();
   const barnUnitId = pathname.split("/").pop() ?? "";
@@ -105,18 +105,21 @@ export default function HouseDetailPage() {
   ];
 
   const animalDistribution =
-    barn?.pens?.reduce((acc, pen) => {
-      pen.livestock?.forEach((livestock) => {
-        const type = livestock.livestock_type;
-        const existing = acc.find((item) => item.name === type);
-        if (existing) {
-          existing.value += 1;
-        } else {
-          acc.push({ name: type, value: 1 });
-        }
-      });
-      return acc;
-    }, [] as { name: string; value: number }[]) || [];
+    barn?.pens?.reduce(
+      (acc, pen) => {
+        pen.livestock?.forEach((livestock) => {
+          const type = livestock.livestock_type;
+          const existing = acc.find((item) => item.name === type);
+          if (existing) {
+            existing.value += 1;
+          } else {
+            acc.push({ name: type, value: 1 });
+          }
+        });
+        return acc;
+      },
+      [] as { name: string; value: number }[],
+    ) || [];
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -220,7 +223,7 @@ export default function HouseDetailPage() {
 
   useEffect(() => {
     fetchBarn({ barnUnitId: barnUnitId });
-  }, []);
+  }, [data.addPensToBarnEvent, data.addLivestockToPenEvent]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -240,7 +243,7 @@ export default function HouseDetailPage() {
                     </h1>
                     <span
                       className={`mt-1 sm:mt-0 sm:ml-4 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                        barn?.status ?? "unknown"
+                        barn?.status ?? "unknown",
                       )}`}
                     >
                       {(barn?.status ?? "unknown").charAt(0).toUpperCase() +
@@ -479,7 +482,7 @@ export default function HouseDetailPage() {
                       <dd className="mt-1 text-xs sm:text-sm sm:mt-0 sm:col-span-2">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                            barn?.status || "unknown"
+                            barn?.status || "unknown",
                           )}`}
                         >
                           {(barn?.status || "unknown").charAt(0).toUpperCase() +
@@ -534,7 +537,7 @@ export default function HouseDetailPage() {
                           <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
                             {calculateOccupancy(
                               totalOcupancy,
-                              barn?.capacity || 0
+                              barn?.capacity || 0,
                             )}
                             %
                           </dd>
@@ -647,7 +650,7 @@ export default function HouseDetailPage() {
                                 .slice(1)
                                 .toLowerCase()}: ${(percent * 100).toFixed(0)}%`
                             }
-                            outerRadius={window.innerWidth < 640 ? 70 : 100}
+                            outerRadius={window?.innerWidth < 640 ? 70 : 100}
                             fill="#8884d8"
                             dataKey="value"
                           >
@@ -677,7 +680,7 @@ export default function HouseDetailPage() {
                             <div className="text-xs sm:text-sm font-medium text-gray-900">
                               {calculateOccupancy(
                                 totalOcupancy,
-                                barn?.capacity || 0
+                                barn?.capacity || 0,
                               )}
                               %
                             </div>
@@ -688,7 +691,7 @@ export default function HouseDetailPage() {
                               style={{
                                 width: `${calculateOccupancy(
                                   totalOcupancy,
-                                  barn?.capacity || 0
+                                  barn?.capacity || 0,
                                 )}%`,
                               }}
                             ></div>
@@ -760,7 +763,7 @@ export default function HouseDetailPage() {
                                       year: "numeric",
                                       month: "short",
                                       day: "numeric",
-                                    }
+                                    },
                                   )}
                                 </div>
                               </div>
@@ -794,7 +797,7 @@ export default function HouseDetailPage() {
                         </h4>
                         <ThermometerSnowflake
                           className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
-                            house.temperatureStatus
+                            house.temperatureStatus,
                           )}`}
                         />
                       </div>
@@ -828,7 +831,7 @@ export default function HouseDetailPage() {
                         </h4>
                         <Droplets
                           className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
-                            house.humidityStatus
+                            house.humidityStatus,
                           )}`}
                         />
                       </div>
@@ -862,7 +865,7 @@ export default function HouseDetailPage() {
                         </h4>
                         <Wind
                           className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
-                            house.ventilationStatus
+                            house.ventilationStatus,
                           )}`}
                         />
                       </div>
@@ -1092,7 +1095,7 @@ export default function HouseDetailPage() {
                             </div>
                             <span
                               className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                                pen.status
+                                pen.status,
                               )}`}
                             >
                               {pen.status.charAt(0).toUpperCase() +
@@ -1126,7 +1129,7 @@ export default function HouseDetailPage() {
                                 {house?.temperature}°C
                                 <ThermometerSnowflake
                                   className={`ml-1 h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(
-                                    house?.temperatureStatus
+                                    house?.temperatureStatus,
                                   )}`}
                                 />
                               </dd>
@@ -1139,7 +1142,7 @@ export default function HouseDetailPage() {
                                 {house.humidity}%
                                 <Droplets
                                   className={`ml-1 h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(
-                                    house.humidityStatus
+                                    house.humidityStatus,
                                   )}`}
                                 />
                               </dd>
@@ -1159,9 +1162,9 @@ export default function HouseDetailPage() {
                                             .toUpperCase() +
                                           livestock?.livestock_type
                                             ?.slice(1)
-                                            .toLowerCase()
-                                      )
-                                    )
+                                            .toLowerCase(),
+                                      ),
+                                    ),
                                   ).join(", ")
                                 ) : (
                                   <div className="flex flex-col items-start">
@@ -1237,7 +1240,7 @@ export default function HouseDetailPage() {
                           <dd className="mt-1 text-xs sm:text-sm text-gray-900 flex items-center">
                             <span
                               className={`mr-1 ${getAlertColor(
-                                house.maintenanceStatus
+                                house.maintenanceStatus,
                               )}`}
                             >
                               {house.maintenanceStatus.charAt(0).toUpperCase() +
@@ -1245,7 +1248,7 @@ export default function HouseDetailPage() {
                             </span>
                             <PenTool
                               className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(
-                                house.maintenanceStatus
+                                house.maintenanceStatus,
                               )}`}
                             />
                           </dd>
@@ -1261,7 +1264,7 @@ export default function HouseDetailPage() {
                                 year: "numeric",
                                 month: "short",
                                 day: "numeric",
-                              }
+                              },
                             )}
                           </dd>
                         </div>
@@ -1276,7 +1279,7 @@ export default function HouseDetailPage() {
                                 year: "numeric",
                                 month: "short",
                                 day: "numeric",
-                              }
+                              },
                             )}
                           </dd>
                         </div>
@@ -1288,7 +1291,7 @@ export default function HouseDetailPage() {
                             {Math.ceil(
                               (new Date(house.nextInspection).valueOf() -
                                 new Date().valueOf()) /
-                                (1000 * 60 * 60 * 24)
+                                (1000 * 60 * 60 * 24),
                             )}{" "}
                             days
                           </dd>

@@ -60,7 +60,7 @@ const livestockSchema = z.object({
     ],
     {
       errorMap: () => ({ message: "Livestock type is required" }),
-    }
+    },
   ),
   breed: z.string().min(1, { message: "Breed is required" }),
   gender: z.enum([Gender.MALE, Gender.FEMALE], {
@@ -140,7 +140,7 @@ export const AddLivestockModal = () => {
     if (currentAnimals.length > 1) {
       form.setValue(
         "livestock",
-        currentAnimals.filter((_, i) => i !== index)
+        currentAnimals.filter((_, i) => i !== index),
       );
       setAnimalCount(animalCount - 1);
     }
@@ -187,6 +187,7 @@ export const AddLivestockModal = () => {
       onOpen("notification", {
         notificationType: "success",
         notificationMessage: `Livestock added successfully!`,
+        addLivestockToPenEvent: `${Math.random()}`,
       });
     } catch (error) {
       onOpen("notification", {
@@ -346,7 +347,7 @@ export const AddLivestockModal = () => {
                                     <span className="text-red-500">*</span>
                                   </FormLabel>
                                   {form.watch(
-                                    `livestock.${index}.livestockType`
+                                    `livestock.${index}.livestockType`,
                                   ) === LivestockType.Cattle ? (
                                     <Select
                                       onValueChange={field.onChange}

@@ -31,9 +31,6 @@ import {
 import {
   BreedingStatus,
   HealthRecordStatus,
-  HealthRecordType,
-  HealthStatus,
-  Livestock,
   WorkerRole,
 } from "@/graphql/generated/graphql";
 import { usePathname, useRouter } from "next/navigation";
@@ -63,7 +60,6 @@ export default function AnimalDetailsPage() {
   const [dateRange, setDateRange] = useState("all");
   const [sortBy, setSortBy] = useState("latest");
   const { onOpen } = useModal();
-  const farmId = pathname.split("/")[2];
   const router = useRouter();
   // Action menu state
   const [showActionMenu, setShowActionMenu] = useState(false);
@@ -82,7 +78,7 @@ export default function AnimalDetailsPage() {
     livestock?.expense_records?.reduce<{ name: string; value: number }[]>(
       (acc, record) => {
         const existingCategory = acc.find(
-          (item) => item.name === record.category
+          (item) => item.name === record.category,
         );
         if (existingCategory) {
           existingCategory.value += record.amount;
@@ -91,7 +87,7 @@ export default function AnimalDetailsPage() {
         }
         return acc;
       },
-      []
+      [],
     ) || [];
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
@@ -112,13 +108,13 @@ export default function AnimalDetailsPage() {
     >((acc, record) => {
       const existingIndicator = acc.find(
         (indicator) =>
-          indicator.name === (record.diagnosis || "Unknown Diagnosis")
+          indicator.name === (record.diagnosis || "Unknown Diagnosis"),
       );
       if (existingIndicator) {
         existingIndicator.value += 1;
         existingIndicator.max = Math.max(
           existingIndicator.max,
-          existingIndicator.value
+          existingIndicator.value,
         );
       } else {
         acc.push({
@@ -188,10 +184,6 @@ export default function AnimalDetailsPage() {
     }
   }, [penUnitId]);
 
-  console.log("Livestock data:", livestock);
-  console.log("Pen data:", pen?.livestock);
-  console.log("unit Id:", penUnitId);
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -216,8 +208,9 @@ export default function AnimalDetailsPage() {
                       {livestock?.livestock_tag}
                     </h1>
                     <div className="flex items-center text-sm sm:text-base text-gray-700 bg-amber-100 rounded-full px-2 py-1">
-                      {livestock?.gender.charAt(0) +
-                        livestock?.gender.slice(1).toLowerCase()}
+                      {livestock?.gender &&
+                        livestock?.gender?.charAt(0) +
+                          livestock?.gender?.slice(1).toLowerCase()}
                     </div>
                   </div>
 
@@ -225,7 +218,7 @@ export default function AnimalDetailsPage() {
                     <Calendar size={14} className="mr-1.5" />
                     <p>
                       Born: {formatDate(livestock?.birth_date)} • Age:{" "}
-                      {formatDateOfBirth(livestock?.birth_date).slice(14, 19)}
+                      {formatDateOfBirth(livestock?.birth_date).slice(14, 20)}
                     </p>
                   </div>
                 </div>
@@ -239,11 +232,12 @@ export default function AnimalDetailsPage() {
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
-            <div className="flex flex-wrap justify-center sm:justify-start space-x-2 w-full sm:w-auto"></div>
+            <div className="flex flex-wrap justify-center sm:justify-start space-x-2 w-full sm:w-auto" />
             <div className="relative w-full sm:w-auto">
               <button
-                onClick={() => setShowActionMenu(!showActionMenu)}
+                type="button"
                 className="w-full sm:w-auto inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                onClick={() => setShowActionMenu(!showActionMenu)}
               >
                 More Actions
               </button>
@@ -251,6 +245,7 @@ export default function AnimalDetailsPage() {
                 <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                   <div className="py-1" role="menu" aria-orientation="vertical">
                     <button
+                      type="button"
                       className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       role="menuitem"
                     >
@@ -258,6 +253,7 @@ export default function AnimalDetailsPage() {
                       Share
                     </button>
                     <button
+                      type="button"
                       className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       role="menuitem"
                     >
@@ -265,6 +261,7 @@ export default function AnimalDetailsPage() {
                       Export Data
                     </button>
                     <button
+                      type="button"
                       className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       role="menuitem"
                     >
@@ -333,6 +330,7 @@ export default function AnimalDetailsPage() {
           <nav className="-mb-px flex space-x-4 sm:space-x-8 whitespace-nowrap">
             {/* Existing tab buttons with more flexible spacing */}
             <button
+              type="button"
               onClick={() => setActiveTab("breeding")}
               className={`py-4 px-1 border-b-2 font-medium text-sm flex-shrink-0 ${
                 activeTab === "breeding"
@@ -343,6 +341,7 @@ export default function AnimalDetailsPage() {
               Breeding Records
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("health")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "health"
@@ -353,6 +352,7 @@ export default function AnimalDetailsPage() {
               Health Records
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("growth")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "growth"
@@ -363,6 +363,7 @@ export default function AnimalDetailsPage() {
               Growth Records
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("expenses")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "expenses"
@@ -373,6 +374,7 @@ export default function AnimalDetailsPage() {
               Expense Records
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("feed")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "feed"
@@ -441,7 +443,7 @@ export default function AnimalDetailsPage() {
                 <PlusCircle size={16} className="mr-1.5" />
                 Add{" "}
                 {`${activeTab.charAt(0).toUpperCase()}${activeTab.slice(
-                  1
+                  1,
                 )}`}{" "}
                 Record
               </button>
@@ -658,7 +660,7 @@ export default function AnimalDetailsPage() {
                                         year: "numeric",
                                         month: "short",
                                         day: "numeric",
-                                      }
+                                      },
                                     )}
                                   </p>
                                 </div>
@@ -687,11 +689,11 @@ export default function AnimalDetailsPage() {
                                     record.status === BreedingStatus.Successful
                                       ? "bg-green-100 text-green-800"
                                       : record.status === BreedingStatus.Failed
-                                      ? "bg-red-100 text-red-800"
-                                      : record.status ===
-                                        BreedingStatus.Cancelled
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-gray-100 text-gray-800"
+                                        ? "bg-red-100 text-red-800"
+                                        : record.status ===
+                                            BreedingStatus.Cancelled
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : "bg-gray-100 text-gray-800"
                                   }`}
                                 >
                                   {record.status ?? "In Progress"}
@@ -724,8 +726,8 @@ export default function AnimalDetailsPage() {
                                   ?.filter((worker) =>
                                     worker?.roles?.includes(
                                       WorkerRole.AnimalCaretaker ||
-                                        WorkerRole.FarmManager
-                                    )
+                                        WorkerRole.FarmManager,
+                                    ),
                                   )
                                   .map((worker) => worker.name)
                                   .join(", ") || "N/A"}
@@ -784,7 +786,7 @@ export default function AnimalDetailsPage() {
                                   livestock?.breeding_records?.filter(
                                     (record) =>
                                       record.status ===
-                                      BreedingStatus.Successful
+                                      BreedingStatus.Successful,
                                   ).length || 0,
                               },
                               {
@@ -792,7 +794,7 @@ export default function AnimalDetailsPage() {
                                 value:
                                   livestock?.breeding_records?.filter(
                                     (record) =>
-                                      record.status === BreedingStatus.Failed
+                                      record.status === BreedingStatus.Failed,
                                   ).length || 0,
                               },
                             ]}
@@ -844,7 +846,7 @@ export default function AnimalDetailsPage() {
                         .filter(
                           (event) =>
                             event.type === "Health Check" ||
-                            event.type === "Vaccination"
+                            event.type === "Vaccination",
                         )
                         .map((event) => (
                           <li key={event.id}>
@@ -871,7 +873,7 @@ export default function AnimalDetailsPage() {
                                         year: "numeric",
                                         month: "short",
                                         day: "numeric",
-                                      }
+                                      },
                                     )}
                                   </p>
                                 </div>
@@ -890,7 +892,7 @@ export default function AnimalDetailsPage() {
                       ?.sort(
                         (a, b) =>
                           new Date(b.record_date || "").getTime() -
-                          new Date(a.record_date || "").getTime()
+                          new Date(a.record_date || "").getTime(),
                       )
                       .map((healthRecord) => (
                         <li key={healthRecord.id}>
@@ -907,12 +909,12 @@ export default function AnimalDetailsPage() {
                                     HealthRecordStatus.Healthy
                                       ? "bg-green-100 text-green-800"
                                       : healthRecord.record_status ===
-                                        HealthRecordStatus.Recovering
-                                      ? "bg-blue-100 text-blue-800"
-                                      : healthRecord.record_status ===
-                                        HealthRecordStatus.Sick
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
+                                          HealthRecordStatus.Recovering
+                                        ? "bg-blue-100 text-blue-800"
+                                        : healthRecord.record_status ===
+                                            HealthRecordStatus.Sick
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : "bg-red-100 text-red-800"
                                   }`}
                                 >
                                   {healthRecord.record_status ??
@@ -1291,7 +1293,7 @@ export default function AnimalDetailsPage() {
                             <div className="ml-2 flex-shrink-0 flex">
                               <p className="text-sm text-gray-500">
                                 {new Date(
-                                  record.expense_date
+                                  record.expense_date,
                                 ).toLocaleDateString("en-US", {
                                   year: "numeric",
                                   month: "short",
@@ -1365,7 +1367,7 @@ export default function AnimalDetailsPage() {
                             data={
                               livestock?.expense_records?.map((record) => ({
                                 month: new Date(
-                                  record.expense_date
+                                  record.expense_date,
                                 ).toLocaleString("default", { month: "short" }),
                                 amount: record.amount,
                               })) || []

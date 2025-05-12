@@ -32,13 +32,13 @@ export const NotificationModal = () => {
         >
           <div
             className={`
-              flex items-start gap-4 p-4 rounded-lg shadow-lg 
+              flex items-start gap-4 p-4 rounded-lg shadow-lg
               ${
                 notificationType === "success"
                   ? "bg-green-50 border border-green-400"
                   : notificationType === "error"
-                  ? "bg-red-50 border border-red-400"
-                  : "bg-yellow-50 border border-yellow-400"
+                    ? "bg-red-50 border border-red-400"
+                    : "bg-yellow-50 border border-yellow-400"
               }
             `}
           >

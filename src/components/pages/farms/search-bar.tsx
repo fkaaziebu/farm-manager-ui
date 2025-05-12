@@ -1,11 +1,13 @@
-import { Search } from "lucide-react";
+import { Loader, Search } from "lucide-react";
 
 const SearchBar = ({
   searchTerm,
   setSearchTerm,
+  loading,
 }: {
   searchTerm: string;
   setSearchTerm: (input: string) => void;
+  loading: boolean;
 }) => {
   return (
     <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
@@ -20,6 +22,11 @@ const SearchBar = ({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
+        {loading ? (
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <Loader size={18} className="text-gray-400 animate-spin" />
+          </div>
+        ) : null}
       </div>
     </div>
   );

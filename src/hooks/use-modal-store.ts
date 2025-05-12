@@ -43,6 +43,11 @@ interface ModalData {
   barn?: Barn;
   pen?: Pen;
   livestock?: Livestock;
+  createFarmEvent?: string;
+  addWorkersToFarmEvent?: string;
+  addBansToFarmEvent?: string;
+  addPensToBarnEvent?: string;
+  addLivestockToPenEvent?: string;
 }
 
 interface ModalStore {

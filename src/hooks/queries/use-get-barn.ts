@@ -13,6 +13,7 @@ const useGetBarn = (args?: GetBarnQueryVariables) => {
     GetBarnQueryVariables
   >(GetBarn, {
     variables: args,
+    fetchPolicy: "no-cache",
   });
   return {
     getBarn,

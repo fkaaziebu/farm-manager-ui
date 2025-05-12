@@ -46,7 +46,7 @@ const formSchema = z.object({
 });
 
 export const AddHouseModal = () => {
-  const { isOpen, onClose, type, data } = useModal();
+  const { isOpen, onClose, onOpen, type, data } = useModal();
   const { addBarnsToFarm, loading } = useAddBarnsToFarm();
 
   const farmTag = data?.farmTag || "";
@@ -92,7 +92,7 @@ export const AddHouseModal = () => {
     if (currentBarns.length > 1) {
       form.setValue(
         "barns",
-        currentBarns.filter((_, i) => i !== index)
+        currentBarns.filter((_, i) => i !== index),
       );
       setBarnCount(barnCount - 1);
     }
@@ -147,8 +147,11 @@ export const AddHouseModal = () => {
       });
       setBarnCount(1);
 
-      onClose();
-      toast("Barns successfully added to the farm");
+      onOpen("notification", {
+        notificationMessage: "Barns added successfully",
+        notificationType: "success",
+        addBansToFarmEvent: `${Math.random()}`,
+      });
     } catch (error) {
       console.error("Error adding barns to farm:", error);
       toast.error("Error adding barns to farm");
@@ -196,7 +199,7 @@ export const AddHouseModal = () => {
                   <form
                     id="barn-form"
                     onSubmit={form.handleSubmit((data) =>
-                      onSubmit({ ...data, farmTag })
+                      onSubmit({ ...data, farmTag }),
                     )}
                     className="space-y-6"
                   >

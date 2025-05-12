@@ -64,19 +64,19 @@ export const UpdateLivestockModal = () => {
   } = {
     livestockTag: data?.livestockTag,
     birthDate: data?.penLivestock?.[0]?.birth_date ?? undefined,
-    breed: data?.penLivestock?.[0].breed ?? undefined,
+    breed: data?.penLivestock?.[0]?.breed ?? undefined,
     fatherTag: data?.penLivestock?.[0]?.father?.livestock_type ?? undefined,
-    gender: data?.penLivestock?.[0].gender ?? undefined,
-    livestockType: data?.penLivestock?.[0].livestock_type ?? undefined,
-    meatGrade: data?.penLivestock?.[0].meat_grade ?? undefined,
+    gender: data?.penLivestock?.[0]?.gender ?? undefined,
+    livestockType: data?.penLivestock?.[0]?.livestock_type ?? undefined,
+    meatGrade: data?.penLivestock?.[0]?.meat_grade ?? undefined,
     milkProduction:
-      data?.penLivestock?.[0].milk_production?.toString() ?? undefined,
-    motherTag: data?.penLivestock?.[0].mother?.livestock_tag ?? undefined,
+      data?.penLivestock?.[0]?.milk_production?.toString() ?? undefined,
+    motherTag: data?.penLivestock?.[0]?.mother?.livestock_tag ?? undefined,
     offspringTags:
       data?.penLivestock?.[0]?.maternalOffspring
         ?.map((offspring) => offspring.livestock_tag)
         .join(", ") ?? undefined,
-    weight: data?.penLivestock?.[0].weight.toString() ?? undefined,
+    weight: data?.penLivestock?.[0]?.weight.toString() ?? undefined,
   };
 
   const form = useForm<z.infer<typeof livestockSchema>>({

@@ -32,7 +32,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAddLivestockBreedingRecord } from "@/hooks/mutations";
 import {
   BreedingStatus,
-  Livestock,
+  type Livestock,
   LivestockGender,
 } from "@/graphql/generated/graphql";
 
@@ -70,7 +70,7 @@ export const BreedingRecordModal = () => {
   const initialAnimalTag = data?.livestockTag || null;
   const initialAnimalGender =
     data.penLivestock?.find(
-      (animal) => animal.livestock_tag === initialAnimalTag
+      (animal) => animal.livestock_tag === initialAnimalTag,
     )?.gender || null;
   const initialAnimalType = data?.livestockType;
 
@@ -84,13 +84,13 @@ export const BreedingRecordModal = () => {
     livestock?.filter(
       (animal) =>
         animal.gender === LivestockGender.Male &&
-        animal.livestock_type === initialAnimalType
+        animal.livestock_type === initialAnimalType,
     ) || [];
   const femaleLivestock =
     livestock?.filter(
       (animal) =>
         animal.gender === LivestockGender.Female &&
-        animal.livestock_type === initialAnimalType
+        animal.livestock_type === initialAnimalType,
     ) || [];
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -151,7 +151,7 @@ export const BreedingRecordModal = () => {
     const subscription = form.watch((value, { name }) => {
       if (name === "breedingDate") {
         const birthDate = calculateExpectedBirthDate(
-          value.breedingDate as string
+          value.breedingDate as string,
         );
         if (birthDate) {
           form.setValue("expectedBirthDate", birthDate);
@@ -252,23 +252,25 @@ export const BreedingRecordModal = () => {
                               }}
                               // @ts-expect-error error
                               value={
-                                field.value ||
-                                (startingGender === "MALE"
-                                  ? initialAnimalTag
-                                  : "")
+                                field.value
+                                // field.value ||
+                                // (startingGender === "MALE"
+                                //   ? initialAnimalTag
+                                //   : "")
                               }
                               // @ts-expect-error error
                               defaultValue={
-                                field.value ||
-                                (startingGender === "MALE"
-                                  ? initialAnimalTag
-                                  : "")
+                                field.value
+                                // field.value ||
+                                // (startingGender === "MALE"
+                                //   ? initialAnimalTag
+                                //   : "")
                               }
-                              disabled={
-                                !!(
-                                  startingGender === "MALE" && initialAnimalTag
-                                )
-                              }
+                              // disabled={
+                              //   !!(
+                              //     startingGender === "MALE" && initialAnimalTag
+                              //   )
+                              // }
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -313,24 +315,26 @@ export const BreedingRecordModal = () => {
                               }}
                               // @ts-expect-error error
                               value={
-                                field.value ||
-                                (startingGender === "FEMALE"
-                                  ? initialAnimalTag
-                                  : "")
+                                field.value
+                                // field.value ||
+                                // (startingGender === "FEMALE"
+                                //   ? initialAnimalTag
+                                //   : "")
                               }
                               // @ts-expect-error error
                               defaultValue={
-                                field.value ||
-                                (startingGender === "FEMALE"
-                                  ? initialAnimalTag
-                                  : "")
+                                field.value
+                                // field.value ||
+                                // (startingGender === "FEMALE"
+                                //   ? initialAnimalTag
+                                //   : "")
                               }
-                              disabled={
-                                !!(
-                                  startingGender === "FEMALE" &&
-                                  initialAnimalTag
-                                )
-                              }
+                              // disabled={
+                              //   !!(
+                              //     startingGender === "FEMALE" &&
+                              //     initialAnimalTag
+                              //   )
+                              // }
                             >
                               <FormControl>
                                 <SelectTrigger>

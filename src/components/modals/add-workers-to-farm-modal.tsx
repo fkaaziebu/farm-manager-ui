@@ -129,7 +129,7 @@ export const FarmWorkersModal = () => {
     if (currentWorkers.length > 1) {
       createForm.setValue(
         "workers",
-        currentWorkers.filter((_, i) => i !== index)
+        currentWorkers.filter((_, i) => i !== index),
       );
       setWorkerCount(workerCount - 1);
     }
@@ -170,7 +170,8 @@ export const FarmWorkersModal = () => {
       onClose();
       onOpen("notification", {
         notificationType: "success",
-        notificationMessage: `Workers added successfully!`,
+        notificationMessage: "Worker(s) added successfully!",
+        addWorkersToFarmEvent: `${Math.random()}`,
       });
     } catch (error) {
       onOpen("notification", {
@@ -199,10 +200,10 @@ export const FarmWorkersModal = () => {
         workerTag: "",
       });
 
-      onClose();
       onOpen("notification", {
         notificationType: "success",
-        notificationMessage: `Worker assigned successfully!`,
+        notificationMessage: "Worker(s) assigned successfully!",
+        addWorkersToFarmEvent: `${Math.random()}`,
       });
     } catch (error) {
       onOpen("notification", {
