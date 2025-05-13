@@ -75,9 +75,9 @@ export const BreedingRecordModal = () => {
   const initialAnimalType = data?.livestockType;
 
   // State to track which gender we're starting with
-  const [startingGender, setStartingGender] = useState<
-    "MALE" | "FEMALE" | null
-  >(initialAnimalGender as "MALE" | "FEMALE" | null);
+  // const [startingGender, setStartingGender] = useState<
+  //   "MALE" | "FEMALE" | null
+  // >(initialAnimalGender as "MALE" | "FEMALE" | null);
 
   // Filter livestock by gender
   const maleLivestock =
@@ -132,7 +132,7 @@ export const BreedingRecordModal = () => {
       // form.setValue("success", BreedingStatus.Planned);
       // form.setValue("cost", undefined);
 
-      setStartingGender(initialAnimalGender as "MALE" | "FEMALE");
+      // setStartingGender(initialAnimalGender as "MALE" | "FEMALE");
     }
   }, [isOpen, initialAnimalTag, initialAnimalGender, form, type]);
 
