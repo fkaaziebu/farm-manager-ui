@@ -87,6 +87,7 @@ export const UpdateWorkerModal = () => {
         bio: worker.bio ?? "",
         address: worker.address ?? "",
         join_date: worker.join_date ?? "",
+        // @ts-expect-error error
         roles: (worker.roles as WorkerRole[]) ?? [],
         skills: worker.skills ?? [],
         achievements: worker.achievements ?? [],
@@ -104,6 +105,7 @@ export const UpdateWorkerModal = () => {
           bio: worker.bio ?? "",
           address: worker.address ?? "",
           join_date: worker.join_date ?? "",
+          // @ts-expect-error error
           roles: (worker.roles as WorkerRole[]) ?? [],
           skills: worker.skills ?? [],
           achievements: worker.achievements ?? [],

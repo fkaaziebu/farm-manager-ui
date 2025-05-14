@@ -28,7 +28,7 @@ import { useModal } from "@/hooks/use-modal-store";
 type BarnProps = NonNullable<Barn>;
 
 export default function HouseListingPage() {
-  const { barns, fetchBarns, pageInfo, fetchMoreBarns } = useFetchBarns();
+  const { pageInfo, fetchMoreBarns } = useFetchBarns();
   const { fetchFarms, farms } = useFetchFarms();
   const [farmBarns, setFarmBarns] = useState<BarnProps[]>([]);
   const router = useRouter();

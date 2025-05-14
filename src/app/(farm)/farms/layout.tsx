@@ -1,4 +1,3 @@
-import { Bell, Menu } from "lucide-react";
 export default function RootLayout({
   children,
 }: Readonly<{

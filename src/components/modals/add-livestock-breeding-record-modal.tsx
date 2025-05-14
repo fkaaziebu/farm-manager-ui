@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useModal } from "@/hooks/use-modal-store";
 import { Calendar, Heart, Info } from "lucide-react";
@@ -70,7 +70,7 @@ export const BreedingRecordModal = () => {
   const initialAnimalTag = data?.livestockTag || null;
   const initialAnimalGender =
     data.penLivestock?.find(
-      (animal) => animal.livestock_tag === initialAnimalTag,
+      (animal) => animal.livestock_tag === initialAnimalTag
     )?.gender || null;
   const initialAnimalType = data?.livestockType;
 
@@ -84,13 +84,13 @@ export const BreedingRecordModal = () => {
     livestock?.filter(
       (animal) =>
         animal.gender === LivestockGender.Male &&
-        animal.livestock_type === initialAnimalType,
+        animal.livestock_type === initialAnimalType
     ) || [];
   const femaleLivestock =
     livestock?.filter(
       (animal) =>
         animal.gender === LivestockGender.Female &&
-        animal.livestock_type === initialAnimalType,
+        animal.livestock_type === initialAnimalType
     ) || [];
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -151,7 +151,7 @@ export const BreedingRecordModal = () => {
     const subscription = form.watch((value, { name }) => {
       if (name === "breedingDate") {
         const birthDate = calculateExpectedBirthDate(
-          value.breedingDate as string,
+          value.breedingDate as string
         );
         if (birthDate) {
           form.setValue("expectedBirthDate", birthDate);
@@ -250,7 +250,6 @@ export const BreedingRecordModal = () => {
                                 field.onChange(value);
                                 form.setValue("maleLivestockTag", value);
                               }}
-                              // @ts-expect-error error
                               value={
                                 field.value
                                 // field.value ||
@@ -258,7 +257,6 @@ export const BreedingRecordModal = () => {
                                 //   ? initialAnimalTag
                                 //   : "")
                               }
-                              // @ts-expect-error error
                               defaultValue={
                                 field.value
                                 // field.value ||
@@ -313,7 +311,6 @@ export const BreedingRecordModal = () => {
                                 field.onChange(value);
                                 form.setValue("femaleLivestockTag", value);
                               }}
-                              // @ts-expect-error error
                               value={
                                 field.value
                                 // field.value ||
@@ -321,7 +318,6 @@ export const BreedingRecordModal = () => {
                                 //   ? initialAnimalTag
                                 //   : "")
                               }
-                              // @ts-expect-error error
                               defaultValue={
                                 field.value
                                 // field.value ||

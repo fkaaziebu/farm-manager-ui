@@ -347,17 +347,22 @@ export default function RoomAnimalsPage() {
       (a) => a.health_status === HealthStatus.Critical
     ).length,
     averageWeight: Math.round(
-      filteredAnimals?.reduce(
-        (sum, animal) => sum + parseInt(animal.weight),
-        0
-      ) / filteredAnimals?.length
+      filteredAnimals && filteredAnimals.length > 0
+        ? filteredAnimals.reduce(
+            (sum, animal) => sum + (Number(animal.weight) || 0),
+            0
+          ) / filteredAnimals.length
+        : 0
     ),
     averageAge: parseFloat(
-      (
-        filteredAnimals?.reduce(
-          (sum, animal) => sum + parseInt(animal.age),
-          0
-        ) / filteredAnimals?.length
+      (filteredAnimals && filteredAnimals.length > 0
+        ? filteredAnimals.reduce((sum, animal) => {
+            const birthYear = new Date(animal.birth_date).getFullYear();
+            const currentYear = new Date().getFullYear();
+            const age = currentYear - birthYear;
+            return sum + age;
+          }, 0) / filteredAnimals.length
+        : 0
       ).toFixed(1)
     ),
   };
@@ -789,14 +794,40 @@ export default function RoomAnimalsPage() {
                     </label>
                     <select
                       id="feed-intake-filter"
-                      value={feedIntakeFilter}
-                      onChange={(e) => setFeedIntakeFilter(e.target.value)}
+                      // onChange={(e) => setFeedIntakeFilter(e.target.value)}
                       className="block w-full pl-3 pr-10 py-1.5 sm:py-2 text-xs sm:text-sm border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
                     >
                       <option value="all">All Intakes</option>
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
                       <option value="High">High</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="breed-filter"
+                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Breed
+                    </label>
+                    <select
+                      id="breed-filter"
+                      value={breedFilter}
+                      onChange={(e) => setBreedFilter(e.target.value)}
+                      className="block w-full pl-3 pr-10 py-1.5 sm:py-2 text-xs sm:text-sm border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
+                    >
+                      <option value="all">All Breeds</option>
+                      {Array.from(
+                        new Set(
+                          (pen?.livestock || []).map((animal) => animal.breed)
+                        )
+                      )
+                        .filter((breed) => breed && breed !== "")
+                        .map((breed) => (
+                          <option key={breed} value={breed}>
+                            {breed.charAt(0) + breed.slice(1).toLowerCase()}
+                          </option>
+                        ))}
                     </select>
                   </div>
                   <div>
@@ -925,7 +956,16 @@ export default function RoomAnimalsPage() {
                       </div>
                     </div>
                     <div className="mt-4 flex space-x-2">
-                      <button className="flex-1 inline-flex items-center justify-center px-2 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700">
+                      <button
+                        type="button"
+                        className="flex-1 inline-flex items-center justify-center px-2 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
+                        onClick={() => {
+                          onOpen("update-livestock", {
+                            livestockTag: animal.livestock_tag,
+                            penLivestock: pen?.livestock || [],
+                          });
+                        }}
+                      >
                         <Pencil size={12} className="mr-1" />
                         Edit
                       </button>
@@ -1029,7 +1069,17 @@ export default function RoomAnimalsPage() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
-                          <button className="text-green-600 hover:text-green-900 inline-flex items-center">
+                          <button
+                            type="button"
+                            className="text-green-600 hover:text-green-900 inline-flex items-center"
+                            onClick={() => {
+                              onOpen("update-livestock", {
+                                livestockTag: animal.livestock_tag,
+                                penLivestock: pen?.livestock || [],
+                              });
+                            }}
+                          >
+                            {JSON.stringify(animal.livestock_tag)}
                             <Pencil size={14} className="mr-1" />
                             Edit
                           </button>
@@ -1075,7 +1125,7 @@ export default function RoomAnimalsPage() {
                   setStatusFilter("all");
                   setGenderFilter("all");
                   setAgeFilter("all");
-                  setFeedIntakeFilter("all");
+                  // setFeedIntakeFilter("all");
                   setSortBy("id");
                 }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"

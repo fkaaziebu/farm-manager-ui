@@ -11,9 +11,6 @@ import {
   Grid,
   List,
   Home,
-  ThermometerSnowflake,
-  Droplets,
-  Wind,
   AlertTriangle,
   Users,
   Check,
@@ -256,25 +253,6 @@ export default function RoomListingPage() {
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  // Function to get alert color
-  const getAlertColor = (status: string) => {
-    switch (status) {
-      case "normal":
-      case "good":
-        return "text-green-500";
-      case "high":
-      case "low":
-      case "alert":
-      case "needs attention":
-        return "text-yellow-500";
-      case "critical":
-      case "under repair":
-        return "text-red-500";
-      default:
-        return "text-gray-500";
     }
   };
 
@@ -951,8 +929,9 @@ export default function RoomListingPage() {
                         </div>
                         <div className="mt-1 sm:mt-0 flex items-center text-gray-500">
                           <span className="font-medium">Bedding Type:</span>{" "}
-                          {pen?.bedding_type?.charAt(0).toUpperCase() +
-                            pen?.bedding_type?.slice(1).toLowerCase()}
+                          {pen?.bedding_type &&
+                            pen?.bedding_type?.charAt(0).toUpperCase() +
+                              pen?.bedding_type?.slice(1).toLowerCase()}
                         </div>
                       </div>
                     </div>

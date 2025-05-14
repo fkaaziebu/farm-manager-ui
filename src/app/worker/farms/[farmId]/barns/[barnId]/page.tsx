@@ -47,7 +47,10 @@ export default function HouseDetailPage() {
   const barnUnitId = pathname.split("/").pop() ?? "";
   const farmId = pathname.split("/")[pathname.split("/").length - 3];
   const totalOcupancy = barn?.pens
-    ? barn.pens.reduce((acc, curr) => acc + curr?.livestock?.length, 0)
+    ? barn.pens.reduce(
+        (acc, curr) => acc + (curr?.livestock ? curr.livestock.length : 0),
+        0
+      )
     : 0;
 
   // Sample house data

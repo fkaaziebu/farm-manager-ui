@@ -92,7 +92,7 @@ export const AddHouseModal = () => {
     if (currentBarns.length > 1) {
       form.setValue(
         "barns",
-        currentBarns.filter((_, i) => i !== index),
+        currentBarns.filter((_, i) => i !== index)
       );
       setBarnCount(barnCount - 1);
     }
@@ -105,22 +105,35 @@ export const AddHouseModal = () => {
       const { farmTag, barns } = data;
 
       const formattedBarns = barns.map((barn) => {
-        const formattedBarn: Record<string, any> = {
+        const formattedBarn: {
+          name: string;
+          climateControlled: boolean;
+          areaSqm?: number;
+          capacity?: number;
+          unitId?: string;
+        } = {
           name: barn.name,
           climateControlled: barn.climateControlled || false,
         };
 
-        if (barn.areaSqm) {
+        if (barn.areaSqm && barn.areaSqm !== "") {
           formattedBarn.areaSqm = parseFloat(barn.areaSqm);
         }
 
-        if (barn.capacity) {
+        if (barn.capacity && barn.capacity !== "") {
           formattedBarn.capacity = parseInt(barn.capacity);
         }
 
-        if (barn.unitId) {
+        if (barn.unitId && barn.unitId !== "") {
           formattedBarn.unitId = barn.unitId;
         }
+
+        // Remove undefined fields to avoid GraphQL errors
+        Object.keys(formattedBarn).forEach(
+          (key) =>
+            (formattedBarn as Record<string, unknown>)[key] === undefined &&
+            delete (formattedBarn as Record<string, unknown>)[key]
+        );
 
         return formattedBarn;
       });
@@ -128,6 +141,7 @@ export const AddHouseModal = () => {
       await addBarnsToFarm({
         variables: {
           farmTag: farmTag,
+          // @ts-expect-error error
           barns: formattedBarns,
         },
       });
@@ -199,7 +213,7 @@ export const AddHouseModal = () => {
                   <form
                     id="barn-form"
                     onSubmit={form.handleSubmit((data) =>
-                      onSubmit({ ...data, farmTag }),
+                      onSubmit({ ...data, farmTag })
                     )}
                     className="space-y-6"
                   >

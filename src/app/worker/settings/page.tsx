@@ -1,5 +1,5 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Edit,
@@ -10,7 +10,6 @@ import {
   Mail,
   MapPin,
   Briefcase,
-  Star,
   ChevronRight,
   UserCheck,
   TrendingUp,
@@ -34,7 +33,7 @@ import { useFetchASingleWorker } from "@/hooks/queries";
 import { useRouter } from "next/navigation";
 
 export default function WorkerDetailsPage() {
-  const { fetchWorker, worker, loadin } = useFetchASingleWorker();
+  const { fetchWorker, worker } = useFetchASingleWorker();
   const router = useRouter();
 
   // Sample worker data
