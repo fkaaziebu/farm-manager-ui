@@ -8,9 +8,6 @@ import {
   Calendar,
   ArrowLeft,
   Users,
-  X,
-  Grid,
-  List,
   Mail,
 } from "lucide-react";
 import Link from "next/link";
@@ -230,41 +227,6 @@ export default function WorkersListingPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="sm:hidden flex justify-between gap-2">
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setViewMode("grid")}
-                className={`flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
-                  viewMode === "grid"
-                    ? "bg-green-50 border-green-500 text-green-700"
-                    : "bg-white text-gray-700"
-                }`}
-              >
-                <Grid size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("list")}
-                className={`flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
-                  viewMode === "list"
-                    ? "bg-green-50 border-green-500 text-green-700"
-                    : "bg-white text-gray-700"
-                }`}
-              >
-                <List size={18} />
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white"
-            >
-              {mobileMenuOpen ? <X size={18} /> : <Filter size={18} />}
-            </button>
           </div>
 
           {/* Desktop view/filter buttons */}
