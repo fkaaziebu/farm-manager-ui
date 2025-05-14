@@ -1,0 +1,5 @@
+mutation AssignWorkersToFarm($farmTag: String!, $workerTags: [String!]!) {
+  assignWorkersToFarm(farmTag: $farmTag, workerTags: $workerTags) {
+    id
+  }
+}

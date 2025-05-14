@@ -1,0 +1,11 @@
+mutation AddLivestockGrowthRecord(
+  $livestockTag: String!
+  $growthRecord: GrowthRecordInput!
+) {
+  addLivestockGrowthRecord(
+    livestockTag: $livestockTag
+    growthRecord: $growthRecord
+  ) {
+    id
+  }
+}

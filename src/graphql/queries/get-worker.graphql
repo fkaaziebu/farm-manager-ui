@@ -1,0 +1,46 @@
+query GetWorker($workerTag: String!) {
+  getWorker(workerTag: $workerTag) {
+    achievements
+    address
+    admin {
+      name
+      id
+    }
+    bio
+    email
+    farms {
+      id
+      name
+      farm_tag
+      farm_type
+      barns {
+        id
+        name
+        status
+        pens {
+          id
+          livestock {
+            id
+          }
+        }
+      }
+    }
+    id
+    join_date
+    name
+    phone
+    roles
+    skills
+    worker_tag
+    assigned_tasks {
+      id
+      status
+      type
+      worker {
+        name
+      }
+      completion_date
+      description
+    }
+  }
+}

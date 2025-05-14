@@ -1,0 +1,5 @@
+mutation CreateTask($farmTag: String!, $task: TaskInput!) {
+  createTask(farmTag: $farmTag, task: $task) {
+    id
+  }
+}

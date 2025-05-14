@@ -1,0 +1,5 @@
+mutation UpdatePen($penUnitId: String!, $pen: UpdatePenInput!) {
+  updatePen(penUnitId: $penUnitId, pen: $pen) {
+    id
+  }
+}

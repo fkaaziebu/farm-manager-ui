@@ -29,7 +29,7 @@ const wsLink = new GraphQLWsLink(
     url: process.env.GRAPGQL_WS_BASE_URL,
     connectionParams() {
       // get the authentication token from local storage if it exists
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       // return the connection params sothe ws connects can use them
       return {
         headers: {
@@ -37,7 +37,7 @@ const wsLink = new GraphQLWsLink(
         },
       };
     },
-  }),
+  })
 );
 
 // The split function takes three parameters:
@@ -54,13 +54,13 @@ const splitLink = split(
     );
   },
   wsLink,
-  httpLink,
+  httpLink
 );
 
 // apollo auth link
 const authLink = setContext((_, { headers }) => {
   // get the authentication token from local storage if it exists
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   // return the headers to the context so httpLink can read them
   return {
     headers: {

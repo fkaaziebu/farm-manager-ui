@@ -9,90 +9,38 @@ import { Menu, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 
+import { useModal } from "@/hooks/use-modal-store";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useCreateFarm } from "@/hooks/mutations";
-
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Farm name must be at least 2 characters.",
-  }),
-  location: z.string().min(2, {
-    message: "Location must be at least 2 characters.",
-  }),
-  area: z.string().min(2, {
-    message: "Area must be at least 2 characters.",
-  }),
-});
 
 export default function FarmsListingPage() {
-  const { createFarm } = useCreateFarm();
-  const { farms, fetchFarms, fetchMoreFarms } = useFetchFarms();
+  const { farms, fetchFarms, fetchMoreFarms, loadingFarms, loadingMoreFarms } =
+    useFetchFarms();
   const router = useRouter();
   const observerTarget = useRef<HTMLDivElement | null>(null);
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      location: "",
-      area: "",
-    },
-  });
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      const { name, location, area } = values;
-      await createFarm({
-        variables: {
-          name,
-          location,
-          area,
-        },
-      });
-
-      toast("Farm creation successful");
-    } catch (error) {
-      toast("Farm Creation Error", {
-        description: `${error?.response?.data?.message}`,
-      });
-    }
-  }
+  const { onOpen, data } = useModal();
 
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
       router.push("/auth/admin/login");
     }
   }, []);
 
   useEffect(() => {
-    fetchFarms({ searchTerm, pagination: { first: 5 } });
-  }, [searchTerm]);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(async () => {
+      fetchFarms({ searchTerm });
+    }, 500);
+  }, [data.createFarmEvent, searchTerm]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -144,100 +92,13 @@ export default function FarmsListingPage() {
               </div>
             </div>
 
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white">
-                  <Plus className="mr-2 h-4 w-4" /> Add New Farm
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Farm</DialogTitle>
-                  <DialogDescription>
-                    Fill in the details below to create a new farm.
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form id="farm-form" onSubmit={form.handleSubmit(onSubmit)}>
-                    <div className="grid gap-4 py-4">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem className="grid gap-2">
-                            <FormLabel htmlFor="farm-name">Farm Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="farm-name"
-                                placeholder="Enter farm name"
-                                {...field}
-                                type="text"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="location"
-                        render={({ field }) => (
-                          <FormItem className="grid gap-2">
-                            <FormLabel htmlFor="farm-name">Location</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="farm-location"
-                                placeholder="Enter location"
-                                {...field}
-                                type="text"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="area"
-                        render={({ field }) => (
-                          <FormItem className="grid gap-2">
-                            <FormLabel htmlFor="farm-name">
-                              Area (acres)
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                id="farm-area"
-                                placeholder="Enter area in acres"
-                                {...field}
-                                type="text"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </form>
-                </Form>
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    form="farm-form"
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    Create Farm
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+              onClick={() => onOpen("add-farm")}
+              type="button"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add New Farm
+            </Button>
           </div>
 
           {/* Mobile menu */}
@@ -281,13 +142,52 @@ export default function FarmsListingPage() {
       </header>
 
       {/* Responsive Search */}
-      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <SearchBar
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        loading={loadingFarms}
+      />
 
-      {/* Responsive Dashboard Sections */}
       <OverviewSection />
 
-      {/* Responsive Farm cards */}
-      <FarmSection farms={farms || []} observerTarget={observerTarget} />
+      {!loadingFarms && (
+        <FarmSection
+          farms={farms || []}
+          loading={loadingMoreFarms}
+          searchTerm={searchTerm}
+          observerTarget={observerTarget}
+        />
+      )}
+
+      {loadingFarms && (
+        <div className="max-w-7xl mx-auto pb-6 sm:pb-12 px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((val) => (
+              <div
+                key={val}
+                className="flex flex-col gap-5 justify-center p-5 rounded-lg border bg-white animate-pulse"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="h-5 w-3/5 rounded-lg bg-gray-100 border" />
+                  <div className="h-5 w-5 rounded-full bg-gray-100 border" />
+                </div>
+                <div className="flex flex-col gap-5">
+                  <div className="h-3 w-2/5 rounded-lg bg-gray-100 border" />
+                  <div className="flex items-center gap-5">
+                    <div className="h-20 w-full rounded-lg bg-gray-100 border" />
+                    <div className="h-20 w-full rounded-lg bg-gray-100 border" />
+                  </div>
+                </div>
+                <div className="h-16 w-full rounded-lg bg-gray-100 border" />
+                <div className="flex items-center gap-5 mt-3">
+                  <div className="h-10 w-full rounded-lg bg-gray-100 border" />
+                  <div className="h-10 w-full rounded-lg bg-gray-100 border" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

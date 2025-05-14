@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import {
   ArrowLeft,
   Edit,
@@ -12,11 +12,11 @@ import {
   Briefcase,
   Star,
   ChevronRight,
-  FileText,
   UserCheck,
   TrendingUp,
   Menu,
   X,
+  FileText,
 } from "lucide-react";
 import {
   LineChart,
@@ -31,40 +31,19 @@ import {
 import Link from "next/link";
 import ProfilePic from "@/../public/globe.svg";
 import Image from "next/image";
+import { useFetchASingleWorker } from "@/hooks/queries";
+import { useRouter, usePathname } from "next/navigation";
+import { useModal } from "@/hooks/use-modal-store";
+import { HousingStatus, TaskStatus } from "@/graphql/generated/graphql";
 
 export default function WorkerDetailsPage() {
-  // Sample worker data
-  const worker = {
-    id: 1,
-    name: "John Smith",
-    role: "Farm Manager",
-    joinDate: "2020-03-15",
-    image: "/public/globe.svg",
-    rating: 92,
-    specialization: "Dairy Management",
-    status: "active",
-    email: "john.smith@example.com",
-    phone: "(555) 123-4567",
-    address: "123 Farm Lane, Somerset, WI 54025",
-    bio: "John has over 10 years of experience in dairy farm management with specialization in herd health and milk production optimization. He oversees all farm operations and coordinates with the veterinary team.",
-    education: "B.S. in Agricultural Science, State University",
-    certifications: [
-      "Certified Dairy Farm Manager",
-      "Agricultural Safety Specialist",
-    ],
-    skills: [
-      "Herd Management",
-      "Staff Supervision",
-      "Feed Management",
-      "Equipment Maintenance",
-      "Record Keeping",
-    ],
-    achievements: [
-      { year: "2022", title: "Employee of the Year" },
-      { year: "2021", title: "120% Production Goal Achievement" },
-      { year: "2020", title: "Safety Excellence Award" },
-    ],
-  };
+  const { fetchWorker, worker, loadingWorker } = useFetchASingleWorker();
+
+  const pathname = usePathname();
+  const { onOpen } = useModal();
+  const router = useRouter();
+  const workerTag = pathname.split("/").pop();
+  const farmId = pathname.split("/")[2];
 
   // Sample performance data
   const performanceData = [
@@ -132,22 +111,7 @@ export default function WorkerDetailsPage() {
   ];
 
   // Sample assigned areas
-  const assignedAreas = [
-    {
-      id: 101,
-      name: "Main Barn",
-      type: "Cattle Barn",
-      animals: 42,
-      status: "operational",
-    },
-    {
-      id: 102,
-      name: "West Wing",
-      type: "Cattle Barn",
-      animals: 38,
-      status: "operational",
-    },
-  ];
+  const assignedAreas = worker?.farms?.[0].barns?.map((barn) => barn) || [];
 
   // States
   const [activeTab, setActiveTab] = useState("overview");
@@ -165,16 +129,27 @@ export default function WorkerDetailsPage() {
   // Function to get task status color
   const getTaskStatusColor = (status: string) => {
     switch (status) {
-      case "completed":
+      case TaskStatus.Completed:
         return "bg-green-100 text-green-800";
-      case "in progress":
+      case TaskStatus.InProgress:
         return "bg-blue-100 text-blue-800";
-      case "scheduled":
+      case TaskStatus.Pending:
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      router.push("/auth/worker/login");
+    } else {
+      if (workerTag) {
+        fetchWorker({ workerTag });
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -183,17 +158,18 @@ export default function WorkerDetailsPage() {
         <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <Link href="/farms/1/workers" className="mr-4">
+              <Link href={`/farms/${farmId}/workers`} className="mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
               </Link>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  {worker.name}
+                  {worker?.name}
                 </h1>
                 <div className="mt-1 flex items-center text-sm text-gray-500">
                   <Briefcase size={16} className="mr-1.5 flex-shrink-0" />
                   <p className="truncate">
-                    {worker.role} • {worker.specialization}
+                    {worker?.roles.join(", ")} •{" "}
+                    {worker?.skills && worker?.skills.join(", ")}
                   </p>
                 </div>
               </div>
@@ -210,6 +186,11 @@ export default function WorkerDetailsPage() {
               <button
                 type="button"
                 className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-md flex items-center gap-1 sm:gap-2 text-sm"
+                onClick={() => {
+                  onOpen("task-modal", {
+                    farmTag: worker?.farms?.[0]?.farm_tag,
+                  });
+                }}
               >
                 <FileText size={16} />
                 <span className="hidden sm:inline">Assign Task</span>
@@ -367,21 +348,21 @@ export default function WorkerDetailsPage() {
                     <Image
                       className="h-28 w-28 sm:h-32 sm:w-32 rounded-full"
                       src={ProfilePic}
-                      alt={worker.name}
+                      alt={worker?.name || "Worker Profile"}
                     />
                     <h3 className="mt-4 text-lg leading-6 font-medium text-gray-900">
-                      {worker.name}
+                      {worker?.name}
                     </h3>
                     <p className="mt-1 max-w-2xl text-sm text-gray-500 text-center">
-                      {worker.role}
+                      {worker?.roles.join(", ")}
                     </p>
-                    <div className="mt-2 flex items-center">
+                    {/* <div className="mt-2 flex items-center">
                       <div className="flex items-center">
                         {[1, 2, 3, 4, 5].map((rating) => (
                           <Star
                             key={rating}
                             className={`h-5 w-5 ${
-                              Math.round(worker.rating / 20) >= rating
+                              Math.round(worker. / 20) >= rating
                                 ? "text-yellow-400"
                                 : "text-gray-300"
                             }`}
@@ -392,17 +373,17 @@ export default function WorkerDetailsPage() {
                       <p className="ml-2 text-sm text-gray-600">
                         {worker.rating}%
                       </p>
-                    </div>
-                    <span
+                    </div> */}
+                    {/* <span
                       className={`mt-2 px-2 py-1 text-xs font-medium rounded-full ${
-                        worker.status === "active"
+                        worker. === "active"
                           ? "bg-green-100 text-green-800"
                           : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
                       {worker.status.charAt(0).toUpperCase() +
                         worker.status.slice(1)}
-                    </span>
+                    </span> */}
                   </div>
                   <div className="border-t border-gray-200">
                     <dl>
@@ -412,7 +393,7 @@ export default function WorkerDetailsPage() {
                           Join Date
                         </dt>
                         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                          {formatDate(worker.joinDate)}
+                          {formatDate(worker?.join_date)}
                         </dd>
                       </div>
                       <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -421,7 +402,7 @@ export default function WorkerDetailsPage() {
                           Email
                         </dt>
                         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 break-words">
-                          {worker.email}
+                          {worker?.email}
                         </dd>
                       </div>
                       <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -430,7 +411,7 @@ export default function WorkerDetailsPage() {
                           Phone
                         </dt>
                         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                          {worker.phone}
+                          {worker?.phone}
                         </dd>
                       </div>
                       <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -439,7 +420,7 @@ export default function WorkerDetailsPage() {
                           Address
                         </dt>
                         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                          {worker.address}
+                          {worker?.address}
                         </dd>
                       </div>
                       <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -448,7 +429,8 @@ export default function WorkerDetailsPage() {
                           Specialization
                         </dt>
                         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                          {worker.specialization}
+                          {(worker?.skills && worker?.skills.join(", ")) ||
+                            "None"}
                         </dd>
                       </div>
                     </dl>
@@ -466,18 +448,18 @@ export default function WorkerDetailsPage() {
                     </h3>
                   </div>
                   <div className="px-4 py-5 sm:p-6">
-                    <p className="text-sm text-gray-900">{worker.bio}</p>
+                    <p className="text-sm text-gray-900">{worker?.bio}</p>
 
-                    <div className="mt-6">
+                    {/* <div className="mt-6">
                       <h4 className="text-sm font-medium text-gray-900">
                         Education
                       </h4>
                       <p className="mt-2 text-sm text-gray-600">
-                        {worker.education}
+                        {worker?.education}
                       </p>
-                    </div>
+                    </div> */}
 
-                    <div className="mt-6">
+                    {/* <div className="mt-6">
                       <h4 className="text-sm font-medium text-gray-900">
                         Certifications
                       </h4>
@@ -504,7 +486,7 @@ export default function WorkerDetailsPage() {
                           </li>
                         ))}
                       </ul>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
@@ -520,14 +502,15 @@ export default function WorkerDetailsPage() {
                       Key Skills
                     </h4>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {worker.skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800"
-                        >
-                          {skill}
-                        </span>
-                      ))}
+                      {worker?.skills &&
+                        worker?.skills.map((skill, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800"
+                          >
+                            {skill}
+                          </span>
+                        ))}
                     </div>
 
                     <div className="mt-6">
@@ -536,35 +519,37 @@ export default function WorkerDetailsPage() {
                       </h4>
                       <div className="mt-2 flow-root">
                         <ul className="-mb-8">
-                          {worker.achievements.map((achievement, index) => (
-                            <li key={index}>
-                              <div className="relative pb-8">
-                                {index !== worker.achievements.length - 1 ? (
-                                  <span
-                                    className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                                    aria-hidden="true"
-                                  ></span>
-                                ) : null}
-                                <div className="relative flex space-x-3">
-                                  <div>
-                                    <span className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
-                                      <Award className="h-5 w-5 text-white" />
-                                    </span>
-                                  </div>
-                                  <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                          {worker?.achievements &&
+                            worker?.achievements.map((achievement, index) => (
+                              <li key={index}>
+                                <div className="relative pb-8">
+                                  {index !==
+                                  (worker?.achievements ?? []).length - 1 ? (
+                                    <span
+                                      className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                                      aria-hidden="true"
+                                    ></span>
+                                  ) : null}
+                                  <div className="relative flex space-x-3">
                                     <div>
-                                      <p className="text-sm text-gray-900">
-                                        {achievement.title}
-                                      </p>
+                                      <span className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                                        <Award className="h-5 w-5 text-white" />
+                                      </span>
                                     </div>
-                                    <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                                      {achievement.year}
+                                    <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                      <div>
+                                        <p className="text-sm text-gray-900">
+                                          {achievement.title}
+                                        </p>
+                                      </div>
+                                      <div className="text-right text-sm whitespace-nowrap text-gray-500">
+                                        {achievement.year}
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                            </li>
-                          ))}
+                              </li>
+                            ))}
                         </ul>
                       </div>
                     </div>
@@ -605,7 +590,7 @@ export default function WorkerDetailsPage() {
                               Current Tasks
                             </dt>
                             <dd className="text-lg font-semibold text-gray-900">
-                              {tasks.length}
+                              {worker?.assigned_tasks?.length}
                             </dd>
                           </dl>
                         </div>
@@ -625,7 +610,8 @@ export default function WorkerDetailsPage() {
                               Performance
                             </dt>
                             <dd className="text-lg font-semibold text-gray-900">
-                              {worker.rating}%
+                              {/* {worker.}% */}
+                              70%
                             </dd>
                           </dl>
                         </div>
@@ -696,7 +682,8 @@ export default function WorkerDetailsPage() {
                       Current Rating
                     </h3>
                     <div className="mt-2 text-3xl font-bold text-gray-900">
-                      {worker.rating}%
+                      {/* {worker.rating}% */}
+                      70%{" "}
                     </div>
                     <div className="mt-1 text-sm text-green-600">
                       +3% from last month
@@ -878,21 +865,24 @@ export default function WorkerDetailsPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {tasks.map((task) => (
+                      {worker?.assigned_tasks?.map((task) => (
                         <tr key={task.id}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {task.title}
+                            {task.type.charAt(0) +
+                              task.type.slice(1).toLowerCase()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full ${getTaskStatusColor(task.status)}`}
+                              className={`px-2 py-1 text-xs font-medium rounded-full ${getTaskStatusColor(
+                                task.status
+                              )}`}
                             >
                               {task.status.charAt(0).toUpperCase() +
-                                task.status.slice(1)}
+                                task.status.slice(1).toLowerCase()}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatDate(task.dueDate)}
+                            {formatDate(task.completion_date)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex justify-end space-x-3">
@@ -930,7 +920,9 @@ export default function WorkerDetailsPage() {
                             {task.title}
                           </h4>
                           <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${getTaskStatusColor(task.status)}`}
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getTaskStatusColor(
+                              task.status
+                            )}`}
                           >
                             {task.status.charAt(0).toUpperCase() +
                               task.status.slice(1)}
@@ -1040,13 +1032,27 @@ export default function WorkerDetailsPage() {
                       </dt>
                       <dd className="mt-1">
                         <div className="text-3xl font-semibold text-gray-900">
-                          95%
+                          {`${(
+                            ((worker?.assigned_tasks?.filter(
+                              (task) => task.status === "COMPLETED"
+                            ).length || 0) /
+                              (worker?.assigned_tasks?.length || 1)) *
+                            100
+                          ).toFixed(0)}%`}
                         </div>
                         <div className="mt-2">
                           <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
                               className="bg-green-600 h-2.5 rounded-full"
-                              style={{ width: "95%" }}
+                              style={{
+                                width: `${(
+                                  ((worker?.assigned_tasks?.filter(
+                                    (task) => task.status === "COMPLETED"
+                                  ).length || 0) /
+                                    (worker?.assigned_tasks?.length || 1)) *
+                                  100
+                                ).toFixed(0)}%`,
+                              }}
                             ></div>
                           </div>
                         </div>
@@ -1060,7 +1066,12 @@ export default function WorkerDetailsPage() {
                         Tasks Completed This Month
                       </dt>
                       <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                        24 / 26
+                        {
+                          worker?.assigned_tasks?.filter(
+                            (task) => task.status === "COMPLETED"
+                          ).length
+                        }{" "}
+                        /{worker?.assigned_tasks?.length}
                       </dd>
                     </div>
                   </div>
@@ -1071,7 +1082,7 @@ export default function WorkerDetailsPage() {
                         Average Completion Time
                       </dt>
                       <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                        1.2 days
+                        {}
                       </dd>
                     </div>
                   </div>
@@ -1116,16 +1127,16 @@ export default function WorkerDetailsPage() {
                               {area.name}
                             </h4>
                             <p className="mt-1 text-sm text-gray-500">
-                              {area.type}
+                              {area.status}
                             </p>
                           </div>
                           <span
                             className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              area.status === "operational"
+                              area.status === HousingStatus.Operational
                                 ? "bg-green-100 text-green-800"
-                                : area.status === "maintenance"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-blue-100 text-blue-800"
+                                : area.status === HousingStatus.Maintenance
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-blue-100 text-blue-800"
                             }`}
                           >
                             {area.status.charAt(0).toUpperCase() +
@@ -1135,14 +1146,38 @@ export default function WorkerDetailsPage() {
 
                         <div className="mt-4 flex items-center justify-between">
                           <div className="text-sm">
-                            {area.animals > 0 ? (
+                            {area?.pens && area?.pens.length > 0 ? (
                               <span className="text-gray-600">
-                                Animals: {area.animals}
+                                Pens: {area?.pens.length}, Animals:{" "}
+                                {area?.pens.reduce(
+                                  (total, pen) =>
+                                    total + (pen.livestock?.length || 0),
+                                  0
+                                )}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">
+                                No pens assigned
+                              </span>
+                            )}
+                            {area?.pens?.reduce(
+                              (total, pen) =>
+                                total + (pen.livestock?.length || 0),
+                              0
+                            ) ? (
+                              <span className="text-gray-600">
+                                Animals:{" "}
+                                {area.pens.reduce(
+                                  (total, pen) =>
+                                    total + (pen.livestock?.length || 0),
+                                  0
+                                )}
                               </span>
                             ) : (
                               <span className="text-gray-500">No animals</span>
                             )}
                           </div>
+
                           <Link
                             href={`/farms/1/houses/${area.id}`}
                             className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"

@@ -1,0 +1,5 @@
+mutation AssignTaskToWorker($taskId: Float!, $workerTag: String!) {
+  assignTaskToWorker(taskId: $taskId, workerTag: $workerTag) {
+    id
+  }
+}

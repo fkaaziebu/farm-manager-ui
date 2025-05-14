@@ -1,0 +1,8 @@
+mutation AddLivestockToPen(
+  $penUnitId: String!
+  $livestock: [LivestockInput!]!
+) {
+  addLivestockToPen(penUnitId: $penUnitId, livestock: $livestock) {
+    id
+  }
+}

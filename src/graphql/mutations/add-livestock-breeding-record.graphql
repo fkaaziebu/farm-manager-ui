@@ -1,0 +1,13 @@
+mutation AddLivestockBreedingRecord(
+  $maleLivestockTag: String!
+  $femaleLivestockTag: String!
+  $breedingRecord: BreedingRecordInput!
+) {
+  addLivestockBreedingRecord(
+    maleLivestockTag: $maleLivestockTag
+    femaleLivestockTag: $femaleLivestockTag
+    breedingRecord: $breedingRecord
+  ) {
+    id
+  }
+}

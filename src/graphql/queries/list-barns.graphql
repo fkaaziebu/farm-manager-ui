@@ -1,0 +1,34 @@
+query ListBarns(
+  $searchTerm: String!
+  $pagination: PaginationInput
+  $sort: [BarnSortInput!]
+) {
+  listBarns(searchTerm: $searchTerm, pagination: $pagination, sort: $sort) {
+    pageInfo {
+      endCursor
+      hasNextPage
+      hasPreviousPage
+      startCursor
+    }
+    edges {
+      node {
+        area_sqm
+        building_material
+        capacity
+        construction_date
+        id
+        name
+        pens {
+          id
+          livestock {
+            id
+            livestock_type
+          }
+        }
+        status
+        unit_id
+        ventilation_type
+      }
+    }
+  }
+}

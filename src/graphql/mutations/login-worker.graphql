@@ -1,0 +1,8 @@
+mutation LoginWorker($email: String!, $password: String!) {
+  loginWorker(email: $email, password: $password) {
+    id
+    token
+    worker_tag
+    roles
+  }
+}

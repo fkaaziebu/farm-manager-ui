@@ -1,10 +1,6 @@
 "use client";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Plus,
   Search,
   Filter,
   ChevronDown,
@@ -15,83 +11,30 @@ import {
   X,
   Grid,
   List,
-  AlertTriangle,
-  UserPlus,
+  Mail,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import ProfilePic from "@/../public/globe.svg";
-import { toast } from "sonner";
+import { useFetchFarms, useFetchTasks } from "@/hooks/queries";
+import { useModal } from "@/hooks/use-modal-store";
 
-const formSchema = z
-  .object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-    email: z.string().email({ message: "Please enter a valid email address." }),
-    role: z.string().min(1, { message: "Please select a role." }),
-    password: z
-      .string()
-      .min(6, { message: "Password must be at least 6 characters." }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
+import { Farm } from "@/graphql/generated/graphql";
+import { useRouter, usePathname } from "next/navigation";
+import WorkersEmptyState from "@/components/pages/farms/workers/empty-workers-state";
+import { Button } from "@/components/ui/button";
+
+type WorkerProp = NonNullable<NonNullable<Farm>["workers"]>;
 
 export default function WorkersListingPage() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("search");
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      role: "",
-      password: "",
-      confirmPassword: "",
-    },
-  });
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      console.log(values);
-
-      toast("Farm worker added successfully");
-    } catch (error) {
-      toast("Farm Worker Adding Error", {
-        description: `${error?.response?.data?.message}`,
-      });
-    }
-  }
+  const [workersInfo, setworkersInfo] = useState<WorkerProp | undefined>();
+  const { farms, fetchFarms } = useFetchFarms();
+  const router = useRouter();
+  const pathname = usePathname();
+  const farmId = pathname.split("/")[pathname.split("/").length - 2];
+  const { onOpen } = useModal();
+  const { tasks, fetchTasks } = useFetchTasks();
   // Sample workers data
   const [workers] = useState([
     {
@@ -193,89 +136,8 @@ export default function WorkersListingPage() {
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleAddExistingWorker = (workerId) => {
-    console.log(`Adding worker with ID ${workerId} to the farm`);
-    // In a real application, you would update your backend
-
-    // Show success message (replace with a toast notification in a real app)
-    alert("Worker added to farm successfully!");
-  };
-
-  const handleDialogOpenChange = (open) => {
-    setIsDialogOpen(open);
-    if (!open) {
-      setActiveTab("search");
-      setSearchQuery("");
-      form.reset();
-    }
-  };
-
-  // Filter and sort workers
-  const filteredWorkers = workers
-    .filter((worker) => {
-      // Search filter
-      const matchesSearch =
-        worker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        worker.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        worker.specialization.toLowerCase().includes(searchQuery.toLowerCase());
-
-      // Role filter
-      const matchesRole = roleFilter === "all" || worker.role === roleFilter;
-
-      // Status filter
-      const matchesStatus =
-        statusFilter === "all" || worker.status === statusFilter;
-
-      return matchesSearch && matchesRole && matchesStatus;
-    })
-    .sort((a, b) => {
-      if (sortBy === "name") {
-        return a.name.localeCompare(b.name);
-      } else if (sortBy === "role") {
-        return a.role.localeCompare(b.role);
-      } else if (sortBy === "rating") {
-        return b.rating - a.rating;
-      } else if (sortBy === "date") {
-        return new Date(b.joinDate).valueOf() - new Date(a.joinDate).valueOf();
-      } else if (sortBy === "activity") {
-        return (
-          new Date(b.lastActivity).valueOf() -
-          new Date(a.lastActivity).valueOf()
-        );
-      }
-      return 0;
-    });
-
   // Get unique roles for filter
   const roles = ["all", ...new Set(workers.map((worker) => worker.role))];
-
-  // Format relative time
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString).valueOf();
-    const now = new Date().valueOf();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) {
-      return "Just now";
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
-    } else {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days} day${days !== 1 ? "s" : ""} ago`;
-    }
-  };
-
-  // Function to get rating color class
-  const getRatingColorClass = (rating: number) => {
-    if (rating >= 90) return "bg-green-500";
-    if (rating >= 80) return "bg-green-400";
-    if (rating >= 70) return "bg-yellow-400";
-    return "bg-red-400";
-  };
 
   // Worker stats
   const workerStats = {
@@ -287,14 +149,33 @@ export default function WorkersListingPage() {
     ).toFixed(1),
   };
 
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      router.push("/auth/admin/login");
+    }
+
+    fetchFarms({ searchTerm: searchQuery, filter: { id: Number(farmId) } });
+  }, [searchQuery, farmId]);
+
+  useEffect(() => {
+    if (farms && farms.length) {
+      setworkersInfo(farms?.[0]?.workers ?? undefined);
+      fetchTasks({
+        farmTag: farms?.[0]?.farm_tag,
+      });
+    }
+  }, [farms]);
+
+  console.log("workersInfo", workersInfo);
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header - Responsive */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0">
+          <div className="flex  justify-between sm:flex-row sm:items-center gap-4 sm:gap-0">
             <div className="flex items-center">
-              <Link href="/farms/1" className="mr-4">
+              <Link href={`/farms/${farmId}`} className="mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
               </Link>
               <div>
@@ -306,295 +187,31 @@ export default function WorkersListingPage() {
                 </p>
               </div>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
-              <DialogTrigger asChild>
-                <Button
-                  className="sm:ml-auto w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => setIsDialogOpen(true)}
-                >
-                  <Plus size={18} className="mr-2" />
-                  <span>Add Worker</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[550px]">
-                <DialogHeader>
-                  <DialogTitle>Add Worker to Farm</DialogTitle>
-                </DialogHeader>
-
-                <Tabs
-                  defaultValue="search"
-                  value={activeTab}
-                  onValueChange={setActiveTab}
-                  className="mt-2"
-                >
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="search">Search Existing</TabsTrigger>
-                    <TabsTrigger value="create">Create New</TabsTrigger>
-                  </TabsList>
-
-                  {/* Tab Content for Searching Existing Workers */}
-                  <TabsContent value="search" className="py-4">
-                    <div className="space-y-4">
-                      <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                        <Input
-                          placeholder="Search by name, email, or role..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-8"
-                        />
-                      </div>
-
-                      <div className="max-h-[280px] overflow-y-auto border rounded-md">
-                        {filteredWorkers.length > 0 ? (
-                          <ul className="divide-y divide-gray-200">
-                            {filteredWorkers.map((worker) => (
-                              <li
-                                key={worker.id}
-                                className="p-3 hover:bg-gray-50"
-                              >
-                                <div className="flex justify-between items-center">
-                                  <div>
-                                    <p className="font-medium text-gray-900">
-                                      {worker.name}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      {worker.email}
-                                    </p>
-                                    <div className="flex items-center mt-1">
-                                      <span className="text-xs text-gray-500 mr-2">
-                                        {worker.role}
-                                      </span>
-                                      <span
-                                        className={`text-xs px-2 py-0.5 rounded-full ${
-                                          worker.status === "Available"
-                                            ? "bg-green-100 text-green-800"
-                                            : "bg-yellow-100 text-yellow-800"
-                                        }`}
-                                      >
-                                        {worker.status}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <Button
-                                    onClick={() =>
-                                      handleAddExistingWorker(worker.id)
-                                    }
-                                    size="sm"
-                                    disabled={worker.status === "Assigned"}
-                                    variant={
-                                      worker.status === "Available"
-                                        ? "default"
-                                        : "outline"
-                                    }
-                                    className={
-                                      worker.status === "Available"
-                                        ? "bg-green-600 hover:bg-green-700"
-                                        : ""
-                                    }
-                                  >
-                                    {worker.status === "Available" ? (
-                                      <>
-                                        <UserPlus className="h-3.5 w-3.5 mr-1" />
-                                        Add
-                                      </>
-                                    ) : (
-                                      "Assigned"
-                                    )}
-                                  </Button>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <div className="p-4 text-center">
-                            <AlertTriangle className="h-10 w-10 mx-auto text-yellow-500 mb-2" />
-                            <p className="text-gray-500">
-                              No workers found matching your search.
-                            </p>
-                            <p className="text-sm text-gray-400 mt-1">
-                              Try a different search term or create a new
-                              worker.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex justify-between items-center pt-2">
-                        <p className="text-sm text-gray-500">
-                          {filteredWorkers.length} worker
-                          {filteredWorkers.length !== 1 ? "s" : ""} found
-                        </p>
-                        <Button
-                          variant="link"
-                          onClick={() => setActiveTab("create")}
-                          className="text-green-600 hover:text-green-700"
-                        >
-                          Create new worker
-                        </Button>
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  {/* Tab Content for Creating New Worker */}
-                  <TabsContent value="create" className="py-4">
-                    <Form {...form}>
-                      <form
-                        id="worker-form"
-                        onSubmit={form.handleSubmit(onSubmit)}
-                      >
-                        <div className="grid gap-4">
-                          <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                              <FormItem className="grid gap-2">
-                                <FormLabel htmlFor="worker-name">
-                                  Full Name
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    id="worker-name"
-                                    placeholder="Enter worker's full name"
-                                    {...field}
-                                    type="text"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                              <FormItem className="grid gap-2">
-                                <FormLabel htmlFor="worker-email">
-                                  Email Address
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    id="worker-email"
-                                    placeholder="Enter email address"
-                                    {...field}
-                                    type="email"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="role"
-                            render={({ field }) => (
-                              <FormItem className="grid gap-2">
-                                <FormLabel htmlFor="worker-role">
-                                  Role
-                                </FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger id="worker-role">
-                                      <SelectValue placeholder="Select a role" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="farm_manager">
-                                      Farm Manager
-                                    </SelectItem>
-                                    <SelectItem value="field_worker">
-                                      Field Worker
-                                    </SelectItem>
-                                    <SelectItem value="livestock_specialist">
-                                      Livestock Specialist
-                                    </SelectItem>
-                                    <SelectItem value="veterinarian">
-                                      Veterinarian
-                                    </SelectItem>
-                                    <SelectItem value="mechanic">
-                                      Mechanic
-                                    </SelectItem>
-                                    <SelectItem value="admin">
-                                      Administrator
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                              <FormItem className="grid gap-2">
-                                <FormLabel htmlFor="worker-password">
-                                  Password
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    id="worker-password"
-                                    placeholder="Enter password"
-                                    {...field}
-                                    type="password"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                                <FormDescription>
-                                  Must be at least 6 characters.
-                                </FormDescription>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="confirmPassword"
-                            render={({ field }) => (
-                              <FormItem className="grid gap-2">
-                                <FormLabel htmlFor="worker-confirm-password">
-                                  Confirm Password
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    id="worker-confirm-password"
-                                    placeholder="Confirm password"
-                                    {...field}
-                                    type="password"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </form>
-                    </Form>
-                  </TabsContent>
-                </Tabs>
-
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  {activeTab === "create" && (
-                    <Button
-                      type="submit"
-                      form="worker-form"
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      Create Worker
-                    </Button>
-                  )}
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                onOpen("add-workers-to-farm", {
+                  farmTag: farms?.[0]?.farm_tag,
+                  farmName: farms?.[0]?.name,
+                });
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Add worker
+            </Button>
           </div>
         </div>
       </header>
@@ -621,14 +238,22 @@ export default function WorkersListingPage() {
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
-                className={`flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${viewMode === "grid" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700"}`}
+                className={`flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
+                  viewMode === "grid"
+                    ? "bg-green-50 border-green-500 text-green-700"
+                    : "bg-white text-gray-700"
+                }`}
               >
                 <Grid size={18} />
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("list")}
-                className={`flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${viewMode === "list" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700"}`}
+                className={`flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
+                  viewMode === "list"
+                    ? "bg-green-50 border-green-500 text-green-700"
+                    : "bg-white text-gray-700"
+                }`}
               >
                 <List size={18} />
               </button>
@@ -647,14 +272,22 @@ export default function WorkersListingPage() {
             <button
               type="button"
               onClick={() => setViewMode("grid")}
-              className={`flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${viewMode === "grid" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
+                viewMode === "grid"
+                  ? "bg-green-50 border-green-500 text-green-700"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
             >
               Grid
             </button>
             <button
               type="button"
               onClick={() => setViewMode("list")}
-              className={`flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${viewMode === "list" ? "bg-green-50 border-green-500 text-green-700" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
+                viewMode === "list"
+                  ? "bg-green-50 border-green-500 text-green-700"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
             >
               List
             </button>
@@ -831,7 +464,7 @@ export default function WorkersListingPage() {
                       Total Workers
                     </dt>
                     <dd className="text-xl sm:text-3xl font-semibold text-gray-900">
-                      {workerStats.total}
+                      {workersInfo?.length}
                     </dd>
                   </dl>
                 </div>
@@ -869,7 +502,7 @@ export default function WorkersListingPage() {
                       Active Workers
                     </dt>
                     <dd className="text-xl sm:text-3xl font-semibold text-gray-900">
-                      {workerStats.active}
+                      {workersInfo?.length}
                     </dd>
                   </dl>
                 </div>
@@ -888,7 +521,7 @@ export default function WorkersListingPage() {
                       On Leave
                     </dt>
                     <dd className="text-xl sm:text-3xl font-semibold text-gray-900">
-                      {workerStats.onLeave}
+                      {0}
                     </dd>
                   </dl>
                 </div>
@@ -903,174 +536,179 @@ export default function WorkersListingPage() {
         {/* Results count */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-            {filteredWorkers.length}{" "}
-            {filteredWorkers.length === 1 ? "worker" : "workers"} found
+            {workersInfo?.length}{" "}
+            {workersInfo?.length === 1 ? "worker" : "workers"} found
           </h2>
         </div>
 
         {/* Grid View - Responsive */}
         {viewMode === "grid" && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
-            {filteredWorkers.map((worker) => (
-              <div
-                key={worker.id}
-                className="bg-white overflow-hidden shadow rounded-lg"
-              >
-                <div className="p-4 sm:p-5">
-                  <div className="flex items-center space-x-4 mb-4">
-                    <Image
-                      className="h-10 w-10 sm:h-12 sm:w-12 rounded-full"
-                      src={ProfilePic}
-                      alt={worker.name}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {worker.name}
-                      </p>
-                      <div className="flex items-center flex-wrap gap-1">
-                        <p className="text-xs sm:text-sm text-gray-500 truncate">
-                          {worker.role}
-                        </p>
-                        {worker.status === "on leave" && (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            On Leave
-                          </span>
+          <>
+            {workersInfo?.length ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
+                {workersInfo.map((worker) => (
+                  <div
+                    key={worker.id}
+                    className="bg-white overflow-hidden shadow rounded-lg border border-gray-100 transition-all hover:shadow-md"
+                  >
+                    <div className="p-5">
+                      <div className="flex items-center space-x-4 mb-4">
+                        <div className="relative">
+                          <Image
+                            className="h-12 w-12 rounded-full object-cover"
+                            src={ProfilePic}
+                            alt={worker.name}
+                            width={48}
+                            height={48}
+                          />
+                          <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-400 border-2 border-white"></span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {worker.name}
+                          </p>
+                          {worker.roles && (
+                            <p className="text-xs text-gray-500 truncate mt-1">
+                              {worker.roles
+                                .map(
+                                  (role) =>
+                                    role.charAt(0) + role.slice(1).toLowerCase()
+                                )
+                                .join(", ")}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 mt-4 text-xs">
+                        {worker.email && (
+                          <div className="flex items-center text-gray-600">
+                            <Mail className="h-3.5 w-3.5 mr-2 flex-shrink-0 text-gray-400" />
+                            <span className="truncate">{worker.email}</span>
+                          </div>
                         )}
+
+                        {/* {worker.joinDate && (
+                          <div className="flex items-center text-gray-600">
+                            <Calendar className="h-3.5 w-3.5 mr-2 flex-shrink-0 text-gray-400" />
+                            <span>Joined {worker.joinDate}</span>
+                          </div>
+                        )} */}
+                      </div>
+
+                      <div className="mt-5 pt-4 border-t border-gray-100">
+                        <Link
+                          href={`/farms/${farmId}/workers/${worker.worker_tag}`}
+                          className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
+                        >
+                          View Profile
+                        </Link>
                       </div>
                     </div>
-                    <div
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${getRatingColorClass(worker.rating)}`}
-                    >
-                      <span className="text-xs font-medium text-white">
-                        {worker.rating}%
-                      </span>
-                    </div>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-4">
-                    <div className="text-xs sm:text-sm">
-                      <span className="text-gray-500">Specialization:</span>
-                      <p className="font-medium text-gray-900 truncate">
-                        {worker.specialization}
-                      </p>
-                    </div>
-                    <div className="text-xs sm:text-sm">
-                      <span className="text-gray-500">Joined:</span>
-                      <p className="font-medium text-gray-900">
-                        {new Date(worker.joinDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 text-xs sm:text-sm text-gray-500">
-                    <span className="font-medium">Last activity:</span>{" "}
-                    {formatRelativeTime(worker.lastActivity)}
-                  </div>
-
-                  <div className="mt-4">
-                    <Link
-                      href={`/farms/1/workers/${worker.id}`}
-                      className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
-                    >
-                      View Profile
-                    </Link>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            ) : (
+              <WorkersEmptyState
+                farmTag={farms?.[0]?.farm_tag || ""}
+                farmName={farms?.[0]?.name || ""}
+              />
+            )}
+          </>
         )}
 
         {/* List View - Responsive */}
         {viewMode === "list" && (
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul className="divide-y divide-gray-200">
-              {filteredWorkers.map((worker) => (
-                <li key={worker.id}>
-                  <Link
-                    href={`/farms/1/workers/${worker.id}`}
-                    className="block hover:bg-gray-50"
-                  >
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0">
-                            <Image
-                              className="h-10 w-10 rounded-full"
-                              src={ProfilePic}
-                              alt={worker.name}
-                            />
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {worker.name}
-                            </div>
-                            <div className="flex items-center flex-wrap gap-1">
-                              <div className="text-xs sm:text-sm text-gray-500">
-                                {worker.role}
-                              </div>
-                              {worker.status === "on leave" && (
-                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                  On Leave
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto">
-                          <div className="flex flex-col sm:items-end">
-                            <div className="text-xs sm:text-sm text-gray-900">
-                              <span className="font-medium">Rating:</span>{" "}
-                              {worker.rating}%
-                            </div>
-                            <div className="text-xs sm:text-sm text-gray-500">
-                              <span className="font-medium">Active:</span>{" "}
-                              {formatRelativeTime(worker.lastActivity)}
-                            </div>
-                          </div>
-                          <div className="flex-shrink-0 ml-4 sm:ml-5">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-gray-100">
-                              <span className="text-xs font-medium text-gray-500">
-                                View
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-2 sm:flex sm:justify-between">
-                        <div className="sm:flex">
-                          <div className="mt-2 flex items-center text-xs sm:text-sm text-gray-500 sm:mt-0">
+          <>
+            {workersInfo?.length ? (
+              <div className="bg-white shadow overflow-hidden sm:rounded-md">
+                <ul className="divide-y divide-gray-200">
+                  {workersInfo?.map((worker) => (
+                    <li key={worker.id}>
+                      <Link
+                        href={`/farms/${farmId}/workers/${worker.id}`}
+                        className="block hover:bg-gray-50"
+                      >
+                        <div className="px-4 py-4 sm:px-6">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                             <div className="flex items-center">
-                              <Award className="flex-shrink-0 mr-1 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                              <span className="truncate">
-                                Specialization: {worker.specialization}
-                              </span>
+                              <div className="flex-shrink-0">
+                                <Image
+                                  className="h-10 w-10 rounded-full"
+                                  src={ProfilePic}
+                                  alt={worker.name}
+                                />
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {worker.name}
+                                </div>
+                                <div className="flex items-center flex-wrap gap-1">
+                                  {worker.roles && (
+                                    <div className="text-xs sm:text-sm text-gray-500">
+                                      {worker.roles
+                                        .map(
+                                          (role) =>
+                                            role.charAt(0) +
+                                            role.slice(1).toLowerCase()
+                                        )
+                                        .join(", ")}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto">
+                              <div className="flex flex-col sm:items-end">
+                                <div className="text-xs sm:text-sm text-gray-900">
+                                  <span className="font-medium">Rating:</span>{" "}
+                                </div>
+                              </div>
+                              <div className="flex-shrink-0 ml-4 sm:ml-5">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-gray-100">
+                                  <span className="text-xs font-medium text-gray-500">
+                                    View
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-2 sm:flex sm:justify-between">
+                            <div className="sm:flex">
+                              <div className="mt-2 flex items-center text-xs sm:text-sm text-gray-500 sm:mt-0">
+                                <div className="flex items-center">
+                                  <Award className="flex-shrink-0 mr-1 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                                  {worker.roles && (
+                                    <span className="truncate">
+                                      Specialization:{" "}
+                                      {worker.roles
+                                        .map(
+                                          (role) =>
+                                            role.charAt(0) +
+                                            role.slice(1).toLowerCase()
+                                        )
+                                        .join(", ")}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div className="mt-2 flex items-center text-xs sm:text-sm text-gray-500 sm:mt-0">
-                          <Calendar className="flex-shrink-0 mr-1 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                          <p>
-                            <span className="font-medium">Joined:</span>{" "}
-                            {new Date(worker.joinDate).toLocaleDateString(
-                              "en-US",
-                              {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              },
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <WorkersEmptyState
+                farmTag={farms?.[0]?.farm_tag || ""}
+                farmName={farms?.[0]?.name || ""}
+              />
+            )}
+          </>
         )}
 
         {/* Pagination - Responsive */}
@@ -1159,6 +797,13 @@ export default function WorkersListingPage() {
               <button
                 type="button"
                 className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                onClick={() =>
+                  onOpen("task-modal", {
+                    farmWorkers: workersInfo,
+                    taskList: tasks,
+                    farmTag: farms?.[0]?.farm_tag,
+                  })
+                }
               >
                 Assign Tasks
               </button>

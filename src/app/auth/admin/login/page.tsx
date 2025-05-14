@@ -1,82 +1,80 @@
 "use client";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axios, { type AxiosResponse } from "axios";
 import { toast } from "sonner";
-
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-
-const formSchema = z.object({
-  email: z.string().email({
-    message: "This must be an email",
-  }),
-  password: z.string().min(2, {
-    message: "Password must be at least 2 characters.",
-  }),
-});
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { useLoginAdmin } from "@/hooks/mutations";
+import { classname } from "@/components/common";
+import { useModal } from "@/hooks/use-modal-store";
+type LoginFormInput = {
+  email: string;
+  password: string;
+};
 
 export default function AuthLogin() {
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const router = useRouter();
+  const [loginError, setLoginError] = useState<string>();
+  const { loginAdmin, loading } = useLoginAdmin();
+  const { onOpen } = useModal();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormInput>({
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit: SubmitHandler<LoginFormInput> = async (data, event) => {
+    event?.preventDefault();
+
     try {
-      setIsLoggingIn(true);
-      const { email, password } = values;
-
-      const response: AxiosResponse<{
-        id: number;
-        name: string;
-        email: string;
-        role: string;
-        access_token: string;
-      }> = await axios.post(`${baseUrl}/auth/admins/login`, {
-        email,
-        password,
+      const response = await loginAdmin({
+        variables: {
+          email: data.email,
+          password: data.password,
+        },
       });
 
-      localStorage.setItem("token", response.data.access_token);
-      localStorage.setItem("role", response.data.role);
-      toast("Logged in successfully", {
-        description: `Welcome back, ${response.data.name}`,
-      });
+      if (response.errors) {
+        throw new Error(response.errors[0].message);
+      }
 
+      if (!response.data?.loginAdmin || !response.data?.loginAdmin?.token) {
+        throw new Error("Login failed");
+      }
+
+      setLoginError("");
+      sessionStorage.setItem("token", response.data.loginAdmin.token);
+      sessionStorage.setItem("id", response.data.loginAdmin.id);
+      onOpen("notification", {
+        notificationType: "success",
+        notificationMessage: "Login successful",
+      });
       router.push("/farms");
     } catch (error) {
-      toast("Login Error", {
-        description: `${error?.response?.data?.message}`,
+      //  @ts-expect-error ignore
+      setLoginError(error.message);
+      console.error(error);
+      onOpen("notification", {
+        notificationType: "error",
+        notificationMessage: `Login unsuccessful: ${error}`,
       });
-    } finally {
-      setIsLoggingIn(false);
     }
-  }
+  };
 
   useEffect(() => {
-    if (localStorage.getItem("token")) {
+    const token = sessionStorage.getItem("token");
+    if (token) {
       router.push("/farms");
     }
   }, []);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
@@ -88,57 +86,77 @@ export default function AuthLogin() {
             Sign in to your account
           </p>
         </div>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="mt-8 space-y-6"
-          >
-            <div className="rounded-md -space-y-px">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel htmlFor="email-address" className="sr-only">
-                      Email address
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        id="email-address"
-                        placeholder="Email address"
-                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-                        {...field}
-                        type="email"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+          <div className="rounded-md -space-y-px">
+            <div className="mb-4">
+              <label
+                htmlFor="email-address"
+                className="text-lg font-medium text-gray-700 space-y-2"
+              >
+                Email address:
+              </label>
+              <input
+                id="email-address"
+                type="email"
+                {...register("email", {
+                  required: {
+                    value: true,
+                    message: "Email is required",
+                  },
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "Invalid email address",
+                  },
+                  maxLength: 256,
+                })}
+                className={classname(
+                  "appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm",
+                  errors.email &&
+                    "border-[#e4515180] outline-offset-0 outline-2 outline-[#e4515180]"
                 )}
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="password" className="sr-only">
-                      Password
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="Password"
-                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {errors.email && (
+                <p className="text-red-500 text-base ">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="mb-4">
+              <label
+                htmlFor="password"
+                className="text-lg font-medium text-gray-700"
+              >
+                Password:
+              </label>
+              <input
+                id="password"
+                type="password"
+                {...register("password", {
+                  required: {
+                    value: true,
+                    message: "Password is required",
+                  },
+                  minLength: {
+                    value: 8,
+                    message: "Password must be at least 8 characters",
+                  },
+                })}
+                className={classname(
+                  "appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm",
+                  errors.password &&
+                    "border-[#e4515180] outline-offset-0 outline-2 outline-[#e4515180]"
+                )}
+              />
+              {errors.password && (
+                <p className="text-red-500 text-base ">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <input
                   id="remember-me"
@@ -148,15 +166,15 @@ export default function AuthLogin() {
                 />
                 <label
                   htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-900"
+                  className="ml-2 block text-lg font-medium text-gray-700"
                 >
-                  Remember me
+                  Remember me:
                 </label>
               </div>
 
               <div className="text-sm">
                 <Link
-                  href="/auth/request-password-reset"
+                  href="/auth/admin/request-password-reset"
                   className="font-medium text-green-600 hover:text-green-500"
                 >
                   Forgot your password?
@@ -164,12 +182,19 @@ export default function AuthLogin() {
               </div>
             </div>
 
-            <div>
+            {loginError && (
+              <p className="text-red-500 text-base mb-4">{loginError}</p>
+            )}
+
+            <div className="mb-4">
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                className={classname(
+                  "group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500",
+                  loading && "cursor-none"
+                )}
               >
-                {!isLoggingIn ? "Sign in" : "Signing in..."}
+                {!loading ? "Sign in" : "Signing in..."}
               </button>
             </div>
 
@@ -181,8 +206,8 @@ export default function AuthLogin() {
                 Don&apos;t have an account? Sign up
               </Link>
             </div>
-          </form>
-        </Form>
+          </div>
+        </form>
       </div>
     </div>
   );

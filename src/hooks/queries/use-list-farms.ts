@@ -13,6 +13,7 @@ function useListFarms(args?: ListFarmsQueryVariables) {
     ListFarmsQueryVariables
   >(ListFarms, {
     variables: args,
+    fetchPolicy: "no-cache",
   });
   return {
     listFarms,

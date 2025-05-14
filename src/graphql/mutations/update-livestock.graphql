@@ -1,0 +1,8 @@
+mutation UpdateLivestock(
+  $livestockTag: String!
+  $livestock: UpdateLivestockInput!
+) {
+  updateLivestock(livestockTag: $livestockTag, livestock: $livestock) {
+    id
+  }
+}

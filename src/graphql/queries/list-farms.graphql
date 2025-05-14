@@ -1,59 +1,71 @@
 query ListFarms(
-    $filter: FarmFilterInput
-    $pagination: PaginationInput
-    $searchTerm: String
-    $sort: [FarmSortInput!]
+  $pagination: PaginationInput
+  $sort: [FarmSortInput!]
+  $searchTerm: String!
+  $filter: FarmFilterInput
 ) {
-    listFarms(
-        filter: $filter
-        searchTerm: $searchTerm
-        pagination: $pagination
-        sort: $sort
-    ) {
-        count
-        edges {
-            node {
-                id
-                name
-                performance
-                location
-                area
-                admin {
-                    id
-                    email
-                    name
-                }
-                animals {
-                    id
-                    tag_number
-                    type
-                    breed
-                    health_status
-                }
-                workers {
-                    id
-                    email
-                    name
-                    roles
-                }
-                houses {
-                    id
-                    house_number
-                    status
-                    rooms {
-                        room_number
-                        animals {
-                            tag_number
-                        }
-                    }
-                }
+  listFarms(
+    pagination: $pagination
+    sort: $sort
+    searchTerm: $searchTerm
+    filter: $filter
+  ) {
+    edges {
+      node {
+        barns {
+          capacity
+          pens {
+            livestock {
+              breed
+              weight
+              updated_at
+              birth_date
+              id
             }
+            id
+            unit_id
+            area_sqm
+            status
+          }
+          id
+          status
+          name
+          area_sqm
+          unit_id
         }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
+        name
+        performance
+        area
+        location
+        livestock {
+          id
+          health_status
+          livestock_tag
+          livestock_type
+          breed
         }
+        workers {
+          id
+          name
+          roles
+          worker_tag
+        }
+        farm_tag
+        id
+        tasks {
+          id
+          starting_date
+          status
+          type
+          completion_date
+        }
+      }
     }
+    pageInfo {
+      endCursor
+      hasNextPage
+      hasPreviousPage
+      startCursor
+    }
+  }
 }

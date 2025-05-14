@@ -1,0 +1,5 @@
+mutation AddWorkersToFarm($farmTag: String!, $workers: [WorkerInput!]!) {
+  addWorkersToFarm(farmTag: $farmTag, workers: $workers) {
+    id
+  }
+}

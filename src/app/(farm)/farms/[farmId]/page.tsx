@@ -30,11 +30,20 @@ import ProfilePic from "@/../public/globe.svg";
 import { useFetchFarms } from "@/hooks/queries";
 import { usePathname } from "next/navigation";
 import transformAnimalData from "@/lib/transform-animal-data";
+import {
+  EmptyStateFarmWorkers,
+  FarmHouseEmptyState,
+  EmptyStateFarmAnimals,
+} from "@/components/pages/farms/[farmId]";
+import { useModal } from "@/hooks/use-modal-store";
+import TaskCard from "@/components/pages/farms/tasks/task-card";
 
 export default function FarmDetailsPage() {
   const { farms, fetchFarms } = useFetchFarms();
   const pathname = usePathname();
   const farmId = Number(pathname.split("/").pop());
+  const { onOpen, data } = useModal();
+
   // Sample farm performance data for chart
   const performanceData = [
     { month: "Jan", productivity: 75, expenses: 65, revenue: 70 },
@@ -67,13 +76,12 @@ export default function FarmDetailsPage() {
 
   useEffect(() => {
     fetchFarms({
+      searchTerm: searchQuery,
       filter: {
-        id: {
-          eq: farmId,
-        },
+        id: farmId,
       },
     });
-  }, []);
+  }, [searchQuery, data.addWorkersToFarmEvent, data.addBansToFarmEvent]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -101,6 +109,12 @@ export default function FarmDetailsPage() {
             <button
               type="button"
               className="mt-4 sm:mt-0 sm:ml-auto inline-flex items-center justify-center px-3 py-1.5 sm:px-3 sm:py-1 w-full sm:w-auto border border-gray-300 text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              onClick={() => {
+                onOpen("update-farm", {
+                  farm: farms,
+                  farmTag: farms?.[0]?.farm_tag,
+                });
+              }}
             >
               <Edit className="mr-2 h-4 w-4 sm:h-4 sm:w-4" />
               <span>Edit</span>
@@ -254,7 +268,7 @@ export default function FarmDetailsPage() {
                       Total Animals
                     </dt>
                     <dd className="text-base sm:text-lg font-semibold text-gray-900">
-                      {farms?.length && farms[0].animals?.length}
+                      {farms?.[0]?.livestock?.length}
                     </dd>
                   </dl>
                 </div>
@@ -304,14 +318,14 @@ export default function FarmDetailsPage() {
         </div>
 
         {/* Houses Section */}
-        {farms?.length && farms[0].houses?.length ? (
+        {farms?.length && farms[0].barns?.length ? (
           <div className="bg-white overflow-hidden shadow rounded-lg mb-4 sm:mb-6">
             <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-base sm:text-lg font-medium text-gray-900">
                 Farm Houses
               </h3>
               <Link
-                href="/farms/1/houses"
+                href={`/farms/${farmId}/barns`}
                 className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
               >
                 View All
@@ -319,50 +333,52 @@ export default function FarmDetailsPage() {
             </div>
             <div className="p-3 sm:p-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {farms[0]?.houses?.map((house) => (
+                {farms[0]?.barns?.map((barn) => (
                   <div
-                    key={house.id}
+                    key={barn.id}
                     className="border border-gray-200 rounded-lg overflow-hidden"
                   >
                     <div className="p-3 sm:p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h4 className="text-sm sm:text-base font-medium text-gray-900">
-                            {house.house_number}
+                            {barn.name}
                           </h4>
                           <p className="text-xs sm:text-sm text-gray-500">
-                            {house.type}
+                            {barn.area_sqm} area_sqm
                           </p>
                         </div>
                         <span
-                          className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(house.status.toLowerCase())}`}
+                          className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(
+                            barn.status.toLowerCase()
+                          )}`}
                         >
-                          {house.status.charAt(0) +
-                            house.status.slice(1).toLowerCase()}
+                          {barn.status.charAt(0) +
+                            barn.status.slice(1).toLowerCase()}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between mt-3 sm:mt-4">
                         <div className="flex items-center">
-                          {house.rooms?.length &&
-                            house?.rooms.reduce(
-                              (sum, room) =>
+                          {barn.pens?.length &&
+                            barn?.pens.reduce(
+                              (sum, pen) =>
                                 sum +
-                                (room?.animals?.length
-                                  ? room?.animals?.length
+                                (pen?.livestock?.length
+                                  ? pen?.livestock?.length
                                   : 0),
-                              0,
+                              0
                             ) > 0 && (
                               <div className="flex items-center text-xs sm:text-sm text-gray-500 mr-3">
                                 <Mouse size={14} className="mr-1" />
                                 <span>
-                                  {house?.rooms.reduce(
-                                    (sum, room) =>
+                                  {barn?.pens.reduce(
+                                    (sum, pen) =>
                                       sum +
-                                      (room?.animals?.length
-                                        ? room?.animals?.length
+                                      (pen?.livestock?.length
+                                        ? pen?.livestock?.length
                                         : 0),
-                                    0,
+                                    0
                                   )}
                                 </span>
                               </div>
@@ -374,7 +390,7 @@ export default function FarmDetailsPage() {
                           </div>
                         </div>
                         <Link
-                          href={`/farms/${farmId}/houses/${house.id}`}
+                          href={`/farms/${farmId}/barns/${barn.unit_id}/`}
                           className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                         >
                           View
@@ -387,13 +403,16 @@ export default function FarmDetailsPage() {
             </div>
           </div>
         ) : (
-          <div>No houses for this farm</div>
+          <FarmHouseEmptyState
+            farmId={farmId.toString()}
+            farmTag={farms?.[0]?.farm_tag ?? ""}
+          />
         )}
 
         {/* Workers and Animals sections */}
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
           {/* Workers section */}
-          {farms?.length && farms[0].workers?.length && (
+          {farms?.length && farms[0].workers?.length ? (
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
                 <h3 className="text-base sm:text-lg font-medium text-gray-900">
@@ -426,7 +445,7 @@ export default function FarmDetailsPage() {
                             {worker.roles.map((role) => (
                               <p
                                 key={role}
-                                className="text-xs sm:text-sm text-gray-500 truncate"
+                                className="text-xs sm:text-sm text-gray-500 truncate bg-amber-100 px-2 w-fit rounded-full mt-1"
                               >
                                 {role.toLowerCase()}
                               </p>
@@ -434,7 +453,7 @@ export default function FarmDetailsPage() {
                           </div>
                           <div>
                             <Link
-                              href={`/farms/${farmId}/workers/${worker.id}`}
+                              href={`/farms/${farmId}/workers/${worker.worker_tag}`}
                               className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                             >
                               View
@@ -447,17 +466,23 @@ export default function FarmDetailsPage() {
                 </div>
               </div>
             </div>
+          ) : (
+            <EmptyStateFarmWorkers
+              farmId={farmId.toString()}
+              farmTag={farms?.[0]?.farm_tag ?? ""}
+              farmName={farms?.[0]?.name ?? ""}
+            />
           )}
 
           {/* Animals section */}
-          {farms?.length && farms[0].animals?.length && (
+          {farms?.length && farms[0].livestock?.length ? (
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-3 sm:p-5 border-b border-gray-200 flex justify-between items-center">
                 <h3 className="text-base sm:text-lg font-medium text-gray-900">
                   Farm Animals
                 </h3>
                 <Link
-                  href="/farms/1/animals"
+                  href={`/farms/${farmId}/livestock`}
                   className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
                 >
                   View All
@@ -467,36 +492,36 @@ export default function FarmDetailsPage() {
                 <div className="flow-root">
                   <ul className="-my-4 divide-y divide-gray-200">
                     {transformAnimalData({
-                      animals: farms[0]?.animals,
-                    }).map((animal) => (
-                      <li key={animal.type} className="py-3 sm:py-4">
+                      livestocks: farms[0]?.livestock,
+                    }).map((livestock) => (
+                      <li key={livestock.type} className="py-3 sm:py-4">
                         <div className="flex items-center space-x-3 sm:space-x-4">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">
-                              {animal.type} - {animal.breed}
+                              {livestock.type} - {livestock.breed}
                             </p>
                             <div className="flex flex-col sm:flex-row sm:items-center">
                               <p className="text-xs sm:text-sm text-gray-500 truncate sm:mr-2">
-                                Count: {animal.count}
+                                Count: {livestock.count}
                               </p>
                               <span
                                 className={`mt-1 sm:mt-0 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  animal.health === "Excellent"
+                                  livestock.health === "Excellent"
                                     ? "bg-green-100 text-green-800"
-                                    : animal.health === "Good"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : animal.health === "Fair"
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-red-100 text-red-800"
+                                    : livestock.health === "Good"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : livestock.health === "Fair"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
                                 }`}
                               >
-                                {animal.health}
+                                {livestock.health}
                               </span>
                             </div>
                           </div>
                           <div>
                             <Link
-                              href={`/farms/1/animals/type/${animal.type}`}
+                              href={`/farms/${farmId}/livestock?type=${livestock.type}`}
                               className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                             >
                               View
@@ -509,7 +534,26 @@ export default function FarmDetailsPage() {
                 </div>
               </div>
             </div>
+          ) : (
+            <EmptyStateFarmAnimals farmId={farmId.toString()} />
           )}
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2 mt-4">
+          {farms?.length &&
+            farms[0]?.tasks?.length &&
+            farms[0]?.tasks.map((task, indx) => (
+              <TaskCard
+                key={indx}
+                completion_date={null}
+                id={"1"}
+                type={"tasktype"}
+                status={"status"}
+                starting_date={"null"}
+                worker={null}
+                farmTag={farms[0]?.farm_tag}
+                farmId={farms[0]?.id}
+              />
+            ))}
         </div>
       </div>
     </div>

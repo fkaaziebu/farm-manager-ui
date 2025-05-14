@@ -1,0 +1,5 @@
+mutation UpdateBarn($barnUnitId: String!, $barn: UpdateBarnInput!) {
+  updateBarn(barnUnitId: $barnUnitId, barn: $barn) {
+    id
+  }
+}

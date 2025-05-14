@@ -1,0 +1,28 @@
+query GetBarn($barnUnitId: String!) {
+  getBarn(barnUnitId: $barnUnitId) {
+    area_sqm
+    capacity
+    construction_date
+    id
+    name
+    unit_id
+    pens {
+      area_sqm
+      bedding_type
+      capacity
+      status
+
+      unit_id
+      feeder_type
+      livestock {
+        livestock_type
+      }
+      id
+      name
+      waterer_type
+    }
+    climate_controlled
+    ventilation_type
+    status
+  }
+}
