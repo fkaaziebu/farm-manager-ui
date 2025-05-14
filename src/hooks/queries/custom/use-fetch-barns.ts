@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import useListBarns from "../use-list-barns";
 import { toast } from "sonner";

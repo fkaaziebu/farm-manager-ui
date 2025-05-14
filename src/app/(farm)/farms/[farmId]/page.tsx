@@ -350,7 +350,7 @@ export default function FarmDetailsPage() {
                         </div>
                         <span
                           className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(
-                            barn.status.toLowerCase(),
+                            barn.status.toLowerCase()
                           )}`}
                         >
                           {barn.status.charAt(0) +
@@ -367,7 +367,7 @@ export default function FarmDetailsPage() {
                                 (pen?.livestock?.length
                                   ? pen?.livestock?.length
                                   : 0),
-                              0,
+                              0
                             ) > 0 && (
                               <div className="flex items-center text-xs sm:text-sm text-gray-500 mr-3">
                                 <Mouse size={14} className="mr-1" />
@@ -378,7 +378,7 @@ export default function FarmDetailsPage() {
                                       (pen?.livestock?.length
                                         ? pen?.livestock?.length
                                         : 0),
-                                    0,
+                                    0
                                   )}
                                 </span>
                               </div>
@@ -467,7 +467,11 @@ export default function FarmDetailsPage() {
               </div>
             </div>
           ) : (
-            <EmptyStateFarmWorkers farmId={farmId.toString()} />
+            <EmptyStateFarmWorkers
+              farmId={farmId.toString()}
+              farmTag={farms?.[0]?.farm_tag ?? ""}
+              farmName={farms?.[0]?.name ?? ""}
+            />
           )}
 
           {/* Animals section */}
@@ -505,10 +509,10 @@ export default function FarmDetailsPage() {
                                   livestock.health === "Excellent"
                                     ? "bg-green-100 text-green-800"
                                     : livestock.health === "Good"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : livestock.health === "Fair"
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-red-100 text-red-800"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : livestock.health === "Fair"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
                                 }`}
                               >
                                 {livestock.health}

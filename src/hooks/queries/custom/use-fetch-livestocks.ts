@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import useListLivestocks from "../use-list-livestocks";
 import { toast } from "sonner";

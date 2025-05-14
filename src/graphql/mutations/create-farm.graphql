@@ -3,12 +3,16 @@ mutation CreateFarm(
   $location: String!
   $area: String!
   $farmType: FarmType!
+  $latitude: Float!
+  $longitude: Float!
 ) {
   createFarm(
     name: $name
     location: $location
     area: $area
     farmType: $farmType
+    latitude: $latitude
+    longitude: $longitude
   ) {
     id
     name

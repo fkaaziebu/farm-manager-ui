@@ -60,6 +60,7 @@ export default function AnimalDetailsPage() {
   const [dateRange, setDateRange] = useState("all");
   const [sortBy, setSortBy] = useState("latest");
   const { onOpen } = useModal();
+  // const farmId = pathname.split("/")[2];
   const router = useRouter();
   // Action menu state
   const [showActionMenu, setShowActionMenu] = useState(false);
@@ -208,9 +209,10 @@ export default function AnimalDetailsPage() {
                       {livestock?.livestock_tag}
                     </h1>
                     <div className="flex items-center text-sm sm:text-base text-gray-700 bg-amber-100 rounded-full px-2 py-1">
-                      {livestock?.gender &&
-                        livestock?.gender?.charAt(0) +
-                          livestock?.gender?.slice(1).toLowerCase()}
+                      {livestock?.gender
+                        ? livestock.gender.charAt(0) +
+                          livestock.gender.slice(1).toLowerCase()
+                        : "Unknown"}
                     </div>
                   </div>
 
@@ -924,9 +926,7 @@ export default function AnimalDetailsPage() {
 
                               <button
                                 className="inline-flex items-center px-2 py-1 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                onClick={() =>
-                                  handleEditHealthRecord(healthRecord)
-                                } // Replace with your actual handler
+                                // Replace with your actual handler
                               >
                                 <Edit size={14} className="mr-1" />
                                 Edit

@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import useGetLivestock from "../use-get-livestock";
 

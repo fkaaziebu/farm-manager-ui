@@ -3,7 +3,15 @@ import { Plus, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-modal-store";
 
-const EmptyStateFarmWorkers = ({ farmId }: { farmId: string }) => {
+const EmptyStateFarmWorkers = ({
+  farmId,
+  farmTag,
+  farmName,
+}: {
+  farmId: string;
+  farmTag: string;
+  farmName: string;
+}) => {
   const { onOpen } = useModal();
 
   return (
@@ -23,7 +31,9 @@ const EmptyStateFarmWorkers = ({ farmId }: { farmId: string }) => {
 
           <Button
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out"
-            onClick={() => onOpen("add-workers-to-farm", { farmId })}
+            onClick={() =>
+              onOpen("add-workers-to-farm", { farmId, farmTag, farmName })
+            }
           >
             <Plus className="mr-2 h-4 w-4" />
             Add workers to Farm

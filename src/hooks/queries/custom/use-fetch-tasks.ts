@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import useListTasks from "../use-list-task";
 import { Task } from "@/graphql/generated/graphql";

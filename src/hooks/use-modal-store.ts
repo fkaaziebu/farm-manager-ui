@@ -19,7 +19,8 @@ export type ModalType =
   | "update-pen"
   | "update-farm"
   | "update-barn"
-  | "update-livestock";
+  | "update-livestock"
+  | "update-worker";
 
 interface ModalData {
   notificationType?: "success" | "error" | "info";
@@ -48,6 +49,7 @@ interface ModalData {
   addBansToFarmEvent?: string;
   addPensToBarnEvent?: string;
   addLivestockToPenEvent?: string;
+  farmWorker?: Worker;
 }
 
 interface ModalStore {

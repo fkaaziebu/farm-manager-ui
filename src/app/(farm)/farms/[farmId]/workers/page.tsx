@@ -1,5 +1,4 @@
 "use client";
-import * as z from "zod";
 import React, { useEffect, useState } from "react";
 import {
   Search,
@@ -137,72 +136,8 @@ export default function WorkersListingPage() {
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Filter and sort workers
-  const filteredWorkers = workers
-    .filter((worker) => {
-      // Search filter
-      const matchesSearch =
-        worker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        worker.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        worker.specialization.toLowerCase().includes(searchQuery.toLowerCase());
-
-      // Role filter
-      const matchesRole = roleFilter === "all" || worker.role === roleFilter;
-
-      // Status filter
-      const matchesStatus =
-        statusFilter === "all" || worker.status === statusFilter;
-
-      return matchesSearch && matchesRole && matchesStatus;
-    })
-    .sort((a, b) => {
-      if (sortBy === "name") {
-        return a.name.localeCompare(b.name);
-      } else if (sortBy === "role") {
-        return a.role.localeCompare(b.role);
-      } else if (sortBy === "rating") {
-        return b.rating - a.rating;
-      } else if (sortBy === "date") {
-        return new Date(b.joinDate).valueOf() - new Date(a.joinDate).valueOf();
-      } else if (sortBy === "activity") {
-        return (
-          new Date(b.lastActivity).valueOf() -
-          new Date(a.lastActivity).valueOf()
-        );
-      }
-      return 0;
-    });
-
   // Get unique roles for filter
   const roles = ["all", ...new Set(workers.map((worker) => worker.role))];
-
-  // Format relative time
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString).valueOf();
-    const now = new Date().valueOf();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) {
-      return "Just now";
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
-    } else {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days} day${days !== 1 ? "s" : ""} ago`;
-    }
-  };
-
-  // Function to get rating color class
-  const getRatingColorClass = (rating: number) => {
-    if (rating >= 90) return "bg-green-500";
-    if (rating >= 80) return "bg-green-400";
-    if (rating >= 70) return "bg-yellow-400";
-    return "bg-red-400";
-  };
 
   // Worker stats
   const workerStats = {

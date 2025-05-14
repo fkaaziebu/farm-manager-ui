@@ -10,14 +10,10 @@ import {
   Calendar,
   Users,
   Download,
-  Thermometer,
-  Check,
   Menu,
   X,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
@@ -36,7 +32,7 @@ import EmptyStateLivestockUI from "@/components/pages/farms/barns/empty-livestoc
 import formatDateOfBirth from "@/components/common/format-date-of-birth";
 import { useModal } from "@/hooks/use-modal-store";
 export default function RoomDetailPage() {
-  const { pen, loadingPen, fetchPen } = useFetchPen();
+  const { pen, fetchPen } = useFetchPen();
   const pathname = usePathname();
   const router = useRouter();
   const penUnitId = decodeURIComponent(pathname.split("/").pop() || "");
@@ -657,7 +653,7 @@ export default function RoomDetailPage() {
                       Animal Types
                     </dt>
                     <dd className="mt-1 text-xs sm:text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      {pen?.livestock?.length > 0
+                      {pen?.livestock?.length
                         ? Array.from(
                             new Set(
                               pen?.livestock?.map(

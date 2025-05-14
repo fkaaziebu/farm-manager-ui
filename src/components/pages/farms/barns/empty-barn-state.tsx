@@ -1,9 +1,8 @@
 import React from "react";
-import { Plus, Pen, Home, Grid2X2, PenTool } from "lucide-react";
+import { Plus, Grid2X2, PenTool } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-modal-store";
 const EmptyStateBarnPens = ({
-  farmId,
   barnUnitId,
   barnName,
 }: {

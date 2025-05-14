@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import useListFarms from "../use-list-farms";
 import { toast } from "sonner";

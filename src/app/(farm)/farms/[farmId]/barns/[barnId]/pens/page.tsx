@@ -11,9 +11,6 @@ import {
   Grid,
   List,
   Home,
-  ThermometerSnowflake,
-  Droplets,
-  Wind,
   AlertTriangle,
   Users,
   Check,
@@ -260,23 +257,23 @@ export default function RoomListingPage() {
   };
 
   // Function to get alert color
-  const getAlertColor = (status: string) => {
-    switch (status) {
-      case "normal":
-      case "good":
-        return "text-green-500";
-      case "high":
-      case "low":
-      case "alert":
-      case "needs attention":
-        return "text-yellow-500";
-      case "critical":
-      case "under repair":
-        return "text-red-500";
-      default:
-        return "text-gray-500";
-    }
-  };
+  // const getAlertColor = (status: string) => {
+  //   switch (status) {
+  //     case "normal":
+  //     case "good":
+  //       return "text-green-500";
+  //     case "high":
+  //     case "low":
+  //     case "alert":
+  //     case "needs attention":
+  //       return "text-yellow-500";
+  //     case "critical":
+  //     case "under repair":
+  //       return "text-red-500";
+  //     default:
+  //       return "text-gray-500";
+  //   }
+  // };
 
   // Calculate occupancy percentage
   const calculateOccupancy = (occupancy: number, capacity: number) => {
@@ -951,7 +948,7 @@ export default function RoomListingPage() {
                         </div>
                         <div className="mt-1 sm:mt-0 flex items-center text-gray-500">
                           <span className="font-medium">Bedding Type:</span>{" "}
-                          {pen?.bedding_type?.charAt(0).toUpperCase() +
+                          {(pen?.bedding_type ?? "").charAt(0).toUpperCase() +
                             pen?.bedding_type?.slice(1).toLowerCase()}
                         </div>
                       </div>

@@ -129,7 +129,7 @@ export const FarmWorkersModal = () => {
     if (currentWorkers.length > 1) {
       createForm.setValue(
         "workers",
-        currentWorkers.filter((_, i) => i !== index),
+        currentWorkers.filter((_, i) => i !== index)
       );
       setWorkerCount(workerCount - 1);
     }

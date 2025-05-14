@@ -1,16 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import {
-  Calendar,
-  CheckCircle,
-  X,
-  AlertCircle,
-  Search,
-  Filter,
-} from "lucide-react";
+import { Calendar, Search } from "lucide-react";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -73,19 +65,21 @@ const WORKERS = [
 const EventSchedulerDialog = ({ open }: { open: () => void }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1);
-  const [selectedEventType, setSelectedEventType] = useState(null);
-  const [selectedAnimals, setSelectedAnimals] = useState([]);
-  const [selectedWorker, setSelectedWorker] = useState(null);
-  const [eventDetails, setEventDetails] = useState({
+  const [selectedEventType, setSelectedEventType] = useState<EventType | null>(
+    null
+  );
+  const [selectedAnimals, setSelectedAnimals] = useState<Animal[]>([]);
+  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+  const [eventDetails, setEventDetails] = useState<EventDetails>({
     date: "",
     notes: "",
     title: "",
   });
   const [animalFilter, setAnimalFilter] = useState("");
   const [animalTypeFilter, setAnimalTypeFilter] = useState("");
-
+  console.log(open);
   // Reset form when dialog closes
-  const handleDialogChange = ({open}) => {
+  const handleDialogChange = (open: boolean) => {
     setIsOpen(open);
     if (!open) {
       resetForm();
@@ -108,13 +102,39 @@ const EventSchedulerDialog = ({ open }: { open: () => void }) => {
   };
 
   // Handle event type selection
-  const handleEventTypeSelect = (eventType) => {
-    setSelectedEventType(eventType);
+  interface EventType {
+    id: string;
+    name: string;
+    description: string;
+  }
+
+  interface Animal {
+    id: string;
+    tag: string;
+    type: string;
+    breed: string;
+    age: string;
+  }
+
+  interface Worker {
+    id: string;
+    name: string;
+    role: string;
+  }
+
+  interface EventDetails {
+    date: string;
+    notes: string;
+    title: string;
+  }
+
+  const handleEventTypeSelect = (eventType: EventType) => {
+    setSelectedEventType(eventType ?? null);
     setStep(2);
   };
 
   // Toggle animal selection
-  const toggleAnimalSelection = (animal) => {
+  const toggleAnimalSelection = (animal: Animal) => {
     if (selectedAnimals.some((a) => a.id === animal.id)) {
       setSelectedAnimals(selectedAnimals.filter((a) => a.id !== animal.id));
     } else {
@@ -461,7 +481,7 @@ const EventSchedulerDialog = ({ open }: { open: () => void }) => {
                       const worker = WORKERS.find(
                         (w) => w.id === e.target.value
                       );
-                      setSelectedWorker(worker || null);
+                      setSelectedWorker(worker ?? null);
                     }}
                     className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
                   >
@@ -583,19 +603,22 @@ const EventSchedulerDialog = ({ open }: { open: () => void }) => {
 };
 
 // Helper functions for UI colors and icons
-function getEventColor(eventTypeId) {
-  const colorMap = {
-    vaccination: "green",
-    health_check: "blue",
-    weight_check: "purple",
-    medication: "yellow",
-    deworming: "orange",
-    pregnancy_check: "pink",
-  };
-  return colorMap[eventTypeId] || "gray";
+const colorMap = {
+  vaccination: "green",
+  health_check: "blue",
+  weight_check: "purple",
+  medication: "yellow",
+  deworming: "orange",
+  pregnancy_check: "pink",
+};
+
+function getEventColor(eventTypeId: keyof typeof colorMap | string): string {
+  return (colorMap as Record<string, string>)[eventTypeId] || "gray";
 }
 
-function getEventIcon(eventTypeId) {
+function getEventIcon(
+  eventTypeId: keyof typeof colorMap | string
+): React.ReactNode {
   const iconMap = {
     vaccination: (
       <svg
@@ -694,11 +717,15 @@ function getEventIcon(eventTypeId) {
       </svg>
     ),
   };
-  return iconMap[eventTypeId] || <Calendar className="h-5 w-5 text-gray-600" />;
+  return (
+    (iconMap as Record<string, React.ReactNode>)[eventTypeId] || (
+      <Calendar className="h-5 w-5 text-gray-600" />
+    )
+  );
 }
 
-function getAnimalTypeBadgeColor(animalType) {
-  const colorMap = {
+function getAnimalTypeBadgeColor(animalType: string): string {
+  const colorMap: Record<string, string> = {
     Cattle: "bg-green-100 text-green-800",
     Pig: "bg-blue-100 text-blue-800",
     Sheep: "bg-yellow-100 text-yellow-800",

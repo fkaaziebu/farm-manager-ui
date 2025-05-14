@@ -13,7 +13,6 @@ type TaskCardProps = {
 };
 
 const TaskCard: React.FC<TaskCardProps> = ({
-  id,
   type,
   status,
   starting_date,

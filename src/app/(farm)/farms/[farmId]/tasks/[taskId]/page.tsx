@@ -6,39 +6,18 @@ import { useFetchTasks } from "@/hooks/queries";
 import { usePathname } from "next/navigation";
 
 import {
-  Calendar,
   Clock,
   Clipboard,
   Edit2,
   CheckCircle,
   AlertCircle,
-  MoreVertical,
   X,
-  TrendingUp,
   Settings,
   Bell,
-  Menu,
-  Home,
   ChevronDown,
-  Database,
-  BarChart,
 } from "lucide-react";
 
 // Type definitions
-type Worker = {
-  id: string;
-  name: string;
-};
-
-type Barn = {
-  id: string;
-  name: string;
-};
-
-type Pen = {
-  id: string;
-  name: string;
-};
 
 export default function FarmTaskManagement() {
   const pathname = usePathname();
@@ -59,8 +38,6 @@ export default function FarmTaskManagement() {
       setTask(tasks);
     }
   }, [tasks, pathname]);
-
-  if (!task) return <div className="p-4">Loading...</div>;
 
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Task>>({});
@@ -145,6 +122,8 @@ export default function FarmTaskManagement() {
       day: "numeric",
     });
   };
+
+  if (!task) return <div className="p-4">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">

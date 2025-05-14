@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import useListPens from "../use-list-pens";
 import { toast } from "sonner";

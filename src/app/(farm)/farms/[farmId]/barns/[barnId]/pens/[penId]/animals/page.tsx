@@ -219,7 +219,7 @@ export default function RoomAnimalsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
   const [ageFilter, setAgeFilter] = useState("all");
-  const [breedFilter, setBreedFilter] = useState("all");
+  const [breedFilter] = useState("all");
   const [sortBy, setSortBy] = useState("id");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
@@ -347,17 +347,22 @@ export default function RoomAnimalsPage() {
       (a) => a.health_status === HealthStatus.Critical
     ).length,
     averageWeight: Math.round(
-      filteredAnimals?.reduce(
-        (sum, animal) => sum + parseInt(animal.weight),
-        0
-      ) / filteredAnimals?.length
+      filteredAnimals && filteredAnimals.length > 0
+        ? filteredAnimals.reduce(
+            (sum, animal) => sum + (Number(animal.weight) || 0),
+            0
+          ) / filteredAnimals.length
+        : 0
     ),
     averageAge: parseFloat(
-      (
-        filteredAnimals?.reduce(
-          (sum, animal) => sum + parseInt(animal.age),
-          0
-        ) / filteredAnimals?.length
+      (filteredAnimals && filteredAnimals.length > 0
+        ? filteredAnimals.reduce((sum, animal) => {
+            const birthYear = new Date(animal.birth_date).getFullYear();
+            const currentYear = new Date().getFullYear();
+            const age = currentYear - birthYear;
+            return sum + age;
+          }, 0) / filteredAnimals.length
+        : 0
       ).toFixed(1)
     ),
   };
@@ -789,8 +794,7 @@ export default function RoomAnimalsPage() {
                     </label>
                     <select
                       id="feed-intake-filter"
-                      value={feedIntakeFilter}
-                      onChange={(e) => setFeedIntakeFilter(e.target.value)}
+                      // onChange={(e) => setFeedIntakeFilter(e.target.value)}
                       className="block w-full pl-3 pr-10 py-1.5 sm:py-2 text-xs sm:text-sm border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
                     >
                       <option value="all">All Intakes</option>
@@ -1094,7 +1098,7 @@ export default function RoomAnimalsPage() {
                   setStatusFilter("all");
                   setGenderFilter("all");
                   setAgeFilter("all");
-                  setFeedIntakeFilter("all");
+                  // setFeedIntakeFilter("all");
                   setSortBy("id");
                 }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"

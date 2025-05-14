@@ -33,9 +33,9 @@ export default function AnimalsListingPage() {
   const {
     fetchLivestocks,
     livestocks,
-    fetchMoreLivestocks,
-    loadingLivestocks,
-    pageInfo,
+    // fetchMoreLivestocks,
+    // loadingLivestocks,
+    // pageInfo,
   } = useFetchLivestocks();
   const pathname = usePathname();
   const [farmAnimals, setFarmAnimals] = useState<AnimalProp[]>([]);
@@ -53,45 +53,6 @@ export default function AnimalsListingPage() {
   const { onOpen } = useModal();
   const livestockType = searchParams.get("type");
   // Filter and sort animals
-  const filteredAnimals = farmAnimals
-    .filter((animal) => {
-      // Search filter
-      const matchesSearch =
-        animal?.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        animal?.breed?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        animal?.pen?.unit_id.toLowerCase().includes(searchQuery.toLowerCase());
-
-      // Type filter
-      const matchesType = typeFilter === "all" || animal.breed === typeFilter;
-
-      // Status filter
-      const matchesStatus =
-        statusFilter === "all" || animal.health_status === statusFilter;
-
-      // Gender filter
-      const matchesGender =
-        genderFilter === "all" || animal.gender === genderFilter;
-
-      return matchesSearch && matchesType && matchesStatus && matchesGender;
-    })
-    .sort((a, b) => {
-      if (sortBy === "id") {
-        return a.id.localeCompare(b.id);
-      } else if (sortBy === "type") {
-        return a.breed.localeCompare(b.breed);
-      } else if (sortBy === "age") {
-        return (
-          new Date(a.birth_date).valueOf() - new Date(b.birth_date).valueOf()
-        );
-      } else if (sortBy === "weight") {
-        return b.weight - a.weight;
-      } else if (sortBy === "lastCheck") {
-        return (
-          new Date(b.updated_at).valueOf() - new Date(a.updated_at).valueOf()
-        );
-      }
-      return 0;
-    });
 
   // Get unique animal types for filter
   const animalTypes = [

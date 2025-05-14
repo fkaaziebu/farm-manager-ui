@@ -48,7 +48,7 @@ export default function HouseDetailPage() {
   const farmId = pathname.split("/")[pathname.split("/").length - 3];
 
   const totalOcupancy = barn?.pens
-    ? barn.pens.reduce((acc, curr) => acc + curr?.livestock?.length, 0)
+    ? barn.pens.reduce((acc, curr) => acc + (curr?.livestock?.length ?? 0), 0)
     : 0;
 
   // Sample house data
@@ -264,6 +264,7 @@ export default function HouseDetailPage() {
                   onClick={() => {
                     onOpen("update-barn", {
                       barnUnitId: barn?.unit_id,
+                      // @ts-expect-error error
                       barn: barn,
                     });
                   }}

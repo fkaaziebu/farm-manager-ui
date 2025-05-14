@@ -37,7 +37,7 @@ const OverviewSection = () => {
                   {farms && farms.length > 0
                     ? (farms.reduce(
                         (sum, farm) => sum + (farm.performance || 0),
-                        0,
+                        0
                       ) /
                         (farms.length * 100)) *
                       100
@@ -52,10 +52,8 @@ const OverviewSection = () => {
                     width: `${
                       (farms?.reduce(
                         (sum, farm) => sum + (farm.performance || 0),
-                        0,
-                      ) /
-                        (farms?.length * 100)) *
-                      100
+                        0
+                      ) || 1 / ((farms?.length || 1) * 100)) * 100
                     }%`,
                   }}
                 />
@@ -105,7 +103,7 @@ const OverviewSection = () => {
             <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
               {farms?.reduce(
                 (sum, farm) => sum + (farm?.barns?.length ?? 0),
-                0,
+                0
               )}
             </div>
             <p className="text-xs sm:text-sm text-gray-500">
@@ -122,9 +120,9 @@ const OverviewSection = () => {
                       (sum, farm) =>
                         sum +
                         (farm.barns?.filter(
-                          (hs) => hs.status === HousingStatus.Operational,
+                          (hs) => hs.status === HousingStatus.Operational
                         )?.length ?? 0),
-                      0,
+                      0
                     )}
                   </span>
                 </div>
@@ -136,9 +134,9 @@ const OverviewSection = () => {
                       (sum, farm) =>
                         sum +
                         (farm?.barns?.filter(
-                          (hs) => hs.status === HousingStatus.Maintenance,
+                          (hs) => hs.status === HousingStatus.Maintenance
                         )?.length ?? 0),
-                      0,
+                      0
                     )}
                   </span>
                 </div>
