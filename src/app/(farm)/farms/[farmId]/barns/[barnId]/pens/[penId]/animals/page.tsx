@@ -219,7 +219,8 @@ export default function RoomAnimalsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
   const [ageFilter, setAgeFilter] = useState("all");
-  const [breedFilter] = useState("all");
+
+  const [breedFilter, setBreedFilter] = useState("all");
   const [sortBy, setSortBy] = useState("id");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
@@ -727,7 +728,7 @@ export default function RoomAnimalsPage() {
             {/* Advanced filters */}
             {showFilters && (
               <div className="mt-3 sm:mt-4 pt-3 border-t border-gray-200">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5 sm:gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6 sm:gap-4">
                   <div>
                     <label
                       htmlFor="status-filter"
@@ -783,6 +784,34 @@ export default function RoomAnimalsPage() {
                       <option value="under2">Under 2 years</option>
                       <option value="2to4">2-4 years</option>
                       <option value="over4">Over 4 years</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="breed-filter"
+                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Breed
+                    </label>
+                    <select
+                      id="breed-filter"
+                      value={breedFilter}
+                      onChange={(e) => setBreedFilter(e.target.value)}
+                      className="block w-full pl-3 pr-10 py-1.5 sm:py-2 text-xs sm:text-sm border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
+                    >
+                      <option value="all">All Breeds</option>
+                      {Array.from(
+                        new Set(
+                          (pen?.livestock || []).map((animal) => animal.breed)
+                        )
+                      )
+                        .filter((breed) => breed && breed !== "")
+                        .map((breed) => (
+                          <option key={breed} value={breed}>
+                            {breed.charAt(0).toUpperCase() +
+                              breed.slice(1).toLowerCase()}
+                          </option>
+                        ))}
                     </select>
                   </div>
                   <div>

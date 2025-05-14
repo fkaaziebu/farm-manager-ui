@@ -1,5 +1,5 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, {  useEffect, useState } from "react";
 import {
   ArrowLeft,
   Edit,
@@ -10,7 +10,6 @@ import {
   Mail,
   MapPin,
   Briefcase,
-  Star,
   ChevronRight,
   UserCheck,
   TrendingUp,
@@ -37,7 +36,7 @@ import { useModal } from "@/hooks/use-modal-store";
 import { HousingStatus, TaskStatus } from "@/graphql/generated/graphql";
 
 export default function WorkerDetailsPage() {
-  const { fetchWorker, worker, loadingWorker } = useFetchASingleWorker();
+  const { fetchWorker, worker } = useFetchASingleWorker();
 
   const pathname = usePathname();
   const { onOpen } = useModal();

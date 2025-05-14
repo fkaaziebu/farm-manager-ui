@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useRegisterAdmin } from "@/hooks/mutations";
-import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { classname } from "@/components/common";

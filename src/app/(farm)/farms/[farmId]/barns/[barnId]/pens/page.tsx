@@ -914,23 +914,7 @@ export default function RoomListingPage() {
                               </span>
                             </div>
                           </div>
-                          {/* <div className="flex space-x-2">
-                            <ThermometerSnowflake
-                              className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
-                                pen.temperatureStatus
-                              )}`}
-                            />
-                            <Droplets
-                              className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
-                                pen.humidityStatus
-                              )}`}
-                            />
-                            <Wind
-                              className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
-                                pen.ventilationStatus
-                              )}`}
-                            />
-                          </div> */}
+                        
                         </div>
                       </div>
                       <div className="mt-2 sm:flex sm:justify-between text-xs sm:text-sm">
