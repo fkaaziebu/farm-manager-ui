@@ -219,7 +219,6 @@ export default function RoomAnimalsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
   const [ageFilter, setAgeFilter] = useState("all");
-
   const [breedFilter, setBreedFilter] = useState("all");
   const [sortBy, setSortBy] = useState("id");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -830,6 +829,33 @@ export default function RoomAnimalsPage() {
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
                       <option value="High">High</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="breed-filter"
+                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Breed
+                    </label>
+                    <select
+                      id="breed-filter"
+                      value={breedFilter}
+                      onChange={(e) => setBreedFilter(e.target.value)}
+                      className="block w-full pl-3 pr-10 py-1.5 sm:py-2 text-xs sm:text-sm border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
+                    >
+                      <option value="all">All Breeds</option>
+                      {Array.from(
+                        new Set(
+                          (pen?.livestock || []).map((animal) => animal.breed)
+                        )
+                      )
+                        .filter((breed) => breed && breed !== "")
+                        .map((breed) => (
+                          <option key={breed} value={breed}>
+                            {breed.charAt(0) + breed.slice(1).toLowerCase()}
+                          </option>
+                        ))}
                     </select>
                   </div>
                   <div>

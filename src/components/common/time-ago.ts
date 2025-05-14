@@ -8,20 +8,26 @@ export function timeAgo(date: string) {
     .diff(past, ["years", "months", "days", "hours", "minutes", "seconds"])
     .toObject();
 
-  if (diff.years > 0)
-    return `${diff.years} year${diff.years > 1 ? "s" : ""} ago`;
+  const {
+    years = 0,
+    months = 0,
+    days = 0,
+    hours = 0,
+    minutes = 0,
+    seconds = 0,
+  } = diff;
 
-  if (diff.months > 0)
-    return `${diff.months} month${diff.months > 1 ? "s" : ""} ago`;
+  if (years > 0) return `${years} year${years > 1 ? "s" : ""} ago`;
 
-  if (diff.days > 0) return `${diff.days} day${diff.days > 1 ? "s" : ""} ago`;
+  if (months > 0) return `${months} month${months > 1 ? "s" : ""} ago`;
 
-  if (diff.hours > 0)
-    return `${diff.hours} hour${diff.hours > 1 ? "s" : ""} ago`;
+  if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
 
-  if (diff.minutes > 0) return `${Math.floor(diff.minutes)} min ago`;
+  if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
 
-  if (diff.seconds > 0) return `${Math.floor(diff.seconds)} sec ago`;
+  if (minutes > 0) return `${Math.floor(minutes)} min ago`;
+
+  if (seconds > 0) return `${Math.floor(seconds)} sec ago`;
 
   return "just now";
 }

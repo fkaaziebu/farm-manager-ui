@@ -50,10 +50,12 @@ const OverviewSection = () => {
                   className="bg-green-500 h-1.5 sm:h-2 rounded-full"
                   style={{
                     width: `${
-                      (farms?.reduce(
+                      ((farms ?? []).reduce(
                         (sum, farm) => sum + (farm.performance || 0),
                         0
-                      ) || 1 / ((farms?.length || 1) * 100)) * 100
+                      ) /
+                        ((farms?.length ?? 1) * 100)) *
+                      100
                     }%`,
                   }}
                 />

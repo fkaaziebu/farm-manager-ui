@@ -463,7 +463,11 @@ export default function FarmDetailsPage() {
                   </div>
                 </div>
               ) : (
-                <EmptyStateFarmWorkers farmId={farmId.toString()} />
+                <EmptyStateFarmWorkers
+                  farmId={farmId.toString()}
+                  farmTag={farms?.[0]?.farm_tag ?? ""}
+                  farmName={farms?.[0]?.name ?? ""}
+                />
               )}
             </>
           )}
