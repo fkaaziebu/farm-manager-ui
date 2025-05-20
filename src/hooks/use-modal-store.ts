@@ -20,7 +20,8 @@ export type ModalType =
   | "update-farm"
   | "update-barn"
   | "update-livestock"
-  | "update-worker";
+  | "update-worker"
+  | "update-task";
 
 interface ModalData {
   notificationType?: "success" | "error" | "info";
@@ -40,9 +41,11 @@ interface ModalData {
   workerTag?: string;
   farmWorkers?: Worker[];
   taskList?: Task[];
+  task?: Task;
   farm?: Farm[];
   barn?: Barn;
   pen?: Pen;
+  taskId?: string;
   livestock?: Livestock;
   createFarmEvent?: string;
   addWorkersToFarmEvent?: string;

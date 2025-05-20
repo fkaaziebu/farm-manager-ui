@@ -1,0 +1,5 @@
+mutation UpdateWorker($workerTag: String!, $workerData: UpdateWorkerInput!) {
+  updateWorker(workerTag: $workerTag, workerData: $workerData) {
+    id
+  }
+}

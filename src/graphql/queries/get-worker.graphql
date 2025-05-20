@@ -5,6 +5,7 @@ query GetWorker($workerTag: String!) {
     admin {
       name
       id
+      email
     }
     bio
     email
@@ -41,6 +42,8 @@ query GetWorker($workerTag: String!) {
       }
       completion_date
       description
+      starting_date
+      notes
     }
   }
 }

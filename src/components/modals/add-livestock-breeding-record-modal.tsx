@@ -56,7 +56,7 @@ const formSchema = z.object({
       BreedingStatus.Cancelled,
     ])
     .default(BreedingStatus.Planned),
-  cost: z.number().optional(),
+  cost: z.string().optional(),
 });
 
 export const BreedingRecordModal = () => {
@@ -183,7 +183,7 @@ export const BreedingRecordModal = () => {
             matingDate: data.breedingDate,
             notes: data.notes || undefined,
             status: data.success, // Adjust status based on success
-            cost: data.cost || undefined,
+            cost: Number(data.cost) || undefined,
           },
         },
       });
@@ -448,7 +448,7 @@ export const BreedingRecordModal = () => {
                           <FormLabel>Cost GHc</FormLabel>
                           <FormControl>
                             <Input
-                              type="text"
+                              type="number"
                               className="max-w-24"
                               {...field}
                               placeholder="0.00"

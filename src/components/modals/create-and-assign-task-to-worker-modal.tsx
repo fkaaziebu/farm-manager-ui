@@ -3,7 +3,15 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useModal } from "@/hooks/use-modal-store";
-import { ClipboardList, ClipboardCheck } from "lucide-react";
+import {
+  ClipboardList,
+  ClipboardCheck,
+  Search,
+  Calendar,
+  Clock,
+  Info,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -26,6 +34,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 //hooks
 import { useCreateTask, useAssignTaskToWorker } from "@/hooks/mutations";
@@ -60,11 +75,184 @@ const assignTaskFormSchema = z.object({
   workerTag: z.string().min(1, "Worker ID required"),
 });
 
+// TaskSelectionField Component
+const TaskSelectionField = ({ form, tasks }) => {
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("all");
+
+  // Get the currently selected task
+  const selectedTaskId = form.watch("taskId");
+  const selectedTask = tasks.find(
+    (task) => task.id.toString() === selectedTaskId
+  );
+
+  // Filter tasks based on search and type filter
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch = task.description
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesType = filterType === "all" || task.type === filterType;
+    return matchesSearch && matchesType;
+  });
+
+  // Get unique task types for the filter
+  const taskTypes = [...new Set(tasks.map((task) => task.type))];
+
+  // Handle task selection
+  const selectTask = (taskId) => {
+    form.setValue("taskId", taskId.toString());
+    setOpen(false);
+  };
+
+  // Format task type for display
+  const formatTaskType = (type) => {
+    return type
+      .replace("_", " ")
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
+  return (
+    <FormField
+      control={form.control}
+      name="taskId"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>
+            Task
+            <span className="text-red-500">*</span>
+          </FormLabel>
+
+          {/* Task Selection Button */}
+          <div
+            className="border border-input rounded-md p-3 cursor-pointer hover:bg-slate-50 transition-colors"
+            onClick={() => setOpen(true)}
+          >
+            {selectedTask ? (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="font-medium truncate">
+                    {selectedTask.description}
+                  </div>
+                  <Badge variant="outline" className="ml-2">
+                    {formatTaskType(selectedTask.type)}
+                  </Badge>
+                </div>
+                <div className="flex items-center text-xs text-gray-500">
+                  <Calendar className="w-3 h-3 mr-1" />
+                  <span>{formatDate(selectedTask.starting_date)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-gray-400">Select a task</div>
+            )}
+          </div>
+          <FormMessage />
+
+          {/* Task Selection Dialog */}
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+              <DialogHeader>
+                <DialogTitle>Select Task</DialogTitle>
+              </DialogHeader>
+
+              {/* Search and Filter */}
+              <div className="flex items-center space-x-2 my-4">
+                <div className="relative flex-grow">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search tasks..."
+                    className="pl-9"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <select
+                  className="border rounded-md p-2 text-sm"
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                >
+                  <option value="all">All Types</option>
+                  {taskTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {formatTaskType(type)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Task List */}
+              <div className="overflow-y-auto flex-grow">
+                {filteredTasks.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    <Info className="mx-auto h-10 w-10 mb-2 text-gray-400" />
+                    <p className="font-medium">No tasks found</p>
+                    <p className="text-sm mt-1">
+                      Try adjusting your search or filters
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2 ">
+                    {filteredTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        onClick={() => selectTask(task.id)}
+                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                          selectedTaskId === task.id.toString()
+                            ? "bg-blue-50 border-blue-200"
+                            : "hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <div className="font-medium text-wrap truncate">
+                              {task.description}
+                            </div>
+                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                              <div className="flex items-center">
+                                <Calendar className="w-4 h-4 mr-1" />
+                                <span>{formatDate(task.starting_date)}</span>
+                              </div>
+                              {task.completion_date && (
+                                <div className="flex items-center">
+                                  <Clock className="w-4 h-4 mr-1" />
+                                  <span>
+                                    Due: {formatDate(task.completion_date)}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="ml-2">
+                            {formatTaskType(task.type)}
+                          </Badge>
+                        </div>
+                        {task.notes && (
+                          <div className="mt-2 text-sm text-gray-600 border-t pt-2">
+                            {task.notes}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </FormItem>
+      )}
+    />
+  );
+};
+
 export const TaskModal = () => {
   const { isOpen, onClose, onOpen, type, data } = useModal();
   const farmTag = data?.farmTag || "";
   const [activeTab, setActiveTab] = useState("assign");
   const workers = data?.farmWorkers || [];
+
   const tasks = data?.taskList || [];
 
   //hooks
@@ -348,56 +536,36 @@ export const TaskModal = () => {
                         className="space-y-6"
                       >
                         <div className="grid grid-cols-1 lg:grid-cols-2 sm:grid-cols-2 gap-4">
-                          <FormField
-                            control={assignForm.control}
-                            name="taskId"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>
-                                  Task
-                                  <span className="text-red-500">*</span>
-                                </FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  value={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select Task" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {tasks.map((task) => (
-                                      <SelectItem
-                                        key={task.id}
-                                        value={task.id.toString()}
-                                        className="flex flex-col items-start"
-                                      >
-                                        <span>{`Description: ${task.description}`}</span>
-                                        <span>
-                                          {`Date: ${formatDate(
-                                            task.starting_date
-                                          )}`}
-                                        </span>
-                                        <span>
-                                          {`Task type: ${
-                                            task.type
-                                              .replace("_", " ")
-                                              .charAt(0) +
-                                            task.type
-                                              .replace("_", " ")
-                                              .slice(1)
-                                              .toLowerCase()
-                                          }`}
-                                        </span>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          {/* Improved Task Selection Component */}
+                          {tasks.length === 0 ? (
+                            <FormField
+                              control={assignForm.control}
+                              name="taskId"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Task
+                                    <span className="text-red-500">*</span>
+                                  </FormLabel>
+                                  <div className="p-4 text-center text-gray-500 text-sm border rounded-md">
+                                    <span className="block mb-2">
+                                      No tasks available to assign.
+                                    </span>
+                                    <span className="text-xs">
+                                      Create a new task first.
+                                    </span>
+                                  </div>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          ) : (
+                            <TaskSelectionField
+                              form={assignForm}
+                              tasks={tasks}
+                            />
+                          )}
+
                           <FormField
                             control={assignForm.control}
                             name="workerTag"

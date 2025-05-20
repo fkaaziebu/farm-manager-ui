@@ -30,13 +30,14 @@ import {
 import Link from "next/link";
 import ProfilePic from "@/../public/globe.svg";
 import Image from "next/image";
-import { useFetchASingleWorker } from "@/hooks/queries";
+import { useFetchASingleWorker, useFetchTasks } from "@/hooks/queries";
 import { useRouter, usePathname } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
 import { HousingStatus, TaskStatus } from "@/graphql/generated/graphql";
 
 export default function WorkerDetailsPage() {
   const { fetchWorker, worker } = useFetchASingleWorker();
+  const { fetchTasks, tasks } = useFetchTasks();
 
   const pathname = usePathname();
   const { onOpen } = useModal();
@@ -57,32 +58,6 @@ export default function WorkerDetailsPage() {
   ];
 
   // Sample assigned tasks
-  const tasks = [
-    {
-      id: 1,
-      title: "Morning herd inspection",
-      status: "completed",
-      dueDate: "2024-03-24",
-    },
-    {
-      id: 2,
-      title: "Equipment maintenance check",
-      status: "in progress",
-      dueDate: "2024-03-25",
-    },
-    {
-      id: 3,
-      title: "Staff training session",
-      status: "scheduled",
-      dueDate: "2024-03-27",
-    },
-    {
-      id: 4,
-      title: "Monthly inventory review",
-      status: "scheduled",
-      dueDate: "2024-03-30",
-    },
-  ];
 
   // Sample activity log
   const activityLog = [
@@ -150,6 +125,14 @@ export default function WorkerDetailsPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (worker) {
+      fetchTasks({
+        farmTag: worker?.farms?.[0].farm_tag,
+      });
+    }
+  }, [worker]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header - Responsive */}
@@ -177,6 +160,25 @@ export default function WorkerDetailsPage() {
               <button
                 type="button"
                 className="bg-white hover:bg-gray-50 text-gray-700 px-3 sm:px-4 py-2 border border-gray-300 rounded-md flex items-center gap-1 sm:gap-2 text-sm"
+                onClick={() => {
+                  onOpen("update-worker", {
+                    workerTag: worker?.worker_tag,
+                    farmWorker: {
+                      id: worker?.id ?? "",
+                      email: worker?.email ?? "",
+                      name: worker?.name ?? "",
+                      phone: worker?.phone ?? "",
+                      bio: worker?.bio ?? "",
+                      address: worker?.address ?? "",
+                      join_date: worker?.join_date ?? "",
+                      // @ts-expect-error error
+                      roles: (worker?.roles as WorkerRole[]) ?? [],
+                      skills: worker?.skills ?? [],
+                      achievements: worker?.achievements ?? [],
+                      worker_tag: worker?.worker_tag ?? "",
+                    },
+                  });
+                }}
               >
                 <Edit size={16} />
                 <span className="hidden sm:inline">Edit Profile</span>
@@ -188,6 +190,9 @@ export default function WorkerDetailsPage() {
                 onClick={() => {
                   onOpen("task-modal", {
                     farmTag: worker?.farms?.[0]?.farm_tag,
+                    // @ts-expect-error error
+                    farmWorkers: worker ? [worker] : [],
+                    taskList: tasks,
                   });
                 }}
               >
@@ -423,11 +428,11 @@ export default function WorkerDetailsPage() {
                         </dd>
                       </div>
                       <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt className="text-sm font-medium text-gray-500 flex items-center">
+                        <dt className="text-sm font-medium text-gray-500 flex items-center sm:shrink-0">
                           <Award className="mr-1 h-4 w-4 text-gray-400" />
                           Specialization
                         </dt>
-                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 break-words">
                           {(worker?.skills && worker?.skills.join(", ")) ||
                             "None"}
                         </dd>
@@ -516,40 +521,21 @@ export default function WorkerDetailsPage() {
                       <h4 className="text-sm font-medium text-gray-900">
                         Achievements
                       </h4>
-                      <div className="mt-2 flow-root">
-                        <ul className="-mb-8">
-                          {worker?.achievements &&
-                            worker?.achievements.map((achievement, index) => (
-                              <li key={index}>
-                                <div className="relative pb-8">
-                                  {index !==
-                                  (worker?.achievements ?? []).length - 1 ? (
-                                    <span
-                                      className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                                      aria-hidden="true"
-                                    ></span>
-                                  ) : null}
-                                  <div className="relative flex space-x-3">
-                                    <div>
-                                      <span className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
-                                        <Award className="h-5 w-5 text-white" />
-                                      </span>
-                                    </div>
-                                    <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                                      <div>
-                                        <p className="text-sm text-gray-900">
-                                          {achievement.title}
-                                        </p>
-                                      </div>
-                                      <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                                        {achievement.year}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </li>
-                            ))}
-                        </ul>
+                      <div className="mt-2 text-sm text-gray-900">
+                        {worker?.achievements &&
+                        Array.isArray(worker.achievements)
+                          ? worker.achievements.join(", ")
+                          : typeof worker?.achievements === "object" &&
+                            worker.achievements !== null
+                          ? Object.values(worker.achievements)
+                              .map(
+                                (ach: { title?: string } | string) =>
+                                  (typeof ach === "object" && ach !== null
+                                    ? ach.title
+                                    : ach) || ach
+                              )
+                              .join(", ")
+                          : "None"}
                       </div>
                     </div>
                   </div>
@@ -827,6 +813,14 @@ export default function WorkerDetailsPage() {
                 <button
                   type="button"
                   className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+                  onClick={() => {
+                    onOpen("task-modal", {
+                      farmTag: worker?.farms?.[0]?.farm_tag,
+                      //  @ts-expect-error error
+                      farmWorkers: worker ? [worker] : [],
+                      taskList: tasks,
+                    });
+                  }}
                 >
                   Assign New Task
                 </button>
@@ -864,94 +858,114 @@ export default function WorkerDetailsPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {worker?.assigned_tasks?.map((task) => (
-                        <tr key={task.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {task.type.charAt(0) +
-                              task.type.slice(1).toLowerCase()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                      {worker?.assigned_tasks?.length !== 0 ? (
+                        worker?.assigned_tasks?.map((task) => (
+                          <tr key={task.id}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {task.type.charAt(0) +
+                                task.type.slice(1).toLowerCase()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`px-2 py-1 text-xs font-medium rounded-full ${getTaskStatusColor(
+                                  task.status
+                                )}`}
+                              >
+                                {task.status.charAt(0).toUpperCase() +
+                                  task.status.slice(1).toLowerCase()}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {formatDate(task.completion_date)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              <div className="flex justify-end space-x-3">
+                                <button
+                                  className="text-green-600 hover:text-green-900"
+                                  type="button"
+                                  onClick={() => {
+                                    onOpen("update-task", {
+                                      taskId: task.id,
+                                      task: task,
+                                    });
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                                <Link
+                                  href="#"
+                                  className="text-indigo-600 hover:text-indigo-900"
+                                >
+                                  View
+                                </Link>
+                                <Link
+                                  href="#"
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  Delete
+                                </Link>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <div className="flex justify-center items-center p-4 relative ">
+                          No task assigned to {worker?.name}
+                        </div>
+                      )}
+                    </tbody>
+                  </table>
+
+                  {/* Card view for mobile screens */}
+                  <div className="sm:hidden space-y-4">
+                    {worker?.assigned_tasks?.length === 0 ? (
+                      <div>No task assigned to {worker?.name}</div>
+                    ) : (
+                      worker?.assigned_tasks?.length &&
+                      worker?.assigned_tasks?.map((task) => (
+                        <div
+                          key={task.id}
+                          className="bg-gray-50 rounded-lg p-4"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-sm font-medium text-gray-900">
+                              {task.type}
+                            </h4>
                             <span
                               className={`px-2 py-1 text-xs font-medium rounded-full ${getTaskStatusColor(
                                 task.status
                               )}`}
                             >
                               {task.status.charAt(0).toUpperCase() +
-                                task.status.slice(1).toLowerCase()}
+                                task.status.slice(1)}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatDate(task.completion_date)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end space-x-3">
-                              <Link
-                                href="#"
-                                className="text-green-600 hover:text-green-900"
-                              >
-                                Edit
-                              </Link>
-                              <Link
-                                href="#"
-                                className="text-indigo-600 hover:text-indigo-900"
-                              >
-                                View
-                              </Link>
-                              <Link
-                                href="#"
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Delete
-                              </Link>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {/* Card view for mobile screens */}
-                  <div className="sm:hidden space-y-4">
-                    {tasks.map((task) => (
-                      <div key={task.id} className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-sm font-medium text-gray-900">
-                            {task.title}
-                          </h4>
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${getTaskStatusColor(
-                              task.status
-                            )}`}
-                          >
-                            {task.status.charAt(0).toUpperCase() +
-                              task.status.slice(1)}
-                          </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mb-3">
+                            Due: {formatDate(task.completion_date)}
+                          </p>
+                          <div className="flex justify-end space-x-2">
+                            <Link
+                              href="#"
+                              className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                              Edit
+                            </Link>
+                            <Link
+                              href="#"
+                              className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                              View
+                            </Link>
+                            <Link
+                              href="#"
+                              className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-red-600 bg-white hover:bg-gray-50"
+                            >
+                              Delete
+                            </Link>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500 mb-3">
-                          Due: {formatDate(task.dueDate)}
-                        </p>
-                        <div className="flex justify-end space-x-2">
-                          <Link
-                            href="#"
-                            className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
-                          >
-                            Edit
-                          </Link>
-                          <Link
-                            href="#"
-                            className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
-                          >
-                            View
-                          </Link>
-                          <Link
-                            href="#"
-                            className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-red-600 bg-white hover:bg-gray-50"
-                          >
-                            Delete
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
               </div>

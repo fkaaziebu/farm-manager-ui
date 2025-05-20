@@ -54,7 +54,7 @@ export const AddFarmModal = () => {
 
   // Fetch browser location on mount if not using manual input
   useEffect(() => {
-    if (!useManualLocation) {
+    if (isModalOpen && !useManualLocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -69,7 +69,7 @@ export const AddFarmModal = () => {
         }
       );
     }
-  }, [useManualLocation]);
+  }, [useManualLocation, type]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {

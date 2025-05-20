@@ -232,7 +232,10 @@ export default function HouseDetailPage() {
           {!loadingBarn && (
             <div className="flex flex-col sm:flex-row sm:items-center">
               <div className="flex items-center">
-                <Link href={`/farms/${farmId}/barns`} className="mr-3 sm:mr-4">
+                <Link
+                  href={`/worker/farms/${farmId}/barns`}
+                  className="mr-3 sm:mr-4"
+                >
                   <ArrowLeft className="text-gray-500 hover:text-gray-700" />
                 </Link>
                 <div>
@@ -265,7 +268,7 @@ export default function HouseDetailPage() {
                   Edit
                 </button>
                 <Link
-                  href={`/farms/${farmId}/barns/${barn?.unit_id}/pens`}
+                  href={`/worker/farms/${farmId}/barns/${barn?.unit_id}/pens`}
                   className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700"
                 >
                   View Rooms
@@ -1191,7 +1194,7 @@ export default function HouseDetailPage() {
                             })}
                           </div>
                           <Link
-                            href={`/farms/${farmId}/barns/${barn.unit_id}/pens/${pen.unit_id}`}
+                            href={`/worker/farms/${farmId}/barns/${barn.unit_id}/pens/${pen.unit_id}`}
                             className="inline-flex items-center justify-center px-2 sm:px-3 py-1 border border-transparent text-xs sm:text-sm leading-5 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                           >
                             <Eye className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />

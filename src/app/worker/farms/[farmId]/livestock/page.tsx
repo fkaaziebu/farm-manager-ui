@@ -590,7 +590,7 @@ export default function AnimalsListingPage() {
 
                     <div className="mt-4 sm:mt-5">
                       <a
-                        href={`/farms/${farmId}/livestock/${livestock.livestock_tag}`}
+                        href={`/worker/farms/${farmId}/livestock/${livestock.livestock_tag}`}
                         className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                       >
                         View Details
@@ -616,7 +616,7 @@ export default function AnimalsListingPage() {
                 .map((livestock) => (
                   <li key={livestock.id}>
                     <a
-                      href={`/farms/${farmId}/livestock/${livestock.id}`}
+                      href={`/worker/farms/${farmId}/livestock/${livestock.id}`}
                       className="block hover:bg-gray-50"
                     >
                       <div className="px-3 py-3 sm:px-4 sm:py-4">

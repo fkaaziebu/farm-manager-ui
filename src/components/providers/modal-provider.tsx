@@ -17,6 +17,7 @@ import { UpdateFarmModal } from "../modals/update-farm-modal";
 import { UpdateLivestockModal } from "../modals/update-livestock-modal";
 import { UpdatePenModal } from "../modals/update-pen-modal";
 import { UpdateWorkerModal } from "../modals/update-worker-modal";
+import UpdateTaskModal from "../modals/update-task-modal";
 
 export const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -47,6 +48,7 @@ export const ModalProvider = () => {
       <UpdatePenModal />
       <UpdateLivestockModal />
       <UpdateWorkerModal />
+      <UpdateTaskModal />
     </>
   );
 };

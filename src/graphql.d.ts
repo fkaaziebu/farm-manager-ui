@@ -170,6 +170,24 @@ declare module '*/update-pen.graphql' {
 }
     
 
+declare module '*/update-task.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdateTask: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/update-worker.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdateWorker: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/get-barn.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;

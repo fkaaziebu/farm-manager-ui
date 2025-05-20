@@ -20,6 +20,12 @@ export type Scalars = {
   JSON: { input: any; output: any; }
 };
 
+export type AcceptRequestResponse = {
+  __typename?: 'AcceptRequestResponse';
+  code: Scalars['Float']['output'];
+  message: Scalars['String']['output'];
+};
+
 export type Admin = {
   __typename?: 'Admin';
   assigned_tasks?: Maybe<Array<Task>>;
@@ -27,6 +33,7 @@ export type Admin = {
   farms?: Maybe<Array<Farm>>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  reviews?: Maybe<Array<Review>>;
   workers?: Maybe<Array<Worker>>;
 };
 
@@ -37,6 +44,7 @@ export type AdminAuthResponse = {
   farms?: Maybe<Array<Farm>>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  reviews?: Maybe<Array<Review>>;
   token: Scalars['String']['output'];
   workers?: Maybe<Array<Worker>>;
 };
@@ -183,6 +191,12 @@ export enum BatchHealthStatus {
   Quarantined = 'QUARANTINED',
   Recovering = 'RECOVERING'
 }
+
+export type BreedingPairPredictionResponse = {
+  __typename?: 'BreedingPairPredictionResponse';
+  breedingPairs: Array<Livestock>;
+  description: Scalars['String']['output'];
+};
 
 export type BreedingRecord = {
   __typename?: 'BreedingRecord';
@@ -468,6 +482,29 @@ export type Greenhouse = {
   ventilation_system?: Maybe<Scalars['String']['output']>;
 };
 
+export type Group = {
+  __typename?: 'Group';
+  admin?: Maybe<Admin>;
+  farms?: Maybe<Array<Farm>>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  requests?: Maybe<Array<Request>>;
+  workers?: Maybe<Array<Worker>>;
+};
+
+export type GroupConnection = {
+  __typename?: 'GroupConnection';
+  count: Scalars['Int']['output'];
+  edges: Array<GroupTypeEdge>;
+  pageInfo: PageInfo;
+};
+
+export type GroupTypeEdge = {
+  __typename?: 'GroupTypeEdge';
+  cursor: Scalars['String']['output'];
+  node: Group;
+};
+
 /** Period of growth record measurement */
 export enum GrowthPeriod {
   Adulthood = 'ADULTHOOD',
@@ -715,6 +752,7 @@ export enum LivestockUnavailabilityReason {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  acceptRequest: AcceptRequestResponse;
   addBarnsToFarm: Farm;
   addLivestockBreedingRecord: BreedingRecord;
   addLivestockExpenseRecord: ExpenseRecord;
@@ -723,11 +761,14 @@ export type Mutation = {
   addLivestockSalesRecord: SalesRecord;
   addLivestockToPen: Pen;
   addPensToBarn: Barn;
+  addWorkerReview: Review;
   addWorkersToFarm: Farm;
   assignTaskToWorker: Task;
   assignWorkersToFarm: Farm;
   completeReport: Report;
+  createAuditor: Worker;
   createFarm: Farm;
+  createGroup: Group;
   createReport: Report;
   createTask: Task;
   loginAdmin: AdminAuthResponse;
@@ -735,7 +776,9 @@ export type Mutation = {
   markLivestockAsUnavailable: Livestock;
   registerAdmin: Admin;
   requestAdminPasswordReset: RequestResetResponse;
+  requestFarmsToJoinGroup: RequestToJoinResponse;
   requestWorkerPasswordReset: RequestResetResponse;
+  requestWorkersToJoinGroup: RequestToJoinResponse;
   resetAdminPassword: ResetResponse;
   resetWorkerPassword: ResetResponse;
   updateBarn: Barn;
@@ -749,8 +792,14 @@ export type Mutation = {
   updatePen: Pen;
   updateReport: Report;
   updateTask: Task;
+  updateTaskProgress: Task;
   updateWorker: Worker;
   verifyReport: Report;
+};
+
+
+export type MutationAcceptRequestArgs = {
+  requestId: Scalars['String']['input'];
 };
 
 
@@ -803,6 +852,12 @@ export type MutationAddPensToBarnArgs = {
 };
 
 
+export type MutationAddWorkerReviewArgs = {
+  review: ReviewInput;
+  workerTag: Scalars['String']['input'];
+};
+
+
 export type MutationAddWorkersToFarmArgs = {
   farmTag: Scalars['String']['input'];
   workers: Array<WorkerInput>;
@@ -822,7 +877,13 @@ export type MutationAssignWorkersToFarmArgs = {
 
 
 export type MutationCompleteReportArgs = {
-  reportTag: Scalars['String']['input'];
+  reportId: Scalars['String']['input'];
+};
+
+
+export type MutationCreateAuditorArgs = {
+  groupId: Scalars['String']['input'];
+  worker: WorkerInput;
 };
 
 
@@ -832,6 +893,11 @@ export type MutationCreateFarmArgs = {
   latitude: Scalars['Float']['input'];
   location: Scalars['String']['input'];
   longitude: Scalars['Float']['input'];
+  name: Scalars['String']['input'];
+};
+
+
+export type MutationCreateGroupArgs = {
   name: Scalars['String']['input'];
 };
 
@@ -877,8 +943,20 @@ export type MutationRequestAdminPasswordResetArgs = {
 };
 
 
+export type MutationRequestFarmsToJoinGroupArgs = {
+  farmTags: Array<Scalars['String']['input']>;
+  groupId: Scalars['String']['input'];
+};
+
+
 export type MutationRequestWorkerPasswordResetArgs = {
   email: Scalars['String']['input'];
+};
+
+
+export type MutationRequestWorkersToJoinGroupArgs = {
+  groupId: Scalars['String']['input'];
+  workerEmails: Array<Scalars['String']['input']>;
 };
 
 
@@ -955,12 +1033,18 @@ export type MutationUpdatePenArgs = {
 
 export type MutationUpdateReportArgs = {
   reportData: UpdateReportInput;
-  reportTag: Scalars['String']['input'];
+  reportId: Scalars['String']['input'];
 };
 
 
 export type MutationUpdateTaskArgs = {
   task: UpdateTaskInput;
+  taskId: Scalars['Float']['input'];
+};
+
+
+export type MutationUpdateTaskProgressArgs = {
+  task: UpdateTaskProgressInput;
   taskId: Scalars['Float']['input'];
 };
 
@@ -973,7 +1057,7 @@ export type MutationUpdateWorkerArgs = {
 
 export type MutationVerifyReportArgs = {
   coordinate: CoordinatesInput;
-  reportTag: Scalars['String']['input'];
+  reportId: Scalars['String']['input'];
   verificationCode: Scalars['String']['input'];
 };
 
@@ -1152,6 +1236,8 @@ export type QrCodeResponse = {
 export type Query = {
   __typename?: 'Query';
   getBarn: Barn;
+  getGroup: Group;
+  getGroupAuditor: Worker;
   getLivestock: Livestock;
   getPen: Pen;
   getQrCode: QrCodeResponse;
@@ -1159,16 +1245,31 @@ export type Query = {
   getWorker: Worker;
   listBarns: BarnConnection;
   listFarms: FarmConnection;
+  listGroupAuditors: WorkerConnection;
+  listGroupFarms: FarmConnection;
+  listGroups: GroupConnection;
   listLivestock: LivestockConnection;
   listPens: PenConnection;
   listReports: ReportConnection;
   listTask: Array<Task>;
   listWorkers: WorkerConnection;
+  livestockBreedingPairPrediction: BreedingPairPredictionResponse;
 };
 
 
 export type QueryGetBarnArgs = {
   barnUnitId: Scalars['String']['input'];
+};
+
+
+export type QueryGetGroupArgs = {
+  groupId: Scalars['String']['input'];
+};
+
+
+export type QueryGetGroupAuditorArgs = {
+  groupId: Scalars['String']['input'];
+  workerTag: Scalars['String']['input'];
 };
 
 
@@ -1188,7 +1289,7 @@ export type QueryGetQrCodeArgs = {
 
 
 export type QueryGetReportArgs = {
-  reportTag: Scalars['String']['input'];
+  reportId: Scalars['String']['input'];
 };
 
 
@@ -1209,6 +1310,16 @@ export type QueryListFarmsArgs = {
   pagination?: InputMaybe<PaginationInput>;
   searchTerm: Scalars['String']['input'];
   sort?: InputMaybe<Array<FarmSortInput>>;
+};
+
+
+export type QueryListGroupAuditorsArgs = {
+  groupId: Scalars['String']['input'];
+};
+
+
+export type QueryListGroupFarmsArgs = {
+  groupId: Scalars['String']['input'];
 };
 
 
@@ -1244,6 +1355,11 @@ export type QueryListWorkersArgs = {
   searchTerm: Scalars['String']['input'];
 };
 
+
+export type QueryLivestockBreedingPairPredictionArgs = {
+  livestockTag: Scalars['String']['input'];
+};
+
 export type Report = {
   __typename?: 'Report';
   completed: Scalars['Boolean']['output'];
@@ -1262,7 +1378,7 @@ export type ReportConnection = {
 };
 
 export type ReportFilterInput = {
-  reportTag?: InputMaybe<Scalars['String']['input']>;
+  reportId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export enum ReportSortField {
@@ -1282,14 +1398,60 @@ export type ReportTypeEdge = {
   node: Report;
 };
 
+export type Request = {
+  __typename?: 'Request';
+  expires_at: Scalars['DateTime']['output'];
+  farm?: Maybe<Farm>;
+  group?: Maybe<Group>;
+  id: Scalars['ID']['output'];
+  status: RequestStatus;
+  type: RequestType;
+  worker?: Maybe<Worker>;
+};
+
 export type RequestResetResponse = {
   __typename?: 'RequestResetResponse';
   message: Scalars['String']['output'];
 };
 
+/** Whether it is pending, declined or accepted */
+export enum RequestStatus {
+  Accepted = 'ACCEPTED',
+  Declined = 'DECLINED',
+  Pending = 'PENDING'
+}
+
+export type RequestToJoinResponse = {
+  __typename?: 'RequestToJoinResponse';
+  code: Scalars['Float']['output'];
+  message: Scalars['String']['output'];
+};
+
+/** This specifies the entity we are sending the request to */
+export enum RequestType {
+  Farm = 'FARM',
+  Worker = 'WORKER'
+}
+
 export type ResetResponse = {
   __typename?: 'ResetResponse';
   message: Scalars['String']['output'];
+};
+
+export type Review = {
+  __typename?: 'Review';
+  admin?: Maybe<Admin>;
+  description: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  inserted_at: Scalars['DateTime']['output'];
+  rating: Scalars['Float']['output'];
+  updated_at: Scalars['DateTime']['output'];
+  worker?: Maybe<Worker>;
+};
+
+export type ReviewInput = {
+  description: Scalars['String']['input'];
+  rating: Scalars['Float']['input'];
 };
 
 export type SalesRecord = {
@@ -1332,12 +1494,14 @@ export type Task = {
   __typename?: 'Task';
   admin?: Maybe<Admin>;
   barns?: Maybe<Array<Barn>>;
+  completed_at?: Maybe<Scalars['DateTime']['output']>;
   completion_date: Scalars['DateTime']['output'];
   description: Scalars['String']['output'];
   farm?: Maybe<Farm>;
   id: Scalars['ID']['output'];
   notes?: Maybe<Scalars['String']['output']>;
   pens?: Maybe<Array<Pen>>;
+  started_at?: Maybe<Scalars['DateTime']['output']>;
   starting_date: Scalars['DateTime']['output'];
   status: TaskStatus;
   type: TaskType;
@@ -1473,7 +1637,12 @@ export type UpdateTaskInput = {
   completionDate?: InputMaybe<Scalars['DateTime']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
   startingDate?: InputMaybe<Scalars['DateTime']['input']>;
-  status?: InputMaybe<TaskStatus>;
+};
+
+export type UpdateTaskProgressInput = {
+  completedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  startedAt: Scalars['DateTime']['input'];
+  status: TaskStatus;
 };
 
 export type UpdateWorkerInput = {
@@ -1499,6 +1668,7 @@ export type Worker = {
   achievements?: Maybe<Array<Scalars['JSON']['output']>>;
   address?: Maybe<Scalars['String']['output']>;
   admin?: Maybe<Admin>;
+  assigned_reviews?: Maybe<Array<Review>>;
   assigned_tasks?: Maybe<Array<Task>>;
   bio?: Maybe<Scalars['JSON']['output']>;
   email: Scalars['String']['output'];
@@ -1508,6 +1678,7 @@ export type Worker = {
   name: Scalars['String']['output'];
   phone?: Maybe<Scalars['String']['output']>;
   reports?: Maybe<Array<Report>>;
+  reviews?: Maybe<Array<Review>>;
   roles: Array<WorkerRole>;
   skills?: Maybe<Array<Scalars['String']['output']>>;
   worker_tag: Scalars['String']['output'];
@@ -1518,6 +1689,7 @@ export type WorkerAuthResponse = {
   achievements?: Maybe<Array<Scalars['JSON']['output']>>;
   address?: Maybe<Scalars['String']['output']>;
   admin?: Maybe<Admin>;
+  assigned_reviews?: Maybe<Array<Review>>;
   assigned_tasks?: Maybe<Array<Task>>;
   bio?: Maybe<Scalars['JSON']['output']>;
   email: Scalars['String']['output'];
@@ -1527,6 +1699,7 @@ export type WorkerAuthResponse = {
   name: Scalars['String']['output'];
   phone?: Maybe<Scalars['String']['output']>;
   reports?: Maybe<Array<Report>>;
+  reviews?: Maybe<Array<Review>>;
   roles: Array<WorkerRole>;
   skills?: Maybe<Array<Scalars['String']['output']>>;
   token: Scalars['String']['output'];
@@ -1725,6 +1898,22 @@ export type UpdatePenMutationVariables = Exact<{
 
 export type UpdatePenMutation = { __typename?: 'Mutation', updatePen: { __typename?: 'Pen', id: string } };
 
+export type UpdateTaskMutationVariables = Exact<{
+  taskId: Scalars['Float']['input'];
+  task: UpdateTaskInput;
+}>;
+
+
+export type UpdateTaskMutation = { __typename?: 'Mutation', updateTask: { __typename?: 'Task', id: string } };
+
+export type UpdateWorkerMutationVariables = Exact<{
+  workerTag: Scalars['String']['input'];
+  workerData: UpdateWorkerInput;
+}>;
+
+
+export type UpdateWorkerMutation = { __typename?: 'Mutation', updateWorker: { __typename?: 'Worker', id: string } };
+
 export type GetBarnQueryVariables = Exact<{
   barnUnitId: Scalars['String']['input'];
 }>;
@@ -1751,7 +1940,7 @@ export type GetWorkerQueryVariables = Exact<{
 }>;
 
 
-export type GetWorkerQuery = { __typename?: 'Query', getWorker: { __typename?: 'Worker', achievements?: Array<any> | null, address?: string | null, bio?: any | null, email: string, id: string, join_date?: any | null, name: string, phone?: string | null, roles: Array<WorkerRole>, skills?: Array<string> | null, worker_tag: string, admin?: { __typename?: 'Admin', name: string, id: string } | null, farms?: Array<{ __typename?: 'Farm', id: string, name: string, farm_tag: string, farm_type: FarmType, barns?: Array<{ __typename?: 'Barn', id: string, name: string, status: HousingStatus, pens?: Array<{ __typename?: 'Pen', id: string, livestock?: Array<{ __typename?: 'Livestock', id: string }> | null }> | null }> | null }> | null, assigned_tasks?: Array<{ __typename?: 'Task', id: string, status: TaskStatus, type: TaskType, completion_date: any, description: string, worker?: { __typename?: 'Worker', name: string } | null }> | null } };
+export type GetWorkerQuery = { __typename?: 'Query', getWorker: { __typename?: 'Worker', achievements?: Array<any> | null, address?: string | null, bio?: any | null, email: string, id: string, join_date?: any | null, name: string, phone?: string | null, roles: Array<WorkerRole>, skills?: Array<string> | null, worker_tag: string, admin?: { __typename?: 'Admin', name: string, id: string, email: string } | null, farms?: Array<{ __typename?: 'Farm', id: string, name: string, farm_tag: string, farm_type: FarmType, barns?: Array<{ __typename?: 'Barn', id: string, name: string, status: HousingStatus, pens?: Array<{ __typename?: 'Pen', id: string, livestock?: Array<{ __typename?: 'Livestock', id: string }> | null }> | null }> | null }> | null, assigned_tasks?: Array<{ __typename?: 'Task', id: string, status: TaskStatus, type: TaskType, completion_date: any, description: string, starting_date: any, notes?: string | null, worker?: { __typename?: 'Worker', name: string } | null }> | null } };
 
 export type ListBarnsQueryVariables = Exact<{
   searchTerm: Scalars['String']['input'];
@@ -1817,10 +2006,12 @@ export const UpdateBarnDocument = {"kind":"Document","definitions":[{"kind":"Ope
 export const UpdateFarmDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateFarm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"farmTag"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"location"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"area"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"farmType"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"FarmType"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateFarm"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"farmTag"},"value":{"kind":"Variable","name":{"kind":"Name","value":"farmTag"}}},{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"location"},"value":{"kind":"Variable","name":{"kind":"Name","value":"location"}}},{"kind":"Argument","name":{"kind":"Name","value":"area"},"value":{"kind":"Variable","name":{"kind":"Name","value":"area"}}},{"kind":"Argument","name":{"kind":"Name","value":"farmType"},"value":{"kind":"Variable","name":{"kind":"Name","value":"farmType"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<UpdateFarmMutation, UpdateFarmMutationVariables>;
 export const UpdateLivestockDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateLivestock"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"livestockTag"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"livestock"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateLivestockInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateLivestock"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"livestockTag"},"value":{"kind":"Variable","name":{"kind":"Name","value":"livestockTag"}}},{"kind":"Argument","name":{"kind":"Name","value":"livestock"},"value":{"kind":"Variable","name":{"kind":"Name","value":"livestock"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<UpdateLivestockMutation, UpdateLivestockMutationVariables>;
 export const UpdatePenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdatePen"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"penUnitId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pen"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdatePenInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updatePen"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"penUnitId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"penUnitId"}}},{"kind":"Argument","name":{"kind":"Name","value":"pen"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pen"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<UpdatePenMutation, UpdatePenMutationVariables>;
+export const UpdateTaskDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateTask"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"taskId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"task"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateTaskInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateTask"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"taskId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"taskId"}}},{"kind":"Argument","name":{"kind":"Name","value":"task"},"value":{"kind":"Variable","name":{"kind":"Name","value":"task"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<UpdateTaskMutation, UpdateTaskMutationVariables>;
+export const UpdateWorkerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateWorker"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"workerTag"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"workerData"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateWorkerInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateWorker"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"workerTag"},"value":{"kind":"Variable","name":{"kind":"Name","value":"workerTag"}}},{"kind":"Argument","name":{"kind":"Name","value":"workerData"},"value":{"kind":"Variable","name":{"kind":"Name","value":"workerData"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<UpdateWorkerMutation, UpdateWorkerMutationVariables>;
 export const GetBarnDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetBarn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"barnUnitId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getBarn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"barnUnitId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"barnUnitId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"area_sqm"}},{"kind":"Field","name":{"kind":"Name","value":"capacity"}},{"kind":"Field","name":{"kind":"Name","value":"construction_date"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"unit_id"}},{"kind":"Field","name":{"kind":"Name","value":"pens"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"area_sqm"}},{"kind":"Field","name":{"kind":"Name","value":"bedding_type"}},{"kind":"Field","name":{"kind":"Name","value":"capacity"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"unit_id"}},{"kind":"Field","name":{"kind":"Name","value":"feeder_type"}},{"kind":"Field","name":{"kind":"Name","value":"livestock"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"livestock_type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"waterer_type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"climate_controlled"}},{"kind":"Field","name":{"kind":"Name","value":"ventilation_type"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<GetBarnQuery, GetBarnQueryVariables>;
 export const GetLivestockDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetLivestock"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"livestockTag"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getLivestock"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"livestockTag"},"value":{"kind":"Variable","name":{"kind":"Name","value":"livestockTag"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"availability_status"}},{"kind":"Field","name":{"kind":"Name","value":"birth_date"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_tag"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_type"}},{"kind":"Field","name":{"kind":"Name","value":"weight"}},{"kind":"Field","name":{"kind":"Name","value":"gender"}},{"kind":"Field","name":{"kind":"Name","value":"health_status"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pen"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"unit_id"}},{"kind":"Field","name":{"kind":"Name","value":"livestock"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"gender"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_tag"}},{"kind":"Field","name":{"kind":"Name","value":"breed"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_tag"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"breeding_records"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"mating_date"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"breeding_method"}},{"kind":"Field","name":{"kind":"Name","value":"expected_delivery"}},{"kind":"Field","name":{"kind":"Name","value":"offspring_count_female"}},{"kind":"Field","name":{"kind":"Name","value":"offspring_count_male"}},{"kind":"Field","name":{"kind":"Name","value":"actual_delivery"}}]}},{"kind":"Field","name":{"kind":"Name","value":"health_records"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"record_status"}},{"kind":"Field","name":{"kind":"Name","value":"medication"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"record_type"}},{"kind":"Field","name":{"kind":"Name","value":"record_date"}},{"kind":"Field","name":{"kind":"Name","value":"diagnosis"}},{"kind":"Field","name":{"kind":"Name","value":"vet_name"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"issue"}},{"kind":"Field","name":{"kind":"Name","value":"symptoms"}},{"kind":"Field","name":{"kind":"Name","value":"treatment"}},{"kind":"Field","name":{"kind":"Name","value":"dosage"}}]}},{"kind":"Field","name":{"kind":"Name","value":"farm"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"workers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"growth_records"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"growth_rate"}},{"kind":"Field","name":{"kind":"Name","value":"height"}},{"kind":"Field","name":{"kind":"Name","value":"length"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"period"}},{"kind":"Field","name":{"kind":"Name","value":"record_date"}},{"kind":"Field","name":{"kind":"Name","value":"record_type"}},{"kind":"Field","name":{"kind":"Name","value":"weight"}}]}},{"kind":"Field","name":{"kind":"Name","value":"expense_records"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"expense_date"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}}]}}]}}]}}]} as unknown as DocumentNode<GetLivestockQuery, GetLivestockQueryVariables>;
 export const GetPenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPen"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"penUnitId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getPen"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"penUnitId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"penUnitId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"area_sqm"}},{"kind":"Field","name":{"kind":"Name","value":"bedding_type"}},{"kind":"Field","name":{"kind":"Name","value":"capacity"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"waterer_type"}},{"kind":"Field","name":{"kind":"Name","value":"unit_id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"feeder_type"}},{"kind":"Field","name":{"kind":"Name","value":"livestock"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_type"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_tag"}},{"kind":"Field","name":{"kind":"Name","value":"inserted_at"}},{"kind":"Field","name":{"kind":"Name","value":"birth_date"}},{"kind":"Field","name":{"kind":"Name","value":"weight"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}},{"kind":"Field","name":{"kind":"Name","value":"gender"}},{"kind":"Field","name":{"kind":"Name","value":"breed"}},{"kind":"Field","name":{"kind":"Name","value":"health_status"}}]}}]}}]}}]} as unknown as DocumentNode<GetPenQuery, GetPenQueryVariables>;
-export const GetWorkerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetWorker"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"workerTag"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getWorker"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"workerTag"},"value":{"kind":"Variable","name":{"kind":"Name","value":"workerTag"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"achievements"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"admin"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"bio"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"farms"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"farm_tag"}},{"kind":"Field","name":{"kind":"Name","value":"farm_type"}},{"kind":"Field","name":{"kind":"Name","value":"barns"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"pens"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"livestock"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"join_date"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"skills"}},{"kind":"Field","name":{"kind":"Name","value":"worker_tag"}},{"kind":"Field","name":{"kind":"Name","value":"assigned_tasks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"worker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"completion_date"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]} as unknown as DocumentNode<GetWorkerQuery, GetWorkerQueryVariables>;
+export const GetWorkerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetWorker"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"workerTag"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getWorker"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"workerTag"},"value":{"kind":"Variable","name":{"kind":"Name","value":"workerTag"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"achievements"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"admin"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}},{"kind":"Field","name":{"kind":"Name","value":"bio"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"farms"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"farm_tag"}},{"kind":"Field","name":{"kind":"Name","value":"farm_type"}},{"kind":"Field","name":{"kind":"Name","value":"barns"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"pens"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"livestock"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"join_date"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"skills"}},{"kind":"Field","name":{"kind":"Name","value":"worker_tag"}},{"kind":"Field","name":{"kind":"Name","value":"assigned_tasks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"worker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"completion_date"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"starting_date"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}}]}}]}}]}}]} as unknown as DocumentNode<GetWorkerQuery, GetWorkerQueryVariables>;
 export const ListBarnsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListBarns"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"searchTerm"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sort"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"BarnSortInput"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"listBarns"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"searchTerm"},"value":{"kind":"Variable","name":{"kind":"Name","value":"searchTerm"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"sort"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sort"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"endCursor"}},{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"area_sqm"}},{"kind":"Field","name":{"kind":"Name","value":"building_material"}},{"kind":"Field","name":{"kind":"Name","value":"capacity"}},{"kind":"Field","name":{"kind":"Name","value":"construction_date"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"pens"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"livestock"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_type"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"unit_id"}},{"kind":"Field","name":{"kind":"Name","value":"ventilation_type"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ListBarnsQuery, ListBarnsQueryVariables>;
 export const ListFarmsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListFarms"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sort"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"FarmSortInput"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"searchTerm"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"FarmFilterInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"listFarms"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"sort"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sort"}}},{"kind":"Argument","name":{"kind":"Name","value":"searchTerm"},"value":{"kind":"Variable","name":{"kind":"Name","value":"searchTerm"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"barns"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"capacity"}},{"kind":"Field","name":{"kind":"Name","value":"pens"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"livestock"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"breed"}},{"kind":"Field","name":{"kind":"Name","value":"weight"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}},{"kind":"Field","name":{"kind":"Name","value":"birth_date"}},{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"unit_id"}},{"kind":"Field","name":{"kind":"Name","value":"area_sqm"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"area_sqm"}},{"kind":"Field","name":{"kind":"Name","value":"unit_id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"performance"}},{"kind":"Field","name":{"kind":"Name","value":"area"}},{"kind":"Field","name":{"kind":"Name","value":"location"}},{"kind":"Field","name":{"kind":"Name","value":"livestock"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"health_status"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_tag"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_type"}},{"kind":"Field","name":{"kind":"Name","value":"breed"}}]}},{"kind":"Field","name":{"kind":"Name","value":"workers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"worker_tag"}}]}},{"kind":"Field","name":{"kind":"Name","value":"farm_tag"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"tasks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"starting_date"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"completion_date"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"endCursor"}},{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}}]}}]}}]}}]} as unknown as DocumentNode<ListFarmsQuery, ListFarmsQueryVariables>;
 export const ListLivestockDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListLivestock"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"searchTerm"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sort"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"LivestockSortInput"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"listLivestock"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"searchTerm"},"value":{"kind":"Variable","name":{"kind":"Name","value":"searchTerm"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"sort"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sort"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"availability_status"}},{"kind":"Field","name":{"kind":"Name","value":"birth_date"}},{"kind":"Field","name":{"kind":"Name","value":"gender"}},{"kind":"Field","name":{"kind":"Name","value":"health_status"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_tag"}},{"kind":"Field","name":{"kind":"Name","value":"weight"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}},{"kind":"Field","name":{"kind":"Name","value":"livestock_type"}},{"kind":"Field","name":{"kind":"Name","value":"pen"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unit_id"}},{"kind":"Field","name":{"kind":"Name","value":"barn"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unit_id"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"inserted_at"}},{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"endCursor"}},{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}}]}}]}}]}}]} as unknown as DocumentNode<ListLivestockQuery, ListLivestockQueryVariables>;
