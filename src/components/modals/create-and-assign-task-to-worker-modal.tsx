@@ -10,7 +10,6 @@ import {
   Calendar,
   Clock,
   Info,
-  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,7 +43,7 @@ import {
 
 //hooks
 import { useCreateTask, useAssignTaskToWorker } from "@/hooks/mutations";
-import { TaskStatus, TaskType } from "@/graphql/generated/graphql";
+import { Task, TaskStatus, TaskType } from "@/graphql/generated/graphql";
 import { formatDate } from "../common";
 
 // Form schemas
@@ -76,7 +75,13 @@ const assignTaskFormSchema = z.object({
 });
 
 // TaskSelectionField Component
-const TaskSelectionField = ({ form, tasks }) => {
+const TaskSelectionField = ({
+  form,
+  tasks,
+}: {
+  form: ReturnType<typeof useForm>;
+  tasks: Task[];
+}) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -100,13 +105,13 @@ const TaskSelectionField = ({ form, tasks }) => {
   const taskTypes = [...new Set(tasks.map((task) => task.type))];
 
   // Handle task selection
-  const selectTask = (taskId) => {
+  const selectTask = (taskId: string) => {
     form.setValue("taskId", taskId.toString());
     setOpen(false);
   };
 
   // Format task type for display
-  const formatTaskType = (type) => {
+  const formatTaskType = (type: TaskType) => {
     return type
       .replace("_", " ")
       .split(" ")
@@ -118,7 +123,7 @@ const TaskSelectionField = ({ form, tasks }) => {
     <FormField
       control={form.control}
       name="taskId"
-      render={({ field }) => (
+      render={() => (
         <FormItem>
           <FormLabel>
             Task
@@ -541,7 +546,7 @@ export const TaskModal = () => {
                             <FormField
                               control={assignForm.control}
                               name="taskId"
-                              render={({ field }) => (
+                              render={() => (
                                 <FormItem>
                                   <FormLabel>
                                     Task
@@ -561,6 +566,7 @@ export const TaskModal = () => {
                             />
                           ) : (
                             <TaskSelectionField
+                              // @ts-expect-error error
                               form={assignForm}
                               tasks={tasks}
                             />

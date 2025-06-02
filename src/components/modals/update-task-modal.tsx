@@ -16,20 +16,13 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Calendar,
   CheckCircle2,
-  ClockIcon,
   AlertCircle,
   CalendarDays,
   Clock,
@@ -40,7 +33,8 @@ import {
 import { TaskStatus, TaskType } from "@/graphql/generated/graphql";
 import { formatDate } from "../common";
 import { useUpdateTask } from "@/hooks/mutations";
-import { differenceInDays, parseISO } from "date-fns";
+
+import { differenceInDays } from "date-fns";
 
 // Update task schema that matches your requirements
 const updateTaskSchema = z.object({
@@ -48,11 +42,6 @@ const updateTaskSchema = z.object({
   task: z.object({
     startingDate: z.string().min(1, "Start date is required"),
     completionDate: z.string().min(1, "Completion date is required"),
-    status: z.enum([
-      TaskStatus.Pending,
-      TaskStatus.InProgress,
-      TaskStatus.Completed,
-    ]),
     notes: z.string().optional(),
   }),
 });
@@ -104,7 +93,7 @@ export const UpdateTaskModal = () => {
 
     try {
       const today = new Date();
-      const parsedDueDate = parseISO(dueDate);
+      const parsedDueDate = dueDate;
       const daysDiff = differenceInDays(parsedDueDate, today);
 
       if (daysDiff < 0) {
@@ -130,7 +119,6 @@ export const UpdateTaskModal = () => {
       task: {
         startingDate: task?.starting_date || "",
         completionDate: task?.completion_date || "",
-        status: task?.status || TaskStatus.Pending,
         notes: task?.notes || "",
       },
     },
@@ -143,7 +131,6 @@ export const UpdateTaskModal = () => {
         task: {
           startingDate: task?.starting_date || "",
           completionDate: task?.completion_date || "",
-          status: task?.status || TaskStatus.Pending,
           notes: task?.notes || "",
         },
       });
@@ -159,7 +146,7 @@ export const UpdateTaskModal = () => {
           task: {
             startingDate: values.task.startingDate,
             completionDate: values.task.completionDate,
-            status: values.task.status,
+            // status: values.task.status,
             notes: values.task.notes || null,
           },
         },
@@ -366,47 +353,6 @@ export const UpdateTaskModal = () => {
 
                   <FormField
                     control={form.control}
-                    name="task.status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select task status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {Object.values(TaskStatus).map((status) => (
-                              <SelectItem
-                                key={status}
-                                value={status}
-                                className="flex items-center"
-                              >
-                                <div className="flex items-center">
-                                  {status === TaskStatus.Completed ? (
-                                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
-                                  ) : status === TaskStatus.InProgress ? (
-                                    <ClockIcon className="h-4 w-4 mr-2 text-blue-500" />
-                                  ) : (
-                                    <AlertCircle className="h-4 w-4 mr-2 text-yellow-500" />
-                                  )}
-                                  {formatTaskStatus(status)}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
                     name="task.notes"
                     render={({ field }) => (
                       <FormItem>
@@ -427,52 +373,6 @@ export const UpdateTaskModal = () => {
                       </FormItem>
                     )}
                   />
-
-                  {/* Contextual guidance based on status */}
-                  {form.watch("task.status") === TaskStatus.InProgress && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="bg-blue-50 p-4 rounded-lg"
-                    >
-                      <div className="flex items-start">
-                        <ClockIcon className="text-blue-600 mr-2 mt-0.5 h-5 w-5" />
-                        <div>
-                          <p className="text-sm text-blue-800 font-medium">
-                            Task in progress
-                          </p>
-                          <p className="text-xs text-blue-700 mt-1">
-                            Update the progress notes to reflect current status.
-                            Set status to &quot;Completed&quot; when finished.
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Completion confirmation for completed tasks */}
-                  {form.watch("task.status") === TaskStatus.Completed && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="bg-green-50 p-4 rounded-lg"
-                    >
-                      <div className="flex items-start">
-                        <CheckCircle2 className="text-green-600 mr-2 mt-0.5 h-5 w-5" />
-                        <div>
-                          <p className="text-sm text-green-800 font-medium">
-                            Task completed
-                          </p>
-                          <p className="text-xs text-green-700 mt-1">
-                            Please ensure all work is finished and add any
-                            relevant completion notes.
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
 
                   <div className="flex justify-end space-x-2 pt-4">
                     <Button type="button" variant="outline" onClick={onClose}>

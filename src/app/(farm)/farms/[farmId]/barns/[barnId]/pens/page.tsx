@@ -6,8 +6,6 @@ import {
   Filter,
   ChevronDown,
   ArrowLeft,
-  Menu,
-  X,
   Grid,
   List,
   Home,
@@ -16,13 +14,12 @@ import {
   Check,
 } from "lucide-react";
 import Link from "next/link";
-import { useFetchPens, useFetchBarn } from "@/hooks/queries";
+import { useFetchBarn } from "@/hooks/queries";
 import { useRouter, usePathname } from "next/navigation";
 import { HousingStatus, Pen } from "@/graphql/generated/graphql";
 import { useModal } from "@/hooks/use-modal-store";
 
 export default function RoomListingPage() {
-  const { pens } = useFetchPens();
   const { barn, fetchBarn } = useFetchBarn();
   const router = useRouter();
   const [farmPens, setFarmPens] = useState<Pen[]>();
@@ -232,7 +229,6 @@ export default function RoomListingPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Filter and sort rooms
 
@@ -334,26 +330,47 @@ export default function RoomListingPage() {
       {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center">
-            <div className="flex items-center">
-              <Link
-                href={`/farms/${farmId}/barns/${barnId}`}
-                className="mr-3 sm:mr-4"
-              >
-                <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </Link>
-              <div>
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-                  {farmPens?.[0]?.barn?.name} Inventory
-                </h1>
-                <p className="mt-1 text-xs sm:text-sm text-gray-500">
-                  Manage your farm&apos;s rooms and sections
-                </p>
+          <div className="flex flex-col justify-between sm:flex-row sm:items-center">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <Link
+                  href={`/farms/${farmId}/barns/${barnId}`}
+                  className="mr-3 sm:mr-4"
+                >
+                  <ArrowLeft className="text-gray-500 hover:text-gray-700" />
+                </Link>
+                <div>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                    {farmPens?.[0]?.barn?.name} Inventory
+                  </h1>
+                  <p className="mt-1 text-xs sm:text-sm text-gray-500">
+                    Manage your farm&apos;s rooms and sections
+                  </p>
+                </div>
               </div>
+              <button
+                type="button"
+                className="mt-3 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 rounded-md flex md:hidden items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                onClick={() => {
+                  onOpen("add-pens-to-barn", {
+                    barnUnitId: barnId,
+                    barnName: barn?.name,
+                  });
+                }}
+              >
+                <Plus size={16} />
+                <span>Add Room</span>
+              </button>
             </div>
             <button
               type="button"
-              className="mt-3 sm:mt-0 sm:ml-auto bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
+              className="mt-3  bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 rounded-md md:flex hidden items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
+              onClick={() => {
+                onOpen("add-pens-to-barn", {
+                  barnUnitId: barnId,
+                  barnName: barn?.name,
+                });
+              }}
             >
               <Plus size={16} />
               <span>Add Room</span>
@@ -364,67 +381,43 @@ export default function RoomListingPage() {
 
       {/* Mobile menu button - visible on small screens */}
       <div className="md:hidden bg-white border-t border-gray-200 p-2 sticky top-0 z-10 shadow-sm">
-        <button
-          type="button"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="flex items-center justify-center w-full p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
-        >
-          {mobileMenuOpen ? (
-            <>
-              <X size={20} className="mr-2" />
-              <span>Close Menu</span>
-            </>
-          ) : (
-            <>
-              <Menu size={20} className="mr-2" />
-              <span>Room Menu</span>
-            </>
-          )}
-        </button>
-
-        {/* Mobile dropdown menu */}
-        {mobileMenuOpen && (
-          <div className="mt-2 space-y-1 px-2">
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode("grid");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                viewMode === "grid"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              <Grid size={16} className="inline mr-2" /> Grid View
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode("list");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                viewMode === "list"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              <List size={16} className="inline mr-2" /> List View
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowFilters(!showFilters);
-                setMobileMenuOpen(false);
-              }}
-              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
-            >
-              <Filter size={16} className="inline mr-2" /> Filters
-            </button>
-          </div>
-        )}
+        <div className="mt-2 px-2 flex flex-row flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setViewMode("grid");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              viewMode === "grid"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            <Grid size={16} className="inline mr-2" /> Grid View
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setViewMode("list");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              viewMode === "list"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            <List size={16} className="inline mr-2" /> List View
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowFilters(!showFilters);
+            }}
+            className="px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap text-gray-700 hover:bg-gray-100"
+          >
+            <Filter size={16} className="inline mr-2" /> Filters
+          </button>
+        </div>
       </div>
 
       {/* Search and filters */}
@@ -858,8 +851,8 @@ export default function RoomListingPage() {
                   className="mt-4 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
                   onClick={() => {
                     onOpen("add-pens-to-barn", {
-                      barnUnitId: pens?.[0]?.unit_id,
-                      barnName: pens?.[0]?.barn?.name,
+                      barnUnitId: barnId,
+                      barnName: barn?.name,
                     });
                   }}
                 >
@@ -914,7 +907,6 @@ export default function RoomListingPage() {
                               </span>
                             </div>
                           </div>
-                        
                         </div>
                       </div>
                       <div className="mt-2 sm:flex sm:justify-between text-xs sm:text-sm">

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useModal } from "@/hooks/use-modal-store";
-import { Calendar, Heart, Info } from "lucide-react";
+import { Calendar, Heart, Info, Sparkles, Loader2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -30,12 +30,20 @@ import { format } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { useAddLivestockBreedingRecord } from "@/hooks/mutations";
+
+import { usePredictLuvestockBreedingPair } from "@/hooks/queries";
+
 import {
   BreedingStatus,
   type Livestock,
   LivestockGender,
 } from "@/graphql/generated/graphql";
 
+type PredictionProp = {
+  id: string;
+  livestock_tag: string;
+  __typename?: string;
+};
 // Form schema
 const formSchema = z.object({
   maleLivestockTag: z
@@ -63,10 +71,11 @@ export const BreedingRecordModal = () => {
   const { isOpen, onClose, onOpen, type, data } = useModal();
   const { addLivestockBreedingRecord, loading } =
     useAddLivestockBreedingRecord();
+  const { predictLivestockBreedingPair, loading: predictionLoading } =
+    usePredictLuvestockBreedingPair();
 
   const penName = data?.penName || "this pen";
   const livestock = data?.penLivestock || null;
-
   const initialAnimalTag = data?.livestockTag || null;
   const initialAnimalGender =
     data.penLivestock?.find(
@@ -74,10 +83,12 @@ export const BreedingRecordModal = () => {
     )?.gender || null;
   const initialAnimalType = data?.livestockType;
 
-  // State to track which gender we're starting with
-  // const [startingGender, setStartingGender] = useState<
-  //   "MALE" | "FEMALE" | null
-  // >(initialAnimalGender as "MALE" | "FEMALE" | null);
+  // State for AI predictions
+  const [predictions, setPredictions] = useState<PredictionProp[]>([]);
+  const [showPredictions, setShowPredictions] = useState(false);
+  const [selectedAnimalForPrediction, setSelectedAnimalForPrediction] =
+    useState<string>("");
+  console.log("predicton", predictions);
 
   // Filter livestock by gender
   const maleLivestock =
@@ -123,18 +134,53 @@ export const BreedingRecordModal = () => {
         cost: undefined,
       });
 
-      // form.setValue("breedingDate", format(new Date(), "yyyy-MM-dd"));
-      // form.setValue("expectedBirthDate", null);
-      // form.setValue("notes", "");
-      // form.setValue("success", BreedingStatus.Planned);
-      // form.setValue("maleLivestockTag", initialAnimalTag || "");
-      // form.setValue("femaleLivestockTag", initialAnimalTag || "");
-      // form.setValue("success", BreedingStatus.Planned);
-      // form.setValue("cost", undefined);
-
-      // setStartingGender(initialAnimalGender as "MALE" | "FEMALE");
+      // Reset AI prediction state
+      setPredictions([]);
+      setShowPredictions(false);
+      setSelectedAnimalForPrediction("");
     }
   }, [isOpen, initialAnimalTag, initialAnimalGender, form, type]);
+
+  // AI Prediction Handler
+  const handlePredictBreedingPairs = async (livestockTag: string) => {
+    try {
+      setSelectedAnimalForPrediction(livestockTag);
+      const result = await predictLivestockBreedingPair({
+        variables: { livestockTag },
+      });
+
+      if (result.data?.livestockBreedingPairPrediction) {
+        setPredictions(
+          result.data.livestockBreedingPairPrediction.breedingPairs || []
+        );
+        setShowPredictions(true);
+      }
+    } catch (error) {
+      console.error("Error predicting breeding pairs:", error);
+      onOpen("notification", {
+        notificationType: "error",
+        notificationMessage: "Error getting AI breeding recommendations",
+      });
+    }
+  };
+
+  // Handle prediction selection
+  const handleSelectPrediction = (prediction: PredictionProp) => {
+    const selectedAnimal = livestock?.find(
+      (animal: Livestock) => animal.livestock_tag === prediction.livestock_tag
+    );
+
+    if (selectedAnimal) {
+      if (selectedAnimal.gender === LivestockGender.Male) {
+        form.setValue("maleLivestockTag", prediction.livestock_tag);
+      } else {
+        form.setValue("femaleLivestockTag", prediction.livestock_tag);
+      }
+    }
+
+    setShowPredictions(false);
+    setPredictions([]);
+  };
 
   // Calculate expected birth date (e.g., 283 days for cattle)
   const calculateExpectedBirthDate = (breedingDate: string) => {
@@ -235,6 +281,152 @@ export const BreedingRecordModal = () => {
                     onSubmit={form.handleSubmit(onSubmit)}
                     className="space-y-6"
                   >
+                    {/* AI Breeding Prediction Section */}
+                    {livestock && livestock.length > 0 && (
+                      <div className="border rounded-lg p-4 bg-gradient-to-r from-purple-50 to-pink-50">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <Sparkles className="h-4 w-4 text-purple-600 mr-2" />
+                            <h3 className="text-sm font-medium text-purple-800">
+                              AI Breeding Recommendations
+                            </h3>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap gap-2">
+                            <p className="text-xs text-gray-600 mb-2">
+                              Get AI-powered breeding pair suggestions for
+                              optimal results:
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={predictionLoading || !initialAnimalTag}
+                              onClick={() =>
+                                initialAnimalTag &&
+                                handlePredictBreedingPairs(initialAnimalTag)
+                              }
+                              className="text-xs h-8 bg-white hover:bg-purple-50 border-purple-200"
+                            >
+                              {predictionLoading &&
+                              selectedAnimalForPrediction ===
+                                initialAnimalTag ? (
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              ) : (
+                                <Users className="h-3 w-3 mr-1" />
+                              )}
+                              {initialAnimalTag ? (
+                                <>
+                                  {initialAnimalTag}
+                                  <span className="ml-1 text-purple-600">
+                                    (
+                                    {initialAnimalGender ===
+                                    LivestockGender.Male
+                                      ? "♂"
+                                      : initialAnimalGender ===
+                                        LivestockGender.Female
+                                      ? "♀"
+                                      : ""}
+                                    )
+                                  </span>
+                                </>
+                              ) : (
+                                "Select an animal"
+                              )}
+                            </Button>
+                          </div>
+
+                          {/* Prediction Results */}
+                          {showPredictions && predictions.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="mt-3 p-3 bg-white rounded border border-purple-200"
+                            >
+                              <div className="flex items-center mb-2">
+                                <Sparkles className="h-3 w-3 text-purple-600 mr-1" />
+                                <span className="text-xs font-medium text-purple-800">
+                                  Recommended Breeding Partners for{" "}
+                                  {selectedAnimalForPrediction}:
+                                </span>
+                              </div>
+
+                              <div className="space-y-2">
+                                {predictions.map((prediction, index) => {
+                                  const animal = livestock.find(
+                                    (a: Livestock) =>
+                                      a.livestock_tag ===
+                                      prediction.livestock_tag
+                                  );
+                                  return (
+                                    <div
+                                      key={prediction.id || index}
+                                      className="flex items-center justify-between p-2 bg-gray-50 rounded cursor-pointer hover:bg-purple-50 transition-colors"
+                                      onClick={() =>
+                                        handleSelectPrediction(prediction)
+                                      }
+                                    >
+                                      <div className="flex items-center">
+                                        <span className="text-sm font-medium">
+                                          {prediction.livestock_tag}
+                                        </span>
+                                        {animal && (
+                                          <span className="ml-2 text-xs text-gray-600">
+                                            ({animal.breed},{" "}
+                                            {animal.gender ===
+                                            LivestockGender.Male
+                                              ? "Male"
+                                              : "Female"}
+                                            )
+                                          </span>
+                                        )}
+                                      </div>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800"
+                                      >
+                                        Select
+                                      </Button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setShowPredictions(false);
+                                  setPredictions([]);
+                                }}
+                                className="mt-2 h-6 text-xs text-gray-500 hover:text-gray-700"
+                              >
+                                Close Recommendations
+                              </Button>
+                            </motion.div>
+                          )}
+
+                          {showPredictions &&
+                            predictions.length === 0 &&
+                            !predictionLoading && (
+                              <div className="text-xs text-gray-500 bg-white p-2 rounded border border-gray-200">
+                                No breeding recommendations found for{" "}
+                                {selectedAnimalForPrediction}.
+                              </div>
+                            )}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
@@ -244,54 +436,68 @@ export const BreedingRecordModal = () => {
                             <FormLabel>
                               Male Animal{" "}
                               <span className="text-red-500">*</span>
+                              {initialAnimalGender === "MALE" && (
+                                <span className="ml-2 text-xs text-green-600 font-medium">
+                                  (Pre-selected)
+                                </span>
+                              )}
                             </FormLabel>
-                            <Select
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                form.setValue("maleLivestockTag", value);
-                              }}
-                              value={
-                                field.value
-                                // field.value ||
-                                // (startingGender === "MALE"
-                                //   ? initialAnimalTag
-                                //   : "")
-                              }
-                              defaultValue={
-                                field.value
-                                // field.value ||
-                                // (startingGender === "MALE"
-                                //   ? initialAnimalTag
-                                //   : "")
-                              }
-                              // disabled={
-                              //   !!(
-                              //     startingGender === "MALE" && initialAnimalTag
-                              //   )
-                              // }
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select male animal" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {maleLivestock.length === 0 ? (
-                                  <SelectItem value="none" disabled>
-                                    No male animals available
-                                  </SelectItem>
-                                ) : (
-                                  maleLivestock.map((animal: Livestock) => (
-                                    <SelectItem
-                                      key={animal.livestock_tag}
-                                      value={animal.livestock_tag}
-                                    >
-                                      {animal.livestock_tag} ({animal.breed})
+                            {initialAnimalGender === "MALE" ? (
+                              <div className="relative">
+                                <Input
+                                  value={`${initialAnimalTag} (${
+                                    maleLivestock.find(
+                                      (a) =>
+                                        a.livestock_tag === initialAnimalTag
+                                    )?.breed || "N/A"
+                                  })`}
+                                  disabled
+                                  className="bg-gray-50 cursor-not-allowed text-gray-700"
+                                />
+                                <input
+                                  type="hidden"
+                                  {...field}
+                                  value={initialAnimalTag || ""}
+                                />
+                              </div>
+                            ) : (
+                              <Select
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  form.setValue("maleLivestockTag", value);
+                                }}
+                                value={field.value}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select male animal" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {maleLivestock.length === 0 ? (
+                                    <SelectItem value="none" disabled>
+                                      No male animals available
                                     </SelectItem>
-                                  ))
-                                )}
-                              </SelectContent>
-                            </Select>
+                                  ) : (
+                                    maleLivestock.map((animal: Livestock) => (
+                                      <SelectItem
+                                        key={animal.livestock_tag}
+                                        value={animal.livestock_tag}
+                                      >
+                                        {animal.livestock_tag} ({animal.breed})
+                                      </SelectItem>
+                                    ))
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            )}
+                            {initialAnimalGender === "MALE" && (
+                              <FormDescription className="text-xs text-gray-600">
+                                This male animal has been automatically selected
+                                for breeding
+                              </FormDescription>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}
@@ -305,57 +511,68 @@ export const BreedingRecordModal = () => {
                             <FormLabel>
                               Female Animal{" "}
                               <span className="text-red-500">*</span>
+                              {initialAnimalGender === "FEMALE" && (
+                                <span className="ml-2 text-xs text-green-600 font-medium">
+                                  (Pre-selected)
+                                </span>
+                              )}
                             </FormLabel>
-                            <Select
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                form.setValue("femaleLivestockTag", value);
-                              }}
-                              value={
-                                field.value
-                                // field.value ||
-                                // (startingGender === "FEMALE"
-                                //   ? initialAnimalTag
-                                //   : "")
-                              }
-                              defaultValue={
-                                field.value
-                                // field.value ||
-                                // (startingGender === "FEMALE"
-                                //   ? initialAnimalTag
-                                //   : "")
-                              }
-                              // disabled={
-                              //   !!(
-                              //     startingGender === "FEMALE" &&
-                              //     initialAnimalTag
-                              //   )
-                              // }
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select female animal" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {femaleLivestock.length === 0 ? (
-                                  <SelectItem value="none" disabled>
-                                    No female animals available
-                                  </SelectItem>
-                                ) : (
-                                  femaleLivestock.map((animal: Livestock) => (
-                                    <SelectItem
-                                      key={animal.livestock_tag}
-                                      value={animal.livestock_tag}
-                                    >
-                                      {animal.livestock_tag} ({animal.breed})
+                            {initialAnimalGender === "FEMALE" ? (
+                              <div className="relative">
+                                <Input
+                                  value={`${initialAnimalTag} (${
+                                    femaleLivestock.find(
+                                      (a) =>
+                                        a.livestock_tag === initialAnimalTag
+                                    )?.breed || "N/A"
+                                  })`}
+                                  disabled
+                                  className="bg-gray-50 cursor-not-allowed text-gray-700"
+                                />
+                                <input
+                                  type="hidden"
+                                  {...field}
+                                  value={initialAnimalTag || ""}
+                                />
+                              </div>
+                            ) : (
+                              <Select
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  form.setValue("femaleLivestockTag", value);
+                                }}
+                                value={field.value}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select female animal" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {femaleLivestock.length === 0 ? (
+                                    <SelectItem value="none" disabled>
+                                      No female animals available
                                     </SelectItem>
-                                  ))
-                                )}
-                              </SelectContent>
-
-                              {/* Updated to use field.value */}
-                            </Select>
+                                  ) : (
+                                    femaleLivestock.map((animal: Livestock) => (
+                                      <SelectItem
+                                        key={animal.livestock_tag}
+                                        value={animal.livestock_tag}
+                                      >
+                                        {animal.livestock_tag} ({animal.breed})
+                                      </SelectItem>
+                                    ))
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            )}
+                            {initialAnimalGender === "FEMALE" && (
+                              <FormDescription className="text-xs text-gray-600">
+                                This female animal has been automatically
+                                selected for breeding
+                              </FormDescription>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}
@@ -464,10 +681,7 @@ export const BreedingRecordModal = () => {
                       name="notes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>
-                            <span className="text-red-500 ml-1">*</span>
-                            Notes
-                          </FormLabel>
+                          <FormLabel>Notes</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="Add any additional notes about this breeding record..."
@@ -488,7 +702,8 @@ export const BreedingRecordModal = () => {
                       <AlertDescription className="text-blue-700 text-sm">
                         Both animals must be in the same pen to record breeding.
                         The expected birth date is automatically calculated
-                        based on standard gestation periods.
+                        based on standard gestation periods. Use AI
+                        recommendations above for optimal breeding pairs.
                       </AlertDescription>
                     </Alert>
                   </form>

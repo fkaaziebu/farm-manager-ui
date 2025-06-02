@@ -12,6 +12,7 @@ import {
   Share,
   Printer,
   PlusCircle,
+  MoreVertical,
 } from "lucide-react";
 import {
   LineChart,
@@ -31,7 +32,6 @@ import {
 import {
   BreedingStatus,
   HealthRecordStatus,
-  WorkerRole,
 } from "@/graphql/generated/graphql";
 import { usePathname, useRouter } from "next/navigation";
 import formatDateOfBirth from "@/components/common/format-date-of-birth";
@@ -79,7 +79,7 @@ export default function AnimalDetailsPage() {
     livestock?.expense_records?.reduce<{ name: string; value: number }[]>(
       (acc, record) => {
         const existingCategory = acc.find(
-          (item) => item.name === record.category,
+          (item) => item.name === record.category
         );
         if (existingCategory) {
           existingCategory.value += record.amount;
@@ -88,7 +88,7 @@ export default function AnimalDetailsPage() {
         }
         return acc;
       },
-      [],
+      []
     ) || [];
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
@@ -109,13 +109,13 @@ export default function AnimalDetailsPage() {
     >((acc, record) => {
       const existingIndicator = acc.find(
         (indicator) =>
-          indicator.name === (record.diagnosis || "Unknown Diagnosis"),
+          indicator.name === (record.diagnosis || "Unknown Diagnosis")
       );
       if (existingIndicator) {
         existingIndicator.value += 1;
         existingIndicator.max = Math.max(
           existingIndicator.max,
-          existingIndicator.value,
+          existingIndicator.value
         );
       } else {
         acc.push({
@@ -185,235 +185,207 @@ export default function AnimalDetailsPage() {
     }
   }, [penUnitId]);
 
+  const getTabDisplayName = (tab: string) => {
+    switch (tab) {
+      case "breeding":
+        return "Breeding Records";
+      case "health":
+        return "Health Records";
+      case "growth":
+        return "Growth Records";
+      case "expenses":
+        return "Expense Records";
+      case "feed":
+        return "Feed & Nutrition";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center">
-            {/* Existing header content, but with more flexible layout */}
-            <div className="w-full sm:w-auto flex items-center justify-between">
-              <div className="flex items-center">
+      {/* Mobile-Optimized Header */}
+      <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
+        <header className="bg-white shadow-sm sticky top-0 z-30">
+          <div className="px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between">
+              {/* Left side - Back button and title */}
+              <div className="flex items-center flex-1 min-w-0">
                 <button
                   type="button"
                   onClick={() => router.back()}
-                  className="mr-4"
+                  className="mr-3 p-1 -ml-1 rounded-md hover:bg-gray-100"
                 >
-                  <ArrowLeft className="text-gray-500 hover:text-gray-700" />
+                  <ArrowLeft className="h-5 w-5 text-gray-600" />
                 </button>
-                <div>
-                  <div className="flex items-center gap-4">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-                      {livestock?.livestock_type.charAt(0)}
-                      {livestock?.livestock_type.slice(1).toLowerCase()}{" "}
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+                      {livestock?.livestock_type?.charAt(0)}
+                      {livestock?.livestock_type?.slice(1).toLowerCase()}{" "}
                       {livestock?.livestock_tag}
                     </h1>
-                    <div className="flex items-center text-sm sm:text-base text-gray-700 bg-amber-100 rounded-full px-2 py-1">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 whitespace-nowrap">
                       {livestock?.gender
                         ? livestock.gender.charAt(0) +
                           livestock.gender.slice(1).toLowerCase()
                         : "Unknown"}
-                    </div>
+                    </span>
                   </div>
 
-                  <div className="mt-1 flex items-center text-xs sm:text-sm text-gray-500">
-                    <Calendar size={14} className="mr-1.5" />
-                    <p>
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Calendar size={12} className="mr-1" />
+                    <span className="truncate">
                       Born: {formatDate(livestock?.birth_date)} • Age:{" "}
                       {formatDateOfBirth(livestock?.birth_date).slice(14, 20)}
-                    </p>
+                    </span>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </header>
 
-      {/* Quick action bar */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
-            <div className="flex flex-wrap justify-center sm:justify-start space-x-2 w-full sm:w-auto" />
-            <div className="relative w-full sm:w-auto">
-              <button
-                type="button"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                onClick={() => setShowActionMenu(!showActionMenu)}
-              >
-                More Actions
-              </button>
-              {showActionMenu && (
-                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                  <div className="py-1" role="menu" aria-orientation="vertical">
-                    <button
-                      type="button"
-                      className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      <Share size={16} className="inline mr-2" />
-                      Share
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      <Download size={16} className="inline mr-2" />
-                      Export Data
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      <Printer size={16} className="inline mr-2" />
-                      Print Report
-                    </button>
+              {/* Right side - Action menu */}
+              <div className="relative ml-2">
+                <button
+                  type="button"
+                  className="p-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
+                  onClick={() => setShowActionMenu(!showActionMenu)}
+                >
+                  <MoreVertical className="h-4 w-4 text-gray-600" />
+                </button>
+
+                {showActionMenu && (
+                  <div className="absolute right-0 top-full mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-40">
+                    <div className="py-1">
+                      <button
+                        type="button"
+                        className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowActionMenu(false)}
+                      >
+                        <Share size={16} className="mr-3" />
+                        Share
+                      </button>
+                      <button
+                        type="button"
+                        className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowActionMenu(false)}
+                      >
+                        <Download size={16} className="mr-3" />
+                        Export Data
+                      </button>
+                      <button
+                        type="button"
+                        className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowActionMenu(false)}
+                      >
+                        <Printer size={16} className="mr-3" />
+                        Print Report
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </header>
 
-      {/* Health indicators */}
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Current Health Indicators
-        </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-          {healthIndicators.map((indicator, index) => (
-            <div
-              key={index}
-              className="bg-white overflow-hidden shadow rounded-lg"
-            >
-              <div className="p-5">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-medium text-gray-900">
-                    {indicator.name}
-                  </h3>
-                  {indicator.max && (
-                    <span className="text-xs text-gray-500">
-                      / {indicator.max}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-3 flex items-end justify-between">
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {indicator.value}
-                    {indicator.unit && (
-                      <span className="text-sm text-gray-500 ml-1">
-                        {indicator.unit}
+        {/* Health Indicators - Mobile Optimized */}
+        {healthIndicators.length > 0 && (
+          <div className="px-4 py-4 bg-white border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              Current Health Indicators
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {healthIndicators.slice(0, 4).map((indicator, index) => (
+                <div key={index} className="bg-gray-50 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium text-gray-900 truncate">
+                      {indicator.name}
+                    </h3>
+                    {indicator.max > 1 && (
+                      <span className="text-xs text-gray-500">
+                        / {indicator.max}
                       </span>
                     )}
-                  </p>
-                  {indicator.max && (
-                    <div className="w-full max-w-24 bg-gray-200 rounded-full h-2 mt-2">
-                      <div
-                        className="bg-green-600 h-2 rounded-full"
-                        style={{
-                          width: `${(indicator.value / indicator.max) * 100}%`,
-                        }}
-                      ></div>
-                    </div>
-                  )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xl font-semibold text-gray-900">
+                      {indicator.value}
+                      {indicator.unit && (
+                        <span className="text-sm text-gray-500 ml-1">
+                          {indicator.unit}
+                        </span>
+                      )}
+                    </p>
+                    {indicator.max > 1 && (
+                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-green-600 h-2 rounded-full"
+                          style={{
+                            width: `${
+                              (indicator.value / indicator.max) * 100
+                            }%`,
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          </div>
+        )}
+
+        {/* Mobile-Optimized Tabs */}
+        <div className="bg-white border-b md:mt-3 border-gray-200 sticky top-[73px] z-20">
+          <div className="overflow-x-auto">
+            <nav className="flex px-4 space-x-6 min-w-max">
+              {[
+                { key: "breeding", label: "Breeding" },
+                { key: "health", label: "Health" },
+                { key: "growth", label: "Growth" },
+                { key: "expenses", label: "Expenses" },
+                { key: "feed", label: "Feed" },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    activeTab === tab.key
+                      ? "border-green-500 text-green-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 bg-white overflow-x-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="-mb-px flex space-x-4 sm:space-x-8 whitespace-nowrap">
-            {/* Existing tab buttons with more flexible spacing */}
-            <button
-              type="button"
-              onClick={() => setActiveTab("breeding")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm flex-shrink-0 ${
-                activeTab === "breeding"
-                  ? "border-green-500 text-green-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Breeding Records
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("health")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "health"
-                  ? "border-green-500 text-green-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Health Records
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("growth")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "growth"
-                  ? "border-green-500 text-green-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Growth Records
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("expenses")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "expenses"
-                  ? "border-green-500 text-green-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Expense Records
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("feed")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "feed"
-                  ? "border-green-500 text-green-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Feed & Nutrition
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* Filters */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
+        <div className="px-4 py-4">
+          {/* Mobile-Optimized Section Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <h2 className="text-xl font-semibold text-gray-900">
-              {activeTab === "breeding" && "Breeding Records"}
-              {activeTab === "health" && "Health Records"}
-              {activeTab === "growth" && "Growth Records"}
-              {activeTab === "expenses" && "Expense Records"}
-              {activeTab === "feed" && "Feed & Nutrition"}
+              {getTabDisplayName(activeTab)}
             </h2>
-            <div className="flex gap-4 justify-center items-center ">
+
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center bg-white px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
                 <Filter size={16} className="mr-2" />
                 Filters
-                <ChevronDown size={16} className="ml-2" />
+                <ChevronDown size={16} className="ml-1" />
               </button>
 
               <button
-                className="flex-grow sm:flex-grow-0 inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 mb-2 sm:mb-0"
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 whitespace-nowrap"
                 onClick={() => {
                   if (activeTab === "breeding") {
                     onOpen("add-livestock-breeding-record", {
@@ -434,39 +406,27 @@ export default function AnimalDetailsPage() {
                     onOpen("add-livestock-expense-record", {
                       livestockTag: livestock?.livestock_tag,
                     });
-                  } else if (activeTab === "feed") {
-                    // onOpen("add-feed-management-record", {
-                    //   livestockTag: livestock?.livestock_tag,
-                    //   penName: penUnitId,
-                    // });
                   }
                 }}
               >
-                <PlusCircle size={16} className="mr-1.5" />
-                Add{" "}
-                {`${activeTab.charAt(0).toUpperCase()}${activeTab.slice(
-                  1,
-                )}`}{" "}
-                Record
+                <PlusCircle size={16} className="mr-1" />
+                Add Record
               </button>
             </div>
           </div>
 
+          {/* Mobile-Optimized Filters */}
           {showFilters && (
-            <div className="mt-4 p-4 bg-white border border-gray-200 rounded-md shadow-sm">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+              <div className="space-y-4">
                 <div>
-                  <label
-                    htmlFor="date-range"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Date Range
                   </label>
                   <select
-                    id="date-range"
                     value={dateRange}
                     onChange={(e) => setDateRange(e.target.value)}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   >
                     <option value="all">All Time</option>
                     <option value="year">Past Year</option>
@@ -475,643 +435,551 @@ export default function AnimalDetailsPage() {
                     <option value="month">Past Month</option>
                   </select>
                 </div>
+
                 <div>
-                  <label
-                    htmlFor="sort-by"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Sort By
                   </label>
                   <select
-                    id="sort-by"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   >
                     <option value="latest">Latest First</option>
                     <option value="oldest">Oldest First</option>
                     {activeTab === "expenses" && (
-                      <option value="amount">Amount (High to Low)</option>
-                    )}
-                    {activeTab === "expenses" && (
-                      <option value="category">Category</option>
+                      <>
+                        <option value="amount">Amount (High to Low)</option>
+                        <option value="category">Category</option>
+                      </>
                     )}
                   </select>
                 </div>
+
+                {/* Tab-specific filters */}
+                {activeTab === "breeding" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Filter by Success
+                    </label>
+                    <div className="space-y-2">
+                      {["All", "Successful", "Unsuccessful"].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="success-filter"
+                            defaultChecked={option === "All"}
+                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">
+                            {option}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "health" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Filter by Type
+                    </label>
+                    <div className="space-y-2">
+                      {["All", "Vaccination", "Illness", "Checkup"].map(
+                        (option) => (
+                          <label key={option} className="flex items-center">
+                            <input
+                              type="radio"
+                              name="type-filter"
+                              defaultChecked={option === "All"}
+                              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">
+                              {option}
+                            </span>
+                          </label>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-              {activeTab === "breeding" && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Filter by Success
-                  </label>
-                  <div className="mt-2 flex items-center space-x-4">
-                    <div className="flex items-center">
-                      <input
-                        id="success-all"
-                        name="success-filter"
-                        type="radio"
-                        defaultChecked
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
-                      />
-                      <label
-                        htmlFor="success-all"
-                        className="ml-2 block text-sm text-gray-700"
-                      >
-                        All
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        id="success-yes"
-                        name="success-filter"
-                        type="radio"
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
-                      />
-                      <label
-                        htmlFor="success-yes"
-                        className="ml-2 block text-sm text-gray-700"
-                      >
-                        Successful
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        id="success-no"
-                        name="success-filter"
-                        type="radio"
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
-                      />
-                      <label
-                        htmlFor="success-no"
-                        className="ml-2 block text-sm text-gray-700"
-                      >
-                        Unsuccessful
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {activeTab === "health" && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Filter by Type
-                  </label>
-                  <div className="mt-2 flex items-center space-x-4">
-                    <div className="flex items-center">
-                      <input
-                        id="type-all"
-                        name="type-filter"
-                        type="radio"
-                        defaultChecked
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
-                      />
-                      <label
-                        htmlFor="type-all"
-                        className="ml-2 block text-sm text-gray-700"
-                      >
-                        All
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        id="type-vaccination"
-                        name="type-filter"
-                        type="radio"
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
-                      />
-                      <label
-                        htmlFor="type-vaccination"
-                        className="ml-2 block text-sm text-gray-700"
-                      >
-                        Vaccination
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        id="type-illness"
-                        name="type-filter"
-                        type="radio"
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
-                      />
-                      <label
-                        htmlFor="type-illness"
-                        className="ml-2 block text-sm text-gray-700"
-                      >
-                        Illness
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        id="type-checkup"
-                        name="type-filter"
-                        type="radio"
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
-                      />
-                      <label
-                        htmlFor="type-checkup"
-                        className="ml-2 block text-sm text-gray-700"
-                      >
-                        Checkup
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
-        </div>
 
-        {/* Breeding Records Tab */}
-        {activeTab === "breeding" && (
-          <>
-            {livestock?.breeding_records?.length ? (
-              <div>
-                {/* Upcoming breeding events */}
-                <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-                  <div className="px-5 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Upcoming Breeding Events
-                    </h3>
-                  </div>
-                  <div className="p-5">
-                    <ul className="divide-y divide-gray-200">
-                      {upcomingEvents
-                        .filter((event) => event.type === "Breeding")
-                        .map((event) => (
-                          <li key={event.id}>
-                            <div className="px-4 py-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="flex-shrink-0">
-                                    <Calendar className="h-6 w-6 text-green-500" />
-                                  </div>
-                                  <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-900">
-                                      {event.type}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      {event.description}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="ml-2 flex-shrink-0 flex">
-                                  <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    {new Date(event.date).toLocaleDateString(
-                                      "en-US",
-                                      {
-                                        year: "numeric",
-                                        month: "short",
-                                        day: "numeric",
-                                      },
-                                    )}
+          {/* Tab Content */}
+          {/* Breeding Records Tab */}
+          {activeTab === "breeding" && (
+            <>
+              {livestock?.breeding_records?.length ? (
+                <div className="space-y-4">
+                  {/* Upcoming breeding events */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Upcoming Breeding Events
+                      </h3>
+                    </div>
+                    <div className="p-4">
+                      <div className="space-y-3">
+                        {upcomingEvents
+                          .filter((event) => event.type === "Breeding")
+                          .map((event) => (
+                            <div
+                              key={event.id}
+                              className="flex items-center justify-between py-2"
+                            >
+                              <div className="flex items-center flex-1 min-w-0">
+                                <Calendar className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {event.type}
+                                  </p>
+                                  <p className="text-sm text-gray-500 truncate">
+                                    {event.description}
                                   </p>
                                 </div>
                               </div>
+                              <span className="ml-3 px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 whitespace-nowrap">
+                                {new Date(event.date).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                )}
+                              </span>
                             </div>
-                          </li>
-                        ))}
-                    </ul>
+                          ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                {/* Breeding records list */}
-                <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-                  <ul className="divide-y divide-gray-200">
-                    {livestock.breeding_records?.map((record) => (
-                      <li key={record.id}>
-                        <div className="px-4 py-4 sm:px-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                              <p className="text-sm font-medium text-green-600 truncate">
-                                {record.breeding_method ?? "Unknown Method"}
-                              </p>
-                              <div>
+                  {/* Breeding records list */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="divide-y divide-gray-200">
+                      {livestock.breeding_records?.map((record) => (
+                        <div key={record.id} className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="text-sm font-medium text-green-600 truncate">
+                                  {record.breeding_method ?? "Unknown Method"}
+                                </p>
                                 <span
-                                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                     record.status === BreedingStatus.Successful
                                       ? "bg-green-100 text-green-800"
                                       : record.status === BreedingStatus.Failed
-                                        ? "bg-red-100 text-red-800"
-                                        : record.status ===
-                                            BreedingStatus.Cancelled
-                                          ? "bg-yellow-100 text-yellow-800"
-                                          : "bg-gray-100 text-gray-800"
+                                      ? "bg-red-100 text-red-800"
+                                      : record.status ===
+                                        BreedingStatus.Cancelled
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-gray-100 text-gray-800"
                                   }`}
                                 >
                                   {record.status ?? "In Progress"}
                                 </span>
                               </div>
-                              <button className="flex-grow sm:flex-grow-0 inline-flex items-center justify-center px-1 py-1 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mb-2 sm:mb-0">
-                                <Edit size={12} className="mr-1.5" />
-                                Edit
-                              </button>
-                            </div>
-                            <div className="ml-2 flex-shrink-0 flex">
-                              <p className="text-sm text-gray-500">
+                              <p className="text-xs text-gray-500">
                                 {record.mating_date
                                   ? formatDate(record.mating_date)
                                   : "N/A"}
                               </p>
                             </div>
-                          </div>
 
-                          <div className="mt-2 sm:flex sm:justify-between">
-                            <div className="sm:flex">
-                              <p className="flex items-center text-sm text-gray-500">
-                                {record.notes ?? "No notes provided"}
-                              </p>
-                            </div>
-                            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                              <p>
-                                Technician:{" "}
-                                {livestock?.farm?.workers
-                                  ?.filter((worker) =>
-                                    worker?.roles?.includes(
-                                      WorkerRole.AnimalCaretaker ||
-                                        WorkerRole.FarmManager,
-                                    ),
-                                  )
-                                  .map((worker) => worker.name)
-                                  .join(", ") || "N/A"}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-500">
-                            <p>
-                              Expected Delivery:{" "}
-                              {record.expected_delivery
-                                ? formatDate(record.expected_delivery)
-                                : "Unknown"}
-                            </p>
-                            <p>
-                              Actual Delivery:{" "}
-                              {record.actual_delivery
-                                ? formatDate(record.actual_delivery)
-                                : "Not recorded"}
-                            </p>
-                            {record.status === BreedingStatus.Successful && (
-                              <>
-                                <p>
-                                  Offspring (Female):{" "}
-                                  {record.offspring_count_female ?? 0}
-                                </p>
-                                <p>
-                                  Offspring (Male):{" "}
-                                  {record.offspring_count_male ?? 0}
-                                </p>
-                              </>
+                            {![
+                              BreedingStatus.Successful,
+                              BreedingStatus.Failed,
+                              BreedingStatus.Cancelled,
+                            ].includes(record.status) && (
+                              <button
+                                className="ml-2 flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                type="button"
+                                onClick={() =>
+                                  onOpen("update-livestock-breeding-record", {
+                                    breedingRecordId: record.id,
+                                    // @ts-expect-error error
+                                    breedingRecord: record,
+                                  })
+                                }
+                              >
+                                <Edit size={12} className="mr-1" />
+                                Edit
+                              </button>
                             )}
                           </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
 
-                {/* Breeding Success Rate Chart */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-5 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Breeding Success Rate
-                    </h3>
+                          <div className="space-y-2 text-xs text-gray-500">
+                            <p className="line-clamp-2">
+                              {record.notes ?? "No notes provided"}
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <p>
+                                <span className="font-medium">Expected:</span>{" "}
+                                {record.expected_delivery
+                                  ? formatDate(record.expected_delivery)
+                                  : "Unknown"}
+                              </p>
+                              <p>
+                                <span className="font-medium">Actual:</span>{" "}
+                                {record.actual_delivery
+                                  ? formatDate(record.actual_delivery)
+                                  : "Not recorded"}
+                              </p>
+
+                              {record.status === BreedingStatus.Successful && (
+                                <>
+                                  <p>
+                                    <span className="font-medium">
+                                      Female offspring:
+                                    </span>{" "}
+                                    {record.offspring_count_female ?? 0}
+                                  </p>
+                                  <p>
+                                    <span className="font-medium">
+                                      Male offspring:
+                                    </span>{" "}
+                                    {record.offspring_count_male ?? 0}
+                                  </p>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="p-5">
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={[
-                              {
-                                name: "Successful",
-                                value:
-                                  livestock?.breeding_records?.filter(
-                                    (record) =>
-                                      record.status ===
-                                      BreedingStatus.Successful,
-                                  ).length || 0,
-                              },
-                              {
-                                name: "Unsuccessful",
-                                value:
-                                  livestock?.breeding_records?.filter(
-                                    (record) =>
-                                      record.status === BreedingStatus.Failed,
-                                  ).length || 0,
-                              },
-                            ]}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) =>
-                              `${name}: ${(percent * 100).toFixed(0)}%`
-                            }
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            <Cell fill="#10B981" />
-                            <Cell fill="#EF4444" />
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
+
+                  {/* Breeding Success Rate Chart - Mobile Optimized */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Breeding Success Rate
+                      </h3>
+                    </div>
+                    <div className="p-4">
+                      <div className="h-48 sm:h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={[
+                                {
+                                  name: "Successful",
+                                  value:
+                                    livestock?.breeding_records?.filter(
+                                      (record) =>
+                                        record.status ===
+                                        BreedingStatus.Successful
+                                    ).length || 0,
+                                },
+                                {
+                                  name: "Unsuccessful",
+                                  value:
+                                    livestock?.breeding_records?.filter(
+                                      (record) =>
+                                        record.status === BreedingStatus.Failed
+                                    ).length || 0,
+                                },
+                              ]}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ name, percent }) =>
+                                `${name}: ${(percent * 100).toFixed(0)}%`
+                              }
+                              outerRadius={60}
+                              fill="#8884d8"
+                              dataKey="value"
+                            >
+                              <Cell fill="#10B981" />
+                              <Cell fill="#EF4444" />
+                            </Pie>
+                            <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <EmptyStateBreeding
-                penLivestock={pen?.livestock || []}
-                penName={livestock?.pen?.unit_id || ""}
-                livestockType={livestock?.livestock_type || ""}
-              />
-            )}
-          </>
-        )}
+              ) : (
+                <EmptyStateBreeding
+                  penLivestock={pen?.livestock || []}
+                  penName={livestock?.pen?.unit_id || ""}
+                  livestockType={livestock?.livestock_type || ""}
+                />
+              )}
+            </>
+          )}
 
-        {/* Health Records Tab */}
-        {activeTab === "health" && (
-          <>
-            {livestock?.health_records?.length ? (
-              <div>
-                {/* Upcoming health events */}
-                <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-                  <div className="px-5 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Upcoming Health Events
-                    </h3>
-                  </div>
-                  <div className="p-5">
-                    <ul className="divide-y divide-gray-200">
-                      {upcomingEvents
-                        .filter(
-                          (event) =>
-                            event.type === "Health Check" ||
-                            event.type === "Vaccination",
-                        )
-                        .map((event) => (
-                          <li key={event.id}>
-                            <div className="px-4 py-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="flex-shrink-0">
-                                    <Calendar className="h-6 w-6 text-blue-500" />
-                                  </div>
-                                  <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-900">
-                                      {event.type}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      {event.description}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="ml-2 flex-shrink-0 flex">
-                                  <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                    {new Date(event.date).toLocaleDateString(
-                                      "en-US",
-                                      {
-                                        year: "numeric",
-                                        month: "short",
-                                        day: "numeric",
-                                      },
-                                    )}
+          {/* Health Records Tab */}
+          {activeTab === "health" && (
+            <>
+              {livestock?.health_records?.length ? (
+                <div className="space-y-4">
+                  {/* Upcoming health events */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Upcoming Health Events
+                      </h3>
+                    </div>
+                    <div className="p-4">
+                      <div className="space-y-3">
+                        {upcomingEvents
+                          .filter(
+                            (event) =>
+                              event.type === "Health Check" ||
+                              event.type === "Vaccination"
+                          )
+                          .map((event) => (
+                            <div
+                              key={event.id}
+                              className="flex items-center justify-between py-2"
+                            >
+                              <div className="flex items-center flex-1 min-w-0">
+                                <Calendar className="h-5 w-5 text-blue-500 mr-3 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {event.type}
+                                  </p>
+                                  <p className="text-sm text-gray-500 truncate">
+                                    {event.description}
                                   </p>
                                 </div>
                               </div>
+                              <span className="ml-3 px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 whitespace-nowrap">
+                                {new Date(event.date).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                )}
+                              </span>
                             </div>
-                          </li>
-                        ))}
-                    </ul>
+                          ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                {/* Health records list */}
-                <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-                  <ul className="divide-y divide-gray-200">
-                    {[...livestock?.health_records]
-                      ?.sort(
-                        (a, b) =>
-                          new Date(b.record_date || "").getTime() -
-                          new Date(a.record_date || "").getTime(),
-                      )
-                      .map((healthRecord) => (
-                        <li key={healthRecord.id}>
-                          <div className="px-4 py-4 sm:px-6">
-                            <div className="flex items-start justify-between">
-                              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                                <p className="text-sm font-medium text-blue-600 truncate">
-                                  {healthRecord.diagnosis ??
-                                    "Unknown Diagnosis"}
-                                </p>
-                                <span
-                                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                    healthRecord.record_status ===
-                                    HealthRecordStatus.Healthy
-                                      ? "bg-green-100 text-green-800"
-                                      : healthRecord.record_status ===
+                  {/* Health records list */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="divide-y divide-gray-200">
+                      {[...livestock?.health_records]
+                        ?.sort(
+                          (a, b) =>
+                            new Date(b.record_date || "").getTime() -
+                            new Date(a.record_date || "").getTime()
+                        )
+                        .map((healthRecord) => (
+                          <div key={healthRecord.id} className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="text-sm font-medium text-blue-600 truncate">
+                                    {healthRecord.diagnosis ??
+                                      "Unknown Diagnosis"}
+                                  </p>
+                                  <span
+                                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                      healthRecord.record_status ===
+                                      HealthRecordStatus.Healthy
+                                        ? "bg-green-100 text-green-800"
+                                        : healthRecord.record_status ===
                                           HealthRecordStatus.Recovering
                                         ? "bg-blue-100 text-blue-800"
                                         : healthRecord.record_status ===
-                                            HealthRecordStatus.Sick
-                                          ? "bg-yellow-100 text-yellow-800"
-                                          : "bg-red-100 text-red-800"
-                                  }`}
-                                >
-                                  {healthRecord.record_status ??
-                                    "Unknown Status"}
-                                </span>
+                                          HealthRecordStatus.Sick
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
+                                    }`}
+                                  >
+                                    {healthRecord.record_status ??
+                                      "Unknown Status"}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                  {healthRecord.record_date
+                                    ? formatDate(healthRecord.record_date)
+                                    : "No Date"}
+                                </p>
                               </div>
 
-                              <button
-                                className="inline-flex items-center px-2 py-1 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                // Replace with your actual handler
-                              >
-                                <Edit size={14} className="mr-1" />
+                              <button className="ml-2 flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                <Edit size={12} className="mr-1" />
                                 Edit
                               </button>
                             </div>
 
-                            <div className="mt-2 flex justify-between text-sm text-gray-500">
-                              <p>
-                                {healthRecord.record_date
-                                  ? formatDate(healthRecord.record_date)
-                                  : "No Date"}
-                              </p>
-                            </div>
+                            <div className="space-y-2 text-xs text-gray-500">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <p>
+                                  <span className="font-medium">Issue:</span>{" "}
+                                  {healthRecord.issue ?? "N/A"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Symptoms:</span>{" "}
+                                  {healthRecord.symptoms ?? "N/A"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">
+                                    Treatment:
+                                  </span>{" "}
+                                  {healthRecord.treatment ?? "N/A"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">
+                                    Medication:
+                                  </span>{" "}
+                                  {healthRecord.medication ?? "N/A"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Dosage:</span>{" "}
+                                  {healthRecord.dosage ?? "N/A"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Type:</span>{" "}
+                                  {healthRecord.record_type ?? "N/A"}
+                                </p>
+                              </div>
 
-                            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-500">
-                              <p>
-                                <strong>Issue:</strong>{" "}
-                                {healthRecord.issue ?? "N/A"}
-                              </p>
-                              <p>
-                                <strong>Symptoms:</strong>{" "}
-                                {healthRecord.symptoms ?? "N/A"}
-                              </p>
-                              <p>
-                                <strong>Treatment:</strong>{" "}
-                                {healthRecord.treatment ?? "N/A"}
-                              </p>
-                              <p>
-                                <strong>Medication:</strong>{" "}
-                                {healthRecord.medication ?? "N/A"}
-                              </p>
-                              <p>
-                                <strong>Dosage:</strong>{" "}
-                                {healthRecord.dosage ?? "N/A"}
-                              </p>
-                              <p>
-                                <strong>Record Type:</strong>{" "}
-                                {healthRecord.record_type ?? "N/A"}
-                              </p>
-                            </div>
-
-                            <div className="mt-2 sm:flex sm:justify-between text-sm text-gray-500">
-                              <p>
-                                <strong>Notes:</strong>{" "}
-                                {healthRecord.notes ?? "No notes provided"}
-                              </p>
-                              <p>
-                                <strong>Veterinarian:</strong>{" "}
-                                {healthRecord.vet_name ?? "N/A"}
-                              </p>
+                              <div className="pt-2">
+                                <p>
+                                  <span className="font-medium">Notes:</span>{" "}
+                                  {healthRecord.notes ?? "No notes provided"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">
+                                    Veterinarian:
+                                  </span>{" "}
+                                  {healthRecord.vet_name ?? "N/A"}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-
-                {/* Mortality Rate Chart */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-5 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Mortality Rate Trend
-                    </h3>
+                        ))}
+                    </div>
                   </div>
-                  <div className="p-5">
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={mortalityData}
-                          margin={{
-                            top: 5,
-                            right: 30,
-                            left: 20,
-                            bottom: 5,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="year" />
-                          <YAxis
-                            label={{
-                              value: "Rate (%)",
-                              angle: -90,
-                              position: "insideLeft",
-                            }}
-                          />
-                          <Tooltip />
-                          <Line
-                            type="monotone"
-                            dataKey="rate"
-                            stroke="#EF4444"
-                            activeDot={{ r: 8 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
+
+                  {/* Mortality Rate Chart - Mobile Optimized */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Mortality Rate Trend
+                      </h3>
+                    </div>
+                    <div className="p-4">
+                      <div className="h-48 sm:h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={mortalityData}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="year" />
+                            <YAxis
+                              label={{
+                                value: "Rate (%)",
+                                angle: -90,
+                                position: "insideLeft",
+                              }}
+                            />
+                            <Tooltip />
+                            <Line
+                              type="monotone"
+                              dataKey="rate"
+                              stroke="#EF4444"
+                              activeDot={{ r: 8 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <EmptyStateHealthPage
-                tag_number={livestock?.livestock_tag || ""}
-              />
-            )}
-          </>
-        )}
+              ) : (
+                <EmptyStateHealthPage
+                  tag_number={livestock?.livestock_tag || ""}
+                />
+              )}
+            </>
+          )}
 
-        {/* Growth Records Tab */}
-        {activeTab === "growth" && (
-          <>
-            {livestock?.growth_records?.length ? (
-              <div>
-                {/* Growth Chart */}
-                <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-                  <div className="px-5 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Weight Growth Trend
-                    </h3>
-                  </div>
-                  <div className="p-5">
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={growthData}
-                          margin={{
-                            top: 5,
-                            right: 30,
-                            left: 20,
-                            bottom: 5,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis
-                            label={{
-                              value: "Weight (kg)",
-                              angle: -90,
-                              position: "insideLeft",
-                            }}
-                          />
-                          <Tooltip />
-                          <Line
-                            type="monotone"
-                            dataKey="weight"
-                            stroke="#10B981"
-                            activeDot={{ r: 8 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
+          {/* Growth Records Tab */}
+          {activeTab === "growth" && (
+            <>
+              {livestock?.growth_records?.length ? (
+                <div className="space-y-4">
+                  {/* Growth Chart - Mobile Optimized */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Weight Growth Trend
+                      </h3>
+                    </div>
+                    <div className="p-4">
+                      <div className="h-48 sm:h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={growthData}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis
+                              label={{
+                                value: "Weight (kg)",
+                                angle: -90,
+                                position: "insideLeft",
+                              }}
+                            />
+                            <Tooltip />
+                            <Line
+                              type="monotone"
+                              dataKey="weight"
+                              stroke="#10B981"
+                              activeDot={{ r: 8 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Growth Stats */}
-                {/* Livestock Growth Records Component */}
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-6">
-                  {livestock?.growth_records?.map((record) => (
-                    <div
-                      key={record.id}
-                      className="bg-white overflow-hidden shadow-md rounded-lg border border-gray-100 hover:shadow-lg transition-all duration-200"
-                    >
-                      <div className="p-5">
+                  {/* Growth Records Cards - Mobile Optimized */}
+                  <div className="space-y-3">
+                    {livestock?.growth_records?.map((record) => (
+                      <div
+                        key={record.id}
+                        className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+                      >
                         {/* Header */}
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-3">
                             <div className="flex-shrink-0 bg-green-100 rounded-full p-2">
-                              <TrendingUp className="h-5 w-5 text-green-600" />
+                              <TrendingUp className="h-4 w-4 text-green-600" />
                             </div>
                             <div>
-                              <h3 className="font-medium text-gray-900">
+                              <h3 className="text-sm font-medium text-gray-900">
                                 {record.record_type ?? "N/A"}
                               </h3>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-xs text-gray-500">
                                 {record.period ?? "N/A"}
                               </p>
                             </div>
                           </div>
-                          <p className="text-sm font-medium text-gray-500">
+                          <p className="text-xs font-medium text-gray-500">
                             {record.record_date
                               ? formatDate(record.record_date)
                               : "No Date"}
                           </p>
                         </div>
 
-                        {/* Main metrics in a grid */}
-                        <div className="grid grid-cols-2 gap-3 mb-4">
+                        {/* Main metrics */}
+                        <div className="grid grid-cols-2 gap-3 mb-3">
                           <div className="bg-gray-50 rounded-lg p-3">
                             <p className="text-xs text-gray-500 mb-1">Weight</p>
                             <p className="text-lg font-bold text-gray-900">
@@ -1131,20 +999,16 @@ export default function AnimalDetailsPage() {
                         </div>
 
                         {/* Secondary metrics */}
-                        <div className="mt-4 space-y-2">
-                          <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span className="text-sm text-gray-500">
-                              Height
-                            </span>
-                            <span className="text-sm font-medium text-gray-900">
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Height</span>
+                            <span className="font-medium text-gray-900">
                               {record.height ?? "N/A"} cm
                             </span>
                           </div>
-                          <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span className="text-sm text-gray-500">
-                              Length
-                            </span>
-                            <span className="text-sm font-medium text-gray-900">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Length</span>
+                            <span className="font-medium text-gray-900">
                               {record.length ?? "N/A"} cm
                             </span>
                           </div>
@@ -1152,52 +1016,38 @@ export default function AnimalDetailsPage() {
 
                         {/* Notes */}
                         {record.notes && (
-                          <div className="mt-4 bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
+                          <div className="mt-3 bg-blue-50 p-3 rounded-lg text-xs text-blue-800">
                             <p className="font-medium text-blue-800 mb-1">
                               Notes
                             </p>
-                            <p>{record.notes ?? "No notes"}</p>
+                            <p className="line-clamp-2">{record.notes}</p>
                           </div>
                         )}
                       </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Growth Records Table */}
-                <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                  <div className="px-5 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Monthly Weight Records
-                    </h3>
+                    ))}
                   </div>
-                  <div className="bg-white">
+
+                  {/* Growth Records Table - Mobile Optimized */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Monthly Weight Records
+                      </h3>
+                    </div>
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Month
                             </th>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Weight (kg)
                             </th>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Change
                             </th>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Growth %
                             </th>
                           </tr>
@@ -1216,13 +1066,13 @@ export default function AnimalDetailsPage() {
 
                             return (
                               <tr key={record.month}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                   {record.month}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td className="px-4 py-3 text-sm text-gray-500">
                                   {record.weight}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td className="px-4 py-3 text-sm">
                                   {index > 0 ? (
                                     <span
                                       className={
@@ -1238,12 +1088,11 @@ export default function AnimalDetailsPage() {
                                     "-"
                                   )}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td className="px-4 py-3 text-sm">
                                   {index > 0 ? (
                                     <span
                                       className={
-                                        // @ts-expect-error err
-                                        parseFloat(growthPercent) >= 0
+                                        parseFloat(growthPercent as string) >= 0
                                           ? "text-green-600"
                                           : "text-red-600"
                                       }
@@ -1262,38 +1111,30 @@ export default function AnimalDetailsPage() {
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <EmptyStateGrowthPage />
-            )}
-          </>
-        )}
+              ) : (
+                <EmptyStateGrowthPage />
+              )}
+            </>
+          )}
 
-        {/* Expense Records Tab */}
-        {activeTab === "expenses" && (
-          <>
-            {livestock?.expense_records?.length ? (
-              <div>
-                <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-                  <ul className="divide-y divide-gray-200">
-                    {livestock.expense_records.map((record) => (
-                      <li key={record.id}>
-                        <div className="px-4 py-4 sm:px-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
+          {/* Expense Records Tab */}
+          {activeTab === "expenses" && (
+            <>
+              {livestock?.expense_records?.length ? (
+                <div className="space-y-4">
+                  {/* Expense records list - Mobile Optimized */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="divide-y divide-gray-200">
+                      {livestock.expense_records.map((record) => (
+                        <div key={record.id} className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">
                                 {record.category}
                               </p>
-                              <p className="ml-2 flex-shrink-0 inline-flex">
-                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                  ${record.amount}
-                                </span>
-                              </p>
-                            </div>
-                            <div className="ml-2 flex-shrink-0 flex">
-                              <p className="text-sm text-gray-500">
+                              <p className="text-xs text-gray-500">
                                 {new Date(
-                                  record.expense_date,
+                                  record.expense_date
                                 ).toLocaleDateString("en-US", {
                                   year: "numeric",
                                   month: "short",
@@ -1301,357 +1142,329 @@ export default function AnimalDetailsPage() {
                                 })}
                               </p>
                             </div>
+                            <span className="ml-3 px-2 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                              ${record.amount}
+                            </span>
                           </div>
-                          <div className="mt-2">
-                            <p className="text-sm text-gray-500">
+                          {record.notes && (
+                            <p className="text-xs text-gray-500 line-clamp-2">
                               {record.notes}
                             </p>
-                          </div>
+                          )}
                         </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Expense Stats and Charts */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Expense by Category Chart */}
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="px-5 py-4 border-b border-gray-200">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        Expenses by Category
-                      </h3>
+                      ))}
                     </div>
-                    <div className="p-5">
-                      <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={expenseBreakdown}
-                              cx="50%"
-                              cy="50%"
-                              labelLine={false}
-                              label={({ name, percent }) =>
-                                `${name}: ${(percent * 100).toFixed(0)}%`
+                  </div>
+
+                  {/* Expense Charts - Mobile Optimized */}
+                  <div className="space-y-4">
+                    {/* Expense by Category Chart */}
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                      <div className="px-4 py-3 border-b border-gray-200">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Expenses by Category
+                        </h3>
+                      </div>
+                      <div className="p-4">
+                        <div className="h-48 sm:h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={expenseBreakdown}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) =>
+                                  `${name}: ${(percent * 100).toFixed(0)}%`
+                                }
+                                outerRadius={60}
+                                fill="#8884d8"
+                                dataKey="value"
+                              >
+                                {expenseBreakdown.map((entry, index) => (
+                                  <Cell
+                                    key={`cell-${index}`}
+                                    fill={COLORS[index % COLORS.length]}
+                                  />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(value) => `${value}`} />
+                              <Legend />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Monthly Expense Trend */}
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                      <div className="px-4 py-3 border-b border-gray-200">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Monthly Expense Trend
+                        </h3>
+                      </div>
+                      <div className="p-4">
+                        <div className="h-48 sm:h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={
+                                livestock?.expense_records?.map((record) => ({
+                                  month: new Date(
+                                    record.expense_date
+                                  ).toLocaleString("default", {
+                                    month: "short",
+                                  }),
+                                  amount: record.amount,
+                                })) || []
                               }
-                              outerRadius={80}
-                              fill="#8884d8"
-                              dataKey="value"
+                              margin={{
+                                top: 5,
+                                right: 30,
+                                left: 20,
+                                bottom: 5,
+                              }}
                             >
-                              {expenseBreakdown.map((entry, index) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={COLORS[index % COLORS.length]}
-                                />
-                              ))}
-                            </Pie>
-                            <Tooltip formatter={(value) => `$${value}`} />
-                            <Legend />
-                          </PieChart>
-                        </ResponsiveContainer>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="month" />
+                              <YAxis
+                                label={{
+                                  value: "Amount ($)",
+                                  angle: -90,
+                                  position: "insideLeft",
+                                }}
+                              />
+                              <Tooltip formatter={(value) => `${value}`} />
+                              <Bar dataKey="amount" fill="#FF8042" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Monthly Expense Trend */}
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="px-5 py-4 border-b border-gray-200">
+                  {/* Expense Summary Stats - Mobile Optimized */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-red-100 rounded-md p-2">
+                          <DollarSign className="h-5 w-5 text-red-600" />
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-xs font-medium text-gray-500">
+                            Total Expenses (YTD)
+                          </p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            $2,800
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-blue-100 rounded-md p-2">
+                          <DollarSign className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-xs font-medium text-gray-500">
+                            Average Monthly Cost
+                          </p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            $233
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-yellow-100 rounded-md p-2">
+                          <TrendingUp className="h-5 w-5 text-yellow-600" />
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-xs font-medium text-gray-500">
+                            Cost Per Kg Gained
+                          </p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            $24.35
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <EmptyStateExpenses />
+              )}
+            </>
+          )}
+
+          {/* Feed & Nutrition Tab */}
+          {activeTab === "feed" && (
+            <>
+              {livestock?.growth_records?.length ? (
+                <div className="space-y-4">
+                  {/* Feed Consumption Chart - Mobile Optimized */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-200">
                       <h3 className="text-lg font-medium text-gray-900">
-                        Monthly Expense Trend
+                        Monthly Feed Consumption
                       </h3>
                     </div>
-                    <div className="p-5">
-                      <div className="h-64">
+                    <div className="p-4">
+                      <div className="h-48 sm:h-64">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
-                            data={
-                              livestock?.expense_records?.map((record) => ({
-                                month: new Date(
-                                  record.expense_date,
-                                ).toLocaleString("default", { month: "short" }),
-                                amount: record.amount,
-                              })) || []
-                            }
+                            data={feedConsumption}
                             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                           >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="month" />
                             <YAxis
                               label={{
-                                value: "Amount ($)",
+                                value: "Amount (kg)",
                                 angle: -90,
                                 position: "insideLeft",
                               }}
                             />
-                            <Tooltip formatter={(value) => `$${value}`} />
-                            <Bar dataKey="amount" fill="#FF8042" />
+                            <Tooltip />
+                            <Bar dataKey="amount" fill="#10B981" />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Expense Summary Stats */}
-                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
+                  {/* Feed Summary Stats - Mobile Optimized */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
-                          <DollarSign className="h-6 w-6 text-red-600" />
+                        <div className="flex-shrink-0 bg-green-100 rounded-md p-2">
+                          <TrendingUp className="h-5 w-5 text-green-600" />
                         </div>
-                        <div className="ml-5 w-0 flex-1">
-                          <dl>
-                            <dt className="text-sm font-medium text-gray-500 truncate">
-                              Total Expenses (YTD)
-                            </dt>
-                            <dd className="text-lg font-semibold text-gray-900">
-                              $2,800
-                            </dd>
-                          </dl>
+                        <div className="ml-3">
+                          <p className="text-xs font-medium text-gray-500">
+                            Average Consumption
+                          </p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            441 kg/month
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-blue-100 rounded-md p-2">
+                          <TrendingUp className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-xs font-medium text-gray-500">
+                            Feed Efficiency
+                          </p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            1.6 kg milk/kg feed
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-yellow-100 rounded-md p-2">
+                          <TrendingUp className="h-5 w-5 text-yellow-600" />
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-xs font-medium text-gray-500">
+                            Daily Average
+                          </p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            14.7 kg/day
+                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                          <DollarSign className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div className="ml-5 w-0 flex-1">
-                          <dl>
-                            <dt className="text-sm font-medium text-gray-500 truncate">
-                              Average Monthly Cost
-                            </dt>
-                            <dd className="text-lg font-semibold text-gray-900">
-                              $233
-                            </dd>
-                          </dl>
-                        </div>
-                      </div>
+                  {/* Current Diet Details - Mobile Optimized */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Current Diet Composition
+                      </h3>
                     </div>
-                  </div>
-
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
-                          <TrendingUp className="h-6 w-6 text-yellow-600" />
-                        </div>
-                        <div className="ml-5 w-0 flex-1">
-                          <dl>
-                            <dt className="text-sm font-medium text-gray-500 truncate">
-                              Cost Per Kg Gained
-                            </dt>
-                            <dd className="text-lg font-semibold text-gray-900">
-                              $24.35
-                            </dd>
-                          </dl>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <EmptyStateExpenses />
-            )}
-          </>
-        )}
-
-        {/* Feed & Nutrition Tab */}
-        {activeTab === "feed" && (
-          <>
-            {livestock?.growth_records?.length ? (
-              <div>
-                {/* Feed Consumption Chart */}
-                <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-                  <div className="px-5 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Monthly Feed Consumption
-                    </h3>
-                  </div>
-                  <div className="p-5">
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={feedConsumption}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis
-                            label={{
-                              value: "Amount (kg)",
-                              angle: -90,
-                              position: "insideLeft",
-                            }}
-                          />
-                          <Tooltip />
-                          <Bar dataKey="amount" fill="#10B981" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Feed Summary Stats */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
-                          <TrendingUp className="h-6 w-6 text-green-600" />
-                        </div>
-                        <div className="ml-5 w-0 flex-1">
-                          <dl>
-                            <dt className="text-sm font-medium text-gray-500 truncate">
-                              Average Consumption
-                            </dt>
-                            <dd className="text-lg font-semibold text-gray-900">
-                              441 kg/month
-                            </dd>
-                          </dl>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                          <TrendingUp className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div className="ml-5 w-0 flex-1">
-                          <dl>
-                            <dt className="text-sm font-medium text-gray-500 truncate">
-                              Feed Efficiency
-                            </dt>
-                            <dd className="text-lg font-semibold text-gray-900">
-                              1.6 kg milk/kg feed
-                            </dd>
-                          </dl>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
-                          <TrendingUp className="h-6 w-6 text-yellow-600" />
-                        </div>
-                        <div className="ml-5 w-0 flex-1">
-                          <dl>
-                            <dt className="text-sm font-medium text-gray-500 truncate">
-                              Daily Average
-                            </dt>
-                            <dd className="text-lg font-semibold text-gray-900">
-                              14.7 kg/day
-                            </dd>
-                          </dl>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Current Diet Details */}
-                <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
-                  <div className="px-5 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Current Diet Composition
-                    </h3>
-                  </div>
-                  <div className="p-5">
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Component
                             </th>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Percentage
                             </th>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Daily Amount (kg)
                             </th>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Nutritional Value
                             </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           <tr>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
                               Hay
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               40%
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               5.9 kg
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               Medium
                             </td>
                           </tr>
                           <tr>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
                               Grain Mix
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               30%
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               4.4 kg
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               High
                             </td>
                           </tr>
                           <tr>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
                               Silage
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               20%
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               2.9 kg
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               Medium-High
                             </td>
                           </tr>
                           <tr>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
                               Protein Supplement
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               10%
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               1.5 kg
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500">
                               Very High
                             </td>
                           </tr>
@@ -1659,81 +1472,63 @@ export default function AnimalDetailsPage() {
                       </table>
                     </div>
                   </div>
-                </div>
 
-                {/* Diet Modification History */}
-                <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                  <div className="px-5 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Diet Modification History
-                    </h3>
-                  </div>
-                  <div className="p-5">
-                    <ul className="divide-y divide-gray-200">
-                      <li className="py-4">
-                        <div className="flex space-x-3">
-                          <div className="flex-1 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <h3 className="text-sm font-medium">
-                                Increased Protein Content
+                  {/* Diet Modification History - Mobile Optimized */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Diet Modification History
+                      </h3>
+                    </div>
+                    <div className="p-4">
+                      <div className="space-y-4">
+                        {[
+                          {
+                            title: "Increased Protein Content",
+                            date: "Aug 22, 2024",
+                            description:
+                              "Increased protein supplement from 8% to 10% to support milk production during peak lactation period.",
+                          },
+                          {
+                            title: "Adjusted Grain Mix",
+                            date: "Jul 10, 2024",
+                            description:
+                              "Modified grain mix composition to include more corn for increased energy content.",
+                          },
+                          {
+                            title: "Started New Silage Batch",
+                            date: "Jun 05, 2024",
+                            description:
+                              "Began using new silage batch with higher moisture content. Adjusted other components accordingly.",
+                          },
+                        ].map((item, index) => (
+                          <div
+                            key={index}
+                            className="border-l-4 border-green-500 pl-4"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1">
+                              <h3 className="text-sm font-medium text-gray-900">
+                                {item.title}
                               </h3>
-                              <p className="text-sm text-gray-500">
-                                Aug 22, 2024
+                              <p className="text-xs text-gray-500">
+                                {item.date}
                               </p>
                             </div>
-                            <p className="text-sm text-gray-500">
-                              Increased protein supplement from 8% to 10% to
-                              support milk production during peak lactation
-                              period.
+                            <p className="text-xs text-gray-500 line-clamp-3">
+                              {item.description}
                             </p>
                           </div>
-                        </div>
-                      </li>
-                      <li className="py-4">
-                        <div className="flex space-x-3">
-                          <div className="flex-1 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <h3 className="text-sm font-medium">
-                                Adjusted Grain Mix
-                              </h3>
-                              <p className="text-sm text-gray-500">
-                                Jul 10, 2024
-                              </p>
-                            </div>
-                            <p className="text-sm text-gray-500">
-                              Modified grain mix composition to include more
-                              corn for increased energy content.
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-                      <li className="py-4">
-                        <div className="flex space-x-3">
-                          <div className="flex-1 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <h3 className="text-sm font-medium">
-                                Started New Silage Batch
-                              </h3>
-                              <p className="text-sm text-gray-500">
-                                Jun 05, 2024
-                              </p>
-                            </div>
-                            <p className="text-sm text-gray-500">
-                              Began using new silage batch with higher moisture
-                              content. Adjusted other components accordingly.
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-                    </ul>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <EmptyStateFeedManagement />
-            )}
-          </>
-        )}
+              ) : (
+                <EmptyStateFeedManagement />
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

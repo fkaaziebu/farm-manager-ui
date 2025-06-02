@@ -13,8 +13,6 @@ import {
   ChevronRight,
   UserCheck,
   TrendingUp,
-  Menu,
-  X,
   FileText,
 } from "lucide-react";
 import {
@@ -89,7 +87,6 @@ export default function WorkerDetailsPage() {
 
   // States
   const [activeTab, setActiveTab] = useState("overview");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Function to format date
   const formatDate = (dateString: string) => {
@@ -150,8 +147,17 @@ export default function WorkerDetailsPage() {
                 <div className="mt-1 flex items-center text-sm text-gray-500">
                   <Briefcase size={16} className="mr-1.5 flex-shrink-0" />
                   <p className="truncate">
-                    {worker?.roles.join(", ")} •{" "}
-                    {worker?.skills && worker?.skills.join(", ")}
+                    {worker?.roles && worker.roles.length > 0
+                      ? worker.roles
+                          .map((role, index) =>
+                            index < 2
+                              ? role.charAt(0).toUpperCase() +
+                                role.slice(1).toLowerCase()
+                              : null
+                          )
+                          .filter(Boolean)
+                          .join(", ")
+                      : ""}
                   </p>
                 </div>
               </div>
@@ -206,85 +212,61 @@ export default function WorkerDetailsPage() {
       </header>
 
       {/* Mobile Tab Menu Button */}
-      <div className="border-b border-gray-200 bg-white sm:hidden">
-        <div className="px-4 py-3 flex justify-between items-center">
-          <div className="font-medium text-green-600">
-            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-          </div>
+      <div className="bg-white border-b md:mt-3 border-gray-200 sticky top-0 z-20">
+        <div className="px-4 md:hidden flex py-3 space-x-2 border-t border-gray-200  overflow-x-auto">
           <button
             type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none"
+            onClick={() => {
+              setActiveTab("overview");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              activeTab === "overview"
+                ? "bg-green-50 text-green-700"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
           >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" aria-hidden="true" />
-            ) : (
-              <Menu className="h-6 w-6" aria-hidden="true" />
-            )}
+            Overview
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("performance");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              activeTab === "performance"
+                ? "bg-green-50 text-green-700"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Performance
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("tasks");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              activeTab === "tasks"
+                ? "bg-green-50 text-green-700"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Tasks & Activities
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("areas");
+            }}
+            className={`px-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              activeTab === "areas"
+                ? "bg-green-50 text-green-700"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Assigned Areas
           </button>
         </div>
-
-        {/* Mobile tab dropdown */}
-        {mobileMenuOpen && (
-          <div className="px-4 py-3 space-y-2 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("overview");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-4 py-2 rounded-md text-sm font-medium ${
-                activeTab === "overview"
-                  ? "bg-green-50 text-green-700"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              Overview
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("performance");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-4 py-2 rounded-md text-sm font-medium ${
-                activeTab === "performance"
-                  ? "bg-green-50 text-green-700"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              Performance
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("tasks");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-4 py-2 rounded-md text-sm font-medium ${
-                activeTab === "tasks"
-                  ? "bg-green-50 text-green-700"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              Tasks & Activities
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("areas");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-4 py-2 rounded-md text-sm font-medium ${
-                activeTab === "areas"
-                  ? "bg-green-50 text-green-700"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              Assigned Areas
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Desktop Tab navigation */}
@@ -358,7 +340,17 @@ export default function WorkerDetailsPage() {
                       {worker?.name}
                     </h3>
                     <p className="mt-1 max-w-2xl text-sm text-gray-500 text-center">
-                      {worker?.roles.join(", ")}
+                      {worker?.roles && worker.roles.length > 0
+                        ? worker.roles
+                            .map((role, index) =>
+                              index < 5
+                                ? role.charAt(0).toUpperCase() +
+                                  role.slice(1).toLowerCase()
+                                : null
+                            )
+                            .filter(Boolean)
+                            .join(", ")
+                        : ""}
                     </p>
                     {/* <div className="mt-2 flex items-center">
                       <div className="flex items-center">
@@ -886,6 +878,7 @@ export default function WorkerDetailsPage() {
                                   onClick={() => {
                                     onOpen("update-task", {
                                       taskId: task.id,
+                                      // @ts-expect-error error
                                       task: task,
                                     });
                                   }}

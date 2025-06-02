@@ -31,6 +31,7 @@ type Documents = {
     "mutation RegisterAdmin($name: String!, $email: String!, $password: String!) {\n  registerAdmin(name: $name, email: $email, password: $password) {\n    id\n  }\n}": typeof types.RegisterAdminDocument,
     "mutation UpdateBarn($barnUnitId: String!, $barn: UpdateBarnInput!) {\n  updateBarn(barnUnitId: $barnUnitId, barn: $barn) {\n    id\n  }\n}": typeof types.UpdateBarnDocument,
     "mutation UpdateFarm($farmTag: String!, $name: String, $location: String, $area: String, $farmType: FarmType) {\n  updateFarm(\n    farmTag: $farmTag\n    name: $name\n    location: $location\n    area: $area\n    farmType: $farmType\n  ) {\n    id\n  }\n}": typeof types.UpdateFarmDocument,
+    "mutation UpdateLivestockBreedingRecord($breedingRecordId: Float!, $breedingRecord: UpdateBreedingRecordInput!) {\n  updateLivestockBreedingRecord(\n    breedingRecordId: $breedingRecordId\n    breedingRecord: $breedingRecord\n  ) {\n    id\n  }\n}": typeof types.UpdateLivestockBreedingRecordDocument,
     "mutation UpdateLivestock($livestockTag: String!, $livestock: UpdateLivestockInput!) {\n  updateLivestock(livestockTag: $livestockTag, livestock: $livestock) {\n    id\n  }\n}": typeof types.UpdateLivestockDocument,
     "mutation UpdatePen($penUnitId: String!, $pen: UpdatePenInput!) {\n  updatePen(penUnitId: $penUnitId, pen: $pen) {\n    id\n  }\n}": typeof types.UpdatePenDocument,
     "mutation UpdateTask($taskId: Float!, $task: UpdateTaskInput!) {\n  updateTask(taskId: $taskId, task: $task) {\n    id\n  }\n}": typeof types.UpdateTaskDocument,
@@ -44,6 +45,7 @@ type Documents = {
     "query ListLivestock($searchTerm: String!, $pagination: PaginationInput, $sort: [LivestockSortInput!]) {\n  listLivestock(searchTerm: $searchTerm, pagination: $pagination, sort: $sort) {\n    edges {\n      node {\n        availability_status\n        birth_date\n        gender\n        health_status\n        livestock_tag\n        weight\n        updated_at\n        livestock_type\n        pen {\n          unit_id\n          barn {\n            unit_id\n          }\n        }\n        inserted_at\n        id\n      }\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n      hasPreviousPage\n      startCursor\n    }\n  }\n}": typeof types.ListLivestockDocument,
     "query ListPens($searchTerm: String!, $pagination: PaginationInput, $sort: [PenSortInput!]) {\n  listPens(searchTerm: $searchTerm, pagination: $pagination, sort: $sort) {\n    pageInfo {\n      endCursor\n      hasNextPage\n      hasPreviousPage\n      startCursor\n    }\n    edges {\n      node {\n        area_sqm\n        bedding_type\n        capacity\n        feeder_type\n        id\n        name\n        status\n        unit_id\n        barn {\n          name\n        }\n        livestock {\n          id\n          livestock_type\n        }\n      }\n    }\n  }\n}": typeof types.ListPensDocument,
     "query ListTask($filter: TaskFilterInput) {\n  listTask(filter: $filter) {\n    id\n    starting_date\n    status\n    type\n    worker {\n      name\n    }\n    completion_date\n    notes\n    barns {\n      id\n      unit_id\n      name\n    }\n    pens {\n      id\n      unit_id\n      name\n    }\n    description\n  }\n}": typeof types.ListTaskDocument,
+    "query LivestockBreedingPairPrediction($livestockTag: String!) {\n  livestockBreedingPairPrediction(livestockTag: $livestockTag) {\n    description\n    breedingPairs {\n      id\n      livestock_tag\n    }\n  }\n}": typeof types.LivestockBreedingPairPredictionDocument,
 };
 const documents: Documents = {
     "mutation AddBarnsToFarm($farmTag: String!, $barns: [BarnInput!]!) {\n  addBarnsToFarm(farmTag: $farmTag, barns: $barns) {\n    id\n  }\n}": types.AddBarnsToFarmDocument,
@@ -63,6 +65,7 @@ const documents: Documents = {
     "mutation RegisterAdmin($name: String!, $email: String!, $password: String!) {\n  registerAdmin(name: $name, email: $email, password: $password) {\n    id\n  }\n}": types.RegisterAdminDocument,
     "mutation UpdateBarn($barnUnitId: String!, $barn: UpdateBarnInput!) {\n  updateBarn(barnUnitId: $barnUnitId, barn: $barn) {\n    id\n  }\n}": types.UpdateBarnDocument,
     "mutation UpdateFarm($farmTag: String!, $name: String, $location: String, $area: String, $farmType: FarmType) {\n  updateFarm(\n    farmTag: $farmTag\n    name: $name\n    location: $location\n    area: $area\n    farmType: $farmType\n  ) {\n    id\n  }\n}": types.UpdateFarmDocument,
+    "mutation UpdateLivestockBreedingRecord($breedingRecordId: Float!, $breedingRecord: UpdateBreedingRecordInput!) {\n  updateLivestockBreedingRecord(\n    breedingRecordId: $breedingRecordId\n    breedingRecord: $breedingRecord\n  ) {\n    id\n  }\n}": types.UpdateLivestockBreedingRecordDocument,
     "mutation UpdateLivestock($livestockTag: String!, $livestock: UpdateLivestockInput!) {\n  updateLivestock(livestockTag: $livestockTag, livestock: $livestock) {\n    id\n  }\n}": types.UpdateLivestockDocument,
     "mutation UpdatePen($penUnitId: String!, $pen: UpdatePenInput!) {\n  updatePen(penUnitId: $penUnitId, pen: $pen) {\n    id\n  }\n}": types.UpdatePenDocument,
     "mutation UpdateTask($taskId: Float!, $task: UpdateTaskInput!) {\n  updateTask(taskId: $taskId, task: $task) {\n    id\n  }\n}": types.UpdateTaskDocument,
@@ -76,6 +79,7 @@ const documents: Documents = {
     "query ListLivestock($searchTerm: String!, $pagination: PaginationInput, $sort: [LivestockSortInput!]) {\n  listLivestock(searchTerm: $searchTerm, pagination: $pagination, sort: $sort) {\n    edges {\n      node {\n        availability_status\n        birth_date\n        gender\n        health_status\n        livestock_tag\n        weight\n        updated_at\n        livestock_type\n        pen {\n          unit_id\n          barn {\n            unit_id\n          }\n        }\n        inserted_at\n        id\n      }\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n      hasPreviousPage\n      startCursor\n    }\n  }\n}": types.ListLivestockDocument,
     "query ListPens($searchTerm: String!, $pagination: PaginationInput, $sort: [PenSortInput!]) {\n  listPens(searchTerm: $searchTerm, pagination: $pagination, sort: $sort) {\n    pageInfo {\n      endCursor\n      hasNextPage\n      hasPreviousPage\n      startCursor\n    }\n    edges {\n      node {\n        area_sqm\n        bedding_type\n        capacity\n        feeder_type\n        id\n        name\n        status\n        unit_id\n        barn {\n          name\n        }\n        livestock {\n          id\n          livestock_type\n        }\n      }\n    }\n  }\n}": types.ListPensDocument,
     "query ListTask($filter: TaskFilterInput) {\n  listTask(filter: $filter) {\n    id\n    starting_date\n    status\n    type\n    worker {\n      name\n    }\n    completion_date\n    notes\n    barns {\n      id\n      unit_id\n      name\n    }\n    pens {\n      id\n      unit_id\n      name\n    }\n    description\n  }\n}": types.ListTaskDocument,
+    "query LivestockBreedingPairPrediction($livestockTag: String!) {\n  livestockBreedingPairPrediction(livestockTag: $livestockTag) {\n    description\n    breedingPairs {\n      id\n      livestock_tag\n    }\n  }\n}": types.LivestockBreedingPairPredictionDocument,
 };
 
 /**
@@ -163,6 +167,10 @@ export function graphql(source: "mutation UpdateFarm($farmTag: String!, $name: S
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation UpdateLivestockBreedingRecord($breedingRecordId: Float!, $breedingRecord: UpdateBreedingRecordInput!) {\n  updateLivestockBreedingRecord(\n    breedingRecordId: $breedingRecordId\n    breedingRecord: $breedingRecord\n  ) {\n    id\n  }\n}"): (typeof documents)["mutation UpdateLivestockBreedingRecord($breedingRecordId: Float!, $breedingRecord: UpdateBreedingRecordInput!) {\n  updateLivestockBreedingRecord(\n    breedingRecordId: $breedingRecordId\n    breedingRecord: $breedingRecord\n  ) {\n    id\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation UpdateLivestock($livestockTag: String!, $livestock: UpdateLivestockInput!) {\n  updateLivestock(livestockTag: $livestockTag, livestock: $livestock) {\n    id\n  }\n}"): (typeof documents)["mutation UpdateLivestock($livestockTag: String!, $livestock: UpdateLivestockInput!) {\n  updateLivestock(livestockTag: $livestockTag, livestock: $livestock) {\n    id\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -212,6 +220,10 @@ export function graphql(source: "query ListPens($searchTerm: String!, $paginatio
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "query ListTask($filter: TaskFilterInput) {\n  listTask(filter: $filter) {\n    id\n    starting_date\n    status\n    type\n    worker {\n      name\n    }\n    completion_date\n    notes\n    barns {\n      id\n      unit_id\n      name\n    }\n    pens {\n      id\n      unit_id\n      name\n    }\n    description\n  }\n}"): (typeof documents)["query ListTask($filter: TaskFilterInput) {\n  listTask(filter: $filter) {\n    id\n    starting_date\n    status\n    type\n    worker {\n      name\n    }\n    completion_date\n    notes\n    barns {\n      id\n      unit_id\n      name\n    }\n    pens {\n      id\n      unit_id\n      name\n    }\n    description\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query LivestockBreedingPairPrediction($livestockTag: String!) {\n  livestockBreedingPairPrediction(livestockTag: $livestockTag) {\n    description\n    breedingPairs {\n      id\n      livestock_tag\n    }\n  }\n}"): (typeof documents)["query LivestockBreedingPairPrediction($livestockTag: String!) {\n  livestockBreedingPairPrediction(livestockTag: $livestockTag) {\n    description\n    breedingPairs {\n      id\n      livestock_tag\n    }\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
