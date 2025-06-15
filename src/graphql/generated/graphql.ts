@@ -20,6 +20,12 @@ export type Scalars = {
   JSON: { input: any; output: any; }
 };
 
+export type AcceptRequestResponse = {
+  __typename?: 'AcceptRequestResponse';
+  code: Scalars['Float']['output'];
+  message: Scalars['String']['output'];
+};
+
 export type Admin = {
   __typename?: 'Admin';
   assigned_tasks?: Maybe<Array<Task>>;
@@ -27,6 +33,7 @@ export type Admin = {
   farms?: Maybe<Array<Farm>>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  reviews?: Maybe<Array<Review>>;
   workers?: Maybe<Array<Worker>>;
 };
 
@@ -37,6 +44,7 @@ export type AdminAuthResponse = {
   farms?: Maybe<Array<Farm>>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  reviews?: Maybe<Array<Review>>;
   token: Scalars['String']['output'];
   workers?: Maybe<Array<Worker>>;
 };
@@ -183,6 +191,12 @@ export enum BatchHealthStatus {
   Quarantined = 'QUARANTINED',
   Recovering = 'RECOVERING'
 }
+
+export type BreedingPairPredictionResponse = {
+  __typename?: 'BreedingPairPredictionResponse';
+  breedingPairs: Array<Livestock>;
+  description: Scalars['String']['output'];
+};
 
 export type BreedingRecord = {
   __typename?: 'BreedingRecord';
@@ -468,6 +482,29 @@ export type Greenhouse = {
   ventilation_system?: Maybe<Scalars['String']['output']>;
 };
 
+export type Group = {
+  __typename?: 'Group';
+  admin?: Maybe<Admin>;
+  farms?: Maybe<Array<Farm>>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  requests?: Maybe<Array<Request>>;
+  workers?: Maybe<Array<Worker>>;
+};
+
+export type GroupConnection = {
+  __typename?: 'GroupConnection';
+  count: Scalars['Int']['output'];
+  edges: Array<GroupTypeEdge>;
+  pageInfo: PageInfo;
+};
+
+export type GroupTypeEdge = {
+  __typename?: 'GroupTypeEdge';
+  cursor: Scalars['String']['output'];
+  node: Group;
+};
+
 /** Period of growth record measurement */
 export enum GrowthPeriod {
   Adulthood = 'ADULTHOOD',
@@ -715,6 +752,7 @@ export enum LivestockUnavailabilityReason {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  acceptRequest: AcceptRequestResponse;
   addBarnsToFarm: Farm;
   addLivestockBreedingRecord: BreedingRecord;
   addLivestockExpenseRecord: ExpenseRecord;
@@ -723,11 +761,14 @@ export type Mutation = {
   addLivestockSalesRecord: SalesRecord;
   addLivestockToPen: Pen;
   addPensToBarn: Barn;
+  addWorkerReview: Review;
   addWorkersToFarm: Farm;
   assignTaskToWorker: Task;
   assignWorkersToFarm: Farm;
   completeReport: Report;
+  createAuditor: Worker;
   createFarm: Farm;
+  createGroup: Group;
   createReport: Report;
   createTask: Task;
   loginAdmin: AdminAuthResponse;
@@ -735,7 +776,9 @@ export type Mutation = {
   markLivestockAsUnavailable: Livestock;
   registerAdmin: Admin;
   requestAdminPasswordReset: RequestResetResponse;
+  requestFarmsToJoinGroup: RequestToJoinResponse;
   requestWorkerPasswordReset: RequestResetResponse;
+  requestWorkersToJoinGroup: RequestToJoinResponse;
   resetAdminPassword: ResetResponse;
   resetWorkerPassword: ResetResponse;
   updateBarn: Barn;
@@ -749,8 +792,14 @@ export type Mutation = {
   updatePen: Pen;
   updateReport: Report;
   updateTask: Task;
+  updateTaskProgress: Task;
   updateWorker: Worker;
   verifyReport: Report;
+};
+
+
+export type MutationAcceptRequestArgs = {
+  requestId: Scalars['String']['input'];
 };
 
 
@@ -803,6 +852,12 @@ export type MutationAddPensToBarnArgs = {
 };
 
 
+export type MutationAddWorkerReviewArgs = {
+  review: ReviewInput;
+  workerTag: Scalars['String']['input'];
+};
+
+
 export type MutationAddWorkersToFarmArgs = {
   farmTag: Scalars['String']['input'];
   workers: Array<WorkerInput>;
@@ -822,7 +877,13 @@ export type MutationAssignWorkersToFarmArgs = {
 
 
 export type MutationCompleteReportArgs = {
-  reportTag: Scalars['String']['input'];
+  reportId: Scalars['String']['input'];
+};
+
+
+export type MutationCreateAuditorArgs = {
+  groupId: Scalars['String']['input'];
+  worker: WorkerInput;
 };
 
 
@@ -832,6 +893,11 @@ export type MutationCreateFarmArgs = {
   latitude: Scalars['Float']['input'];
   location: Scalars['String']['input'];
   longitude: Scalars['Float']['input'];
+  name: Scalars['String']['input'];
+};
+
+
+export type MutationCreateGroupArgs = {
   name: Scalars['String']['input'];
 };
 
@@ -877,8 +943,20 @@ export type MutationRequestAdminPasswordResetArgs = {
 };
 
 
+export type MutationRequestFarmsToJoinGroupArgs = {
+  farmTags: Array<Scalars['String']['input']>;
+  groupId: Scalars['String']['input'];
+};
+
+
 export type MutationRequestWorkerPasswordResetArgs = {
   email: Scalars['String']['input'];
+};
+
+
+export type MutationRequestWorkersToJoinGroupArgs = {
+  groupId: Scalars['String']['input'];
+  workerEmails: Array<Scalars['String']['input']>;
 };
 
 
@@ -955,12 +1033,18 @@ export type MutationUpdatePenArgs = {
 
 export type MutationUpdateReportArgs = {
   reportData: UpdateReportInput;
-  reportTag: Scalars['String']['input'];
+  reportId: Scalars['String']['input'];
 };
 
 
 export type MutationUpdateTaskArgs = {
   task: UpdateTaskInput;
+  taskId: Scalars['Float']['input'];
+};
+
+
+export type MutationUpdateTaskProgressArgs = {
+  task: UpdateTaskProgressInput;
   taskId: Scalars['Float']['input'];
 };
 
@@ -973,7 +1057,7 @@ export type MutationUpdateWorkerArgs = {
 
 export type MutationVerifyReportArgs = {
   coordinate: CoordinatesInput;
-  reportTag: Scalars['String']['input'];
+  reportId: Scalars['String']['input'];
   verificationCode: Scalars['String']['input'];
 };
 
@@ -1152,6 +1236,8 @@ export type QrCodeResponse = {
 export type Query = {
   __typename?: 'Query';
   getBarn: Barn;
+  getGroup: Group;
+  getGroupAuditor: Worker;
   getLivestock: Livestock;
   getPen: Pen;
   getQrCode: QrCodeResponse;
@@ -1159,16 +1245,31 @@ export type Query = {
   getWorker: Worker;
   listBarns: BarnConnection;
   listFarms: FarmConnection;
+  listGroupAuditors: WorkerConnection;
+  listGroupFarms: FarmConnection;
+  listGroups: GroupConnection;
   listLivestock: LivestockConnection;
   listPens: PenConnection;
   listReports: ReportConnection;
   listTask: Array<Task>;
   listWorkers: WorkerConnection;
+  livestockBreedingPairPrediction: BreedingPairPredictionResponse;
 };
 
 
 export type QueryGetBarnArgs = {
   barnUnitId: Scalars['String']['input'];
+};
+
+
+export type QueryGetGroupArgs = {
+  groupId: Scalars['String']['input'];
+};
+
+
+export type QueryGetGroupAuditorArgs = {
+  groupId: Scalars['String']['input'];
+  workerTag: Scalars['String']['input'];
 };
 
 
@@ -1188,7 +1289,7 @@ export type QueryGetQrCodeArgs = {
 
 
 export type QueryGetReportArgs = {
-  reportTag: Scalars['String']['input'];
+  reportId: Scalars['String']['input'];
 };
 
 
@@ -1209,6 +1310,16 @@ export type QueryListFarmsArgs = {
   pagination?: InputMaybe<PaginationInput>;
   searchTerm: Scalars['String']['input'];
   sort?: InputMaybe<Array<FarmSortInput>>;
+};
+
+
+export type QueryListGroupAuditorsArgs = {
+  groupId: Scalars['String']['input'];
+};
+
+
+export type QueryListGroupFarmsArgs = {
+  groupId: Scalars['String']['input'];
 };
 
 
@@ -1244,6 +1355,11 @@ export type QueryListWorkersArgs = {
   searchTerm: Scalars['String']['input'];
 };
 
+
+export type QueryLivestockBreedingPairPredictionArgs = {
+  livestockTag: Scalars['String']['input'];
+};
+
 export type Report = {
   __typename?: 'Report';
   completed: Scalars['Boolean']['output'];
@@ -1262,7 +1378,7 @@ export type ReportConnection = {
 };
 
 export type ReportFilterInput = {
-  reportTag?: InputMaybe<Scalars['String']['input']>;
+  reportId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export enum ReportSortField {
@@ -1282,14 +1398,60 @@ export type ReportTypeEdge = {
   node: Report;
 };
 
+export type Request = {
+  __typename?: 'Request';
+  expires_at: Scalars['DateTime']['output'];
+  farm?: Maybe<Farm>;
+  group?: Maybe<Group>;
+  id: Scalars['ID']['output'];
+  status: RequestStatus;
+  type: RequestType;
+  worker?: Maybe<Worker>;
+};
+
 export type RequestResetResponse = {
   __typename?: 'RequestResetResponse';
   message: Scalars['String']['output'];
 };
 
+/** Whether it is pending, declined or accepted */
+export enum RequestStatus {
+  Accepted = 'ACCEPTED',
+  Declined = 'DECLINED',
+  Pending = 'PENDING'
+}
+
+export type RequestToJoinResponse = {
+  __typename?: 'RequestToJoinResponse';
+  code: Scalars['Float']['output'];
+  message: Scalars['String']['output'];
+};
+
+/** This specifies the entity we are sending the request to */
+export enum RequestType {
+  Farm = 'FARM',
+  Worker = 'WORKER'
+}
+
 export type ResetResponse = {
   __typename?: 'ResetResponse';
   message: Scalars['String']['output'];
+};
+
+export type Review = {
+  __typename?: 'Review';
+  admin?: Maybe<Admin>;
+  description: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  inserted_at: Scalars['DateTime']['output'];
+  rating: Scalars['Float']['output'];
+  updated_at: Scalars['DateTime']['output'];
+  worker?: Maybe<Worker>;
+};
+
+export type ReviewInput = {
+  description: Scalars['String']['input'];
+  rating: Scalars['Float']['input'];
 };
 
 export type SalesRecord = {
@@ -1332,12 +1494,14 @@ export type Task = {
   __typename?: 'Task';
   admin?: Maybe<Admin>;
   barns?: Maybe<Array<Barn>>;
+  completed_at?: Maybe<Scalars['DateTime']['output']>;
   completion_date: Scalars['DateTime']['output'];
   description: Scalars['String']['output'];
   farm?: Maybe<Farm>;
   id: Scalars['ID']['output'];
   notes?: Maybe<Scalars['String']['output']>;
   pens?: Maybe<Array<Pen>>;
+  started_at?: Maybe<Scalars['DateTime']['output']>;
   starting_date: Scalars['DateTime']['output'];
   status: TaskStatus;
   type: TaskType;
@@ -1473,7 +1637,12 @@ export type UpdateTaskInput = {
   completionDate?: InputMaybe<Scalars['DateTime']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
   startingDate?: InputMaybe<Scalars['DateTime']['input']>;
-  status?: InputMaybe<TaskStatus>;
+};
+
+export type UpdateTaskProgressInput = {
+  completedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  startedAt: Scalars['DateTime']['input'];
+  status: TaskStatus;
 };
 
 export type UpdateWorkerInput = {
@@ -1499,6 +1668,7 @@ export type Worker = {
   achievements?: Maybe<Array<Scalars['JSON']['output']>>;
   address?: Maybe<Scalars['String']['output']>;
   admin?: Maybe<Admin>;
+  assigned_reviews?: Maybe<Array<Review>>;
   assigned_tasks?: Maybe<Array<Task>>;
   bio?: Maybe<Scalars['JSON']['output']>;
   email: Scalars['String']['output'];
@@ -1508,6 +1678,7 @@ export type Worker = {
   name: Scalars['String']['output'];
   phone?: Maybe<Scalars['String']['output']>;
   reports?: Maybe<Array<Report>>;
+  reviews?: Maybe<Array<Review>>;
   roles: Array<WorkerRole>;
   skills?: Maybe<Array<Scalars['String']['output']>>;
   worker_tag: Scalars['String']['output'];
@@ -1518,6 +1689,7 @@ export type WorkerAuthResponse = {
   achievements?: Maybe<Array<Scalars['JSON']['output']>>;
   address?: Maybe<Scalars['String']['output']>;
   admin?: Maybe<Admin>;
+  assigned_reviews?: Maybe<Array<Review>>;
   assigned_tasks?: Maybe<Array<Task>>;
   bio?: Maybe<Scalars['JSON']['output']>;
   email: Scalars['String']['output'];
@@ -1527,6 +1699,7 @@ export type WorkerAuthResponse = {
   name: Scalars['String']['output'];
   phone?: Maybe<Scalars['String']['output']>;
   reports?: Maybe<Array<Report>>;
+  reviews?: Maybe<Array<Review>>;
   roles: Array<WorkerRole>;
   skills?: Maybe<Array<Scalars['String']['output']>>;
   token: Scalars['String']['output'];

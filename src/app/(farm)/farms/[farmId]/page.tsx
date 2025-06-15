@@ -535,7 +535,8 @@ export default function FarmDetailsPage() {
               </div>
             </div>
           ) : (
-            <EmptyStateFarmAnimals farmId={farmId.toString()} />
+            // @ts-expect-error err@
+            <EmptyStateFarmAnimals farmId={farmId.toString()} farm={farms} />
           )}
         </div>
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2 mt-4">
