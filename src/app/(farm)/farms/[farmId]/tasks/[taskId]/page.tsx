@@ -13,7 +13,6 @@ import {
   AlertCircle,
   X,
   Settings,
-  Bell,
   ChevronDown,
 } from "lucide-react";
 
@@ -128,11 +127,11 @@ export default function FarmTaskManagement() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with Logo and Profile */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      {/* <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo and Name Section */}
-            <div className="flex items-center">
+      {/* <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="h-10 w-10 bg-green-600 rounded-lg flex items-center justify-center">
                   <svg
@@ -157,10 +156,9 @@ export default function FarmTaskManagement() {
                   Livestock Management System
                 </p>
               </div>
-            </div>
-
-            {/* Navigation Links - Desktop */}
-            <nav className="hidden md:flex space-x-8">
+            </div> */}
+      {/* Navigation Links - Desktop */}
+      {/* <nav className="hidden md:flex space-x-8">
               <a
                 href="#"
                 className="text-gray-500 hover:text-gray-900 px-3 py-2 text-sm font-medium"
@@ -185,21 +183,19 @@ export default function FarmTaskManagement() {
               >
                 Reports
               </a>
-            </nav>
-
-            {/* Profile Section */}
-            <div className="flex items-center space-x-4">
-              {/* Notifications */}
-              <button className="p-1 rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 relative">
+            </nav> */}
+      {/* Profile Section */}
+      {/* <div className="flex items-center space-x-4"> */}
+      {/* Notifications */}
+      {/* <button className="p-1 rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 relative">
                 <span className="sr-only">View notifications</span>
                 <Bell className="h-6 w-6" />
                 <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 flex items-center justify-center text-xs text-white font-medium">
                   2
                 </span>
-              </button>
-
-              {/* Profile dropdown */}
-              <div className="relative">
+              </button> */}
+      {/* Profile dropdown */}
+      {/* <div className="relative">
                 <div className="flex items-center space-x-3">
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-medium text-gray-900">
@@ -219,8 +215,7 @@ export default function FarmTaskManagement() {
             </div>
           </div>
         </div>
-      </header>
-
+      </header>  */}{" "}
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}

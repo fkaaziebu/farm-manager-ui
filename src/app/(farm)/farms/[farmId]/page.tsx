@@ -34,8 +34,10 @@ import {
   EmptyStateFarmAnimals,
 } from "@/components/pages/farms/[farmId]";
 import { useModal } from "@/hooks/use-modal-store";
-import TaskCard from "@/components/pages/farms/tasks/task-card";
-import LoadingState from "@/components/pages/loading-state";
+import TaskCard, {
+  TasksEmptyState,
+  TasksEmptyStateCompact,
+} from "@/components/pages/farms/tasks/task-card";
 import { Button } from "@/components/ui/button";
 
 export default function FarmDetailsPage() {
@@ -108,16 +110,21 @@ export default function FarmDetailsPage() {
                   </div>
                   <Button
                     className="w-fit flex  md:hidden items:center bg-green-600 hover:bg-green-700 text-white cursor-pointer"
-                    onClick={() => onOpen("add-farm")}
+                    onClick={() => {
+                      onOpen("update-farm", {
+                        farm: farms,
+                        farmTag: farms?.[0]?.farm_tag,
+                      });
+                    }}
                     type="button"
                   >
-                    <Edit className="mr-2 h-4 w-4 sm:h-4 sm:w-4" /> Add New Farm
+                    <Edit className="mr-2 h-4 w-4 sm:h-4 sm:w-4" /> Edit Farm
                   </Button>
                 </div>
               </div>
               <button
                 type="button"
-                className="mt-4 hidden  sm:mt-0 sm:ml-auto md:inline-flex items-center justify-center px-3 py-1.5 sm:px-3 sm:py-1 w-full sm:w-2 border border-gray-300 text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                className="mt-3 hidden w-fit md:flex  bg-green-600 hover:bg-green-700 text-white px-3 py-3  rounded-md  items-center justify-center gap-1 sm:gap-2 text-xs "
                 onClick={() => {
                   onOpen("update-farm", {
                     farm: farms,
@@ -126,7 +133,7 @@ export default function FarmDetailsPage() {
                 }}
               >
                 <Edit className="mr-2 h-4 w-4 sm:h-4 sm:w-4" />
-                <span>Edit</span>
+                <span>Edit Farm</span>
               </button>
             </div>
           </div>
@@ -552,9 +559,7 @@ export default function FarmDetailsPage() {
             )}
           </div>
           <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2 mt-4">
-            {FarmDetailsPage.length &&
-              farms?.length &&
-              farms?.[0]?.tasks?.length &&
+            {farms?.length && farms[0]?.tasks?.length ? (
               farms[0]?.tasks.map((task, indx) => (
                 <TaskCard
                   key={indx}
@@ -567,11 +572,39 @@ export default function FarmDetailsPage() {
                   farmTag={farms[0]?.farm_tag}
                   farmId={farms[0]?.id}
                 />
-              ))}
+              ))
+            ) : (
+              // <div className="bg-white overflow-hidden shadow rounded-lg p-5">
+              //   <div className="text-center py-10">
+              //     <Clipboard className="mx-auto h-12 w-12 text-gray-400" />
+              //     <h3 className="mt-2 text-sm font-medium text-gray-900">
+              //       No tasks assigned
+              //     </h3>
+              //     <p className="mt-1 text-sm text-gray-500 mb-6">
+              //       Start managing your farm tasks by adding tasks to your farm
+              //     </p>
+              //     <button
+              //       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out"
+              //       onClick={() => onOpen("add-task", { farmId })}
+              //     >
+              //       <Plus className="mr-2 h-4 w-4" />
+              //       Add Task
+              //     </button>
+              //   </div>{" "}
+              // </div>
+              <>
+                <div className="bg-white overflow-hidden shadow rounded-lg p-5 items-center justify-center hidden md:flex">
+                  <TasksEmptyState />
+                </div>
+
+                <div className="bg-white overflow-hidden shadow rounded-lg p-5 items-center justify-center flex  md:hidden">
+                  <TasksEmptyStateCompact />
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
-      {loadingFarms && <LoadingState />}
     </div>
   );
 }

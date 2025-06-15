@@ -1,7 +1,7 @@
 "use client";
 import { Toaster } from "@/components/ui/sonner";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+
+import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
 import { ModalProvider } from "@/components/providers/modal-provider";
@@ -9,6 +9,16 @@ import { apolloClient } from "@/config";
 import { ApolloProvider } from "@apollo/client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export default function RootLayout({
   children,
@@ -26,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ApolloProvider client={apolloClient}>
           {children}
