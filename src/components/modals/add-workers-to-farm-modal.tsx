@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useModal } from "@/hooks/use-modal-store";
-import { Plus, Trash2, UserPlus, Users } from "lucide-react";
+import { Plus, Trash2, UserPlus, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -218,69 +218,100 @@ export const FarmWorkersModal = () => {
     <AnimatePresence>
       {isModalOpen && (
         <motion.div
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -5 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="backdrop-blur-sm bg-gray-400/60 fixed inset-0 z-50 flex items-center justify-center"
+          className="backdrop-blur-sm bg-gray-400/60 fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
           onClick={() => onClose()}
         >
-          <div className="flex items-center justify-center w-full h-full">
-            <div
-              className="w-full max-w-2xl bg-white rounded-lg shadow-xl overflow-hidden items-center justify-center m-auto"
-              onClick={(e) => e.stopPropagation()}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-2xl bg-white rounded-lg shadow-xl overflow-hidden max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Mobile-Optimized Header */}
+            <div className="bg-blue-50 p-4 sm:p-6 border-b border-blue-200 flex-shrink-0">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-xl font-semibold text-blue-800 pr-4">
+                    Manage Workers for {farmName}
+                  </h2>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Add new workers or assign existing ones to your farm.
+                  </p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="flex-shrink-0 p-1 rounded-md text-blue-600 hover:bg-blue-100 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile-Optimized Tabs */}
+            <Tabs
+              defaultValue="create"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="flex flex-col flex-1 min-h-0"
             >
-              <div className="bg-blue-50 p-4 border-b border-blue-200">
-                <div className="text-xl font-semibold text-blue-800">
-                  Manage Workers for {farmName}
-                </div>
-                <div className="text-sm text-blue-700 mt-1">
-                  Add new workers or assign existing ones to your farm.
-                </div>
+              <div className="border-b px-4 sm:px-6 pt-2 sm:pt-4 flex-shrink-0">
+                <TabsList className="grid w-full grid-cols-2 h-auto">
+                  <TabsTrigger
+                    value="create"
+                    className="text-xs sm:text-sm py-2 px-2 sm:px-4 data-[state=active]:bg-blue-100"
+                  >
+                    <UserPlus className="h-4 w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Create New Workers</span>
+                    <span className="sm:hidden">Create</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="assign"
+                    className="text-xs sm:text-sm py-2 px-2 sm:px-4 data-[state=active]:bg-blue-100"
+                  >
+                    <Users className="h-4 w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">
+                      Assign Existing Workers
+                    </span>
+                    <span className="sm:hidden">Assign</span>
+                  </TabsTrigger>
+                </TabsList>
               </div>
 
-              <Tabs
-                defaultValue="create"
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="w-full"
-              >
-                <div className="border-b px-6 pt-4">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="create" className="text-sm">
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Create New Workers
-                    </TabsTrigger>
-                    <TabsTrigger value="assign" className="text-sm">
-                      <Users className="h-4 w-4 mr-2" />
-                      Assign Existing Workers
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-
-                <div className="p-6 max-h-[70vh] overflow-y-auto">
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto min-h-0">
+                <div className="p-4 sm:p-6">
                   <TabsContent value="create" className="mt-0">
                     <Form {...createForm}>
                       <form
                         id="create-workers-form"
                         onSubmit={createForm.handleSubmit(onCreateSubmit)}
-                        className="space-y-6"
+                        className="space-y-4 sm:space-y-6"
                       >
                         <FormField
                           control={createForm.control}
                           name="farmTag"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Farm ID</FormLabel>
+                              <FormLabel className="text-sm font-medium">
+                                Farm ID
+                              </FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="Farm identifier"
                                   {...field}
                                   readOnly={!!farmTag}
                                   value={field.value}
+                                  className="text-sm"
                                 />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-xs" />
                             </FormItem>
                           )}
                         />
@@ -296,112 +327,129 @@ export const FarmWorkersModal = () => {
                             </span>
                           </div>
 
-                          {createForm.watch("workers").map((_, index) => (
-                            <div
-                              key={index}
-                              className="p-4 border border-gray-200 rounded-md space-y-4 bg-gray-50"
-                            >
-                              <div className="flex items-center justify-between">
-                                <h4 className="text-sm font-medium text-gray-700">
-                                  Worker {index + 1}
-                                </h4>
-                                {createForm.watch("workers").length > 1 && (
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeWorker(index)}
-                                    className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                    <span className="sr-only">
-                                      Remove worker
-                                    </span>
-                                  </Button>
-                                )}
-                              </div>
-
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <FormField
-                                  control={createForm.control}
-                                  name={`workers.${index}.name`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>
-                                        Name{" "}
-                                        <span className="text-red-500">*</span>
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Input
-                                          placeholder="e.g. John Doe"
-                                          {...field}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-
-                                <FormField
-                                  control={createForm.control}
-                                  name={`workers.${index}.email`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>
-                                        Email{" "}
-                                        <span className="text-red-500">*</span>
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Input
-                                          type="email"
-                                          placeholder="e.g. john.doe@example.com"
-                                          {...field}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-
-                              <FormField
-                                control={createForm.control}
-                                name={`workers.${index}.roles`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>
-                                      Role{" "}
-                                      <span className="text-red-500">*</span>
-                                    </FormLabel>
-                                    <Select
-                                      onValueChange={field.onChange}
-                                      value={field.value}
+                          <div className="space-y-4">
+                            {createForm.watch("workers").map((_, index) => (
+                              <div
+                                key={index}
+                                className="p-3 sm:p-4 border border-gray-200 rounded-lg bg-gray-50"
+                              >
+                                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                                  <h4 className="text-sm font-medium text-gray-700">
+                                    Worker {index + 1}
+                                  </h4>
+                                  {createForm.watch("workers").length > 1 && (
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeWorker(index)}
+                                      className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                                     >
-                                      <FormControl>
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Select role" />
-                                        </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                        {WorkerRoles.map((role) => (
-                                          <SelectItem key={role} value={role}>
-                                            {role.charAt(0) +
-                                              role.slice(1).toLowerCase()}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          ))}
+                                      <Trash2 className="h-4 w-4" />
+                                      <span className="sr-only">
+                                        Remove worker
+                                      </span>
+                                    </Button>
+                                  )}
+                                </div>
+
+                                <div className="space-y-3 sm:space-y-4">
+                                  {/* Mobile: Stack all fields vertically */}
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                    <FormField
+                                      control={createForm.control}
+                                      name={`workers.${index}.name`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel className="text-sm">
+                                            Name{" "}
+                                            <span className="text-red-500">
+                                              *
+                                            </span>
+                                          </FormLabel>
+                                          <FormControl>
+                                            <Input
+                                              placeholder="e.g. John Doe"
+                                              {...field}
+                                              className="text-sm"
+                                            />
+                                          </FormControl>
+                                          <FormMessage className="text-xs" />
+                                        </FormItem>
+                                      )}
+                                    />
+
+                                    <FormField
+                                      control={createForm.control}
+                                      name={`workers.${index}.email`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel className="text-sm">
+                                            Email{" "}
+                                            <span className="text-red-500">
+                                              *
+                                            </span>
+                                          </FormLabel>
+                                          <FormControl>
+                                            <Input
+                                              type="email"
+                                              placeholder="e.g. john.doe@example.com"
+                                              {...field}
+                                              className="text-sm"
+                                            />
+                                          </FormControl>
+                                          <FormMessage className="text-xs" />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </div>
+
+                                  <FormField
+                                    control={createForm.control}
+                                    name={`workers.${index}.roles`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-sm">
+                                          Role{" "}
+                                          <span className="text-red-500">
+                                            *
+                                          </span>
+                                        </FormLabel>
+                                        <Select
+                                          onValueChange={field.onChange}
+                                          value={field.value}
+                                        >
+                                          <FormControl>
+                                            <SelectTrigger className="text-sm">
+                                              <SelectValue placeholder="Select role" />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            {WorkerRoles.map((role) => (
+                                              <SelectItem
+                                                key={role}
+                                                value={role}
+                                                className="text-sm"
+                                              >
+                                                {role.charAt(0) +
+                                                  role.slice(1).toLowerCase()}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                        <FormMessage className="text-xs" />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
 
                           <Button
                             type="button"
                             variant="outline"
-                            className="w-full"
+                            className="w-full text-sm"
                             onClick={addWorker}
                           >
                             <Plus className="h-4 w-4 mr-2" />
@@ -417,23 +465,26 @@ export const FarmWorkersModal = () => {
                       <form
                         id="assign-worker-form"
                         onSubmit={assignForm.handleSubmit(onAssignSubmit)}
-                        className="space-y-6"
+                        className="space-y-4 sm:space-y-6"
                       >
                         <FormField
                           control={assignForm.control}
                           name="farmTag"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Farm ID</FormLabel>
+                              <FormLabel className="text-sm font-medium">
+                                Farm ID
+                              </FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="Farm identifier"
                                   {...field}
                                   readOnly={!!farmTag}
                                   value={field.value}
+                                  className="text-sm"
                                 />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-xs" />
                             </FormItem>
                           )}
                         />
@@ -443,7 +494,7 @@ export const FarmWorkersModal = () => {
                           name="workerTag"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>
+                              <FormLabel className="text-sm font-medium">
                                 Worker ID{" "}
                                 <span className="text-red-500">*</span>
                               </FormLabel>
@@ -451,22 +502,35 @@ export const FarmWorkersModal = () => {
                                 <Input
                                   placeholder="Enter worker identifier"
                                   {...field}
+                                  className="text-sm"
                                 />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-xs" />
                             </FormItem>
                           )}
                         />
+
+                        {/* Additional info for mobile users */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:hidden">
+                          <p className="text-xs text-blue-700">
+                            💡 Enter the unique identifier of an existing worker
+                            to assign them to this farm.
+                          </p>
+                        </div>
                       </form>
                     </Form>
                   </TabsContent>
                 </div>
+              </div>
 
-                <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
+              {/* Sticky Footer */}
+              <div className="p-4 sm:p-6 border-t border-gray-200 bg-white flex-shrink-0">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 sm:justify-end">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => onClose()}
+                    className="w-full sm:w-auto text-sm order-2 sm:order-1"
                   >
                     Cancel
                   </Button>
@@ -474,7 +538,7 @@ export const FarmWorkersModal = () => {
                     <Button
                       type="submit"
                       form="create-workers-form"
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white text-sm order-1 sm:order-2"
                       disabled={createLoading}
                     >
                       {createLoading
@@ -487,16 +551,16 @@ export const FarmWorkersModal = () => {
                     <Button
                       type="submit"
                       form="assign-worker-form"
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white text-sm order-1 sm:order-2"
                       disabled={assignLoading}
                     >
                       {assignLoading ? "Assigning..." : "Assign Worker"}
                     </Button>
                   )}
                 </div>
-              </Tabs>
-            </div>
-          </div>
+              </div>
+            </Tabs>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

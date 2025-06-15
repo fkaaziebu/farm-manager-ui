@@ -316,7 +316,7 @@ export default function FarmDetailsPage() {
                 Farm Houses
               </h3>
               <Link
-                href={`/farms/${farmId}/barns`}
+                href={`/worker/farms/${farmId}/barns`}
                 className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
               >
                 View All
@@ -381,7 +381,7 @@ export default function FarmDetailsPage() {
                           </div>
                         </div>
                         <Link
-                          href={`/farms/${farmId}/barns/${barn.unit_id}/`}
+                          href={`/worker/farms/${farmId}/barns/${barn.unit_id}/`}
                           className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                         >
                           View
@@ -415,7 +415,7 @@ export default function FarmDetailsPage() {
                       Farm Workers
                     </h3>
                     <Link
-                      href={`/farms/${farmId}/workers`}
+                      href={`/worker/farms/${farmId}/workers`}
                       className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
                     >
                       View All
@@ -449,7 +449,7 @@ export default function FarmDetailsPage() {
                               </div>
                               <div>
                                 <Link
-                                  href={`/farms/${farmId}/workers/${worker.id}`}
+                                  href={`/worker/farms/${farmId}/workers/${worker.id}`}
                                   className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                 >
                                   View
@@ -480,7 +480,7 @@ export default function FarmDetailsPage() {
                   Farm Animals
                 </h3>
                 <Link
-                  href={`/farms/${farmId}/livestock`}
+                  href={`/worker/farms/${farmId}/livestock`}
                   className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-500"
                 >
                   View All
@@ -519,7 +519,7 @@ export default function FarmDetailsPage() {
                           </div>
                           <div>
                             <Link
-                              href={`/farms/${farmId}/livestock?type=${livestock.type}`}
+                              href={`/worker/farms/${farmId}/livestock?type=${livestock.type}`}
                               className="inline-flex items-center px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                             >
                               View

@@ -7,8 +7,6 @@ import {
   ChevronDown,
   Download,
   Plus,
-  Menu,
-  X,
   Users,
   Check,
   AlertTriangle,
@@ -32,6 +30,9 @@ export default function RoomAnimalsPage() {
   const penUnitId = decodeURIComponent(
     pathname.split("/")[pathname.split("/").length - 2]
   );
+
+  const barnId = pathname.split("/")[pathname.split("/").length - 4];
+  const farmId = pathname.split("/")[pathname.split("/").length - 6];
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -221,7 +222,6 @@ export default function RoomAnimalsPage() {
   const [ageFilter, setAgeFilter] = useState("all");
   const [breedFilter, setBreedFilter] = useState("all");
   const [sortBy, setSortBy] = useState("id");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
 
@@ -375,7 +375,7 @@ export default function RoomAnimalsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
               <Link
-                href={`/farms//houses/${room.houseId}/rooms/${room.id}`}
+                href={`/farms/${farmId}/barns/${barnId}/pens/${penUnitId}`}
                 className="mr-3 sm:mr-4"
               >
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
@@ -414,85 +414,61 @@ export default function RoomAnimalsPage() {
 
       {/* Mobile menu button - visible on small screens */}
       <div className="md:hidden bg-white border-t border-gray-200 p-2 sticky top-0 z-10 shadow-sm">
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="flex items-center justify-center w-full p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
-        >
-          {mobileMenuOpen ? (
+        <div className="mt-2 space-y-1 px-2 flex flex-wrap justify-between">
+          <button
+            onClick={() => {
+              setViewMode("grid");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              viewMode === "grid"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            Grid View
+          </button>
+          <button
+            onClick={() => {
+              setViewMode("list");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              viewMode === "list"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            List View
+          </button>
+          <button
+            onClick={() => {
+              setShowFilters(!showFilters);
+            }}
+            className="px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap text-gray-700 hover:bg-gray-100"
+          >
+            <Filter size={16} className="hidden md:inline mr-2" /> Filters
+          </button>
+          <hr className="my-2 hidden md:inline" />
+          <button
+            onClick={() => {
+              toggleSelectAll();
+            }}
+            className="px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap text-gray-700 hover:bg-gray-100"
+          >
+            {selectAll ? "Deselect All" : "Select All"}
+          </button>
+          {selectedAnimals.length > 0 && (
             <>
-              <X size={20} className="mr-2" />
-              <span>Close Menu</span>
-            </>
-          ) : (
-            <>
-              <Menu size={20} className="mr-2" />
-              <span>Animal Menu</span>
+              <button className="px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap text-gray-700 hover:bg-gray-100">
+                <Share size={16} className="inline mr-2" /> Move Selected (
+                {selectedAnimals.length})
+              </button>
+              <button className="px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap text-red-700 hover:bg-red-50">
+                <Trash size={16} className="inline mr-2" /> Remove Selected (
+                {selectedAnimals.length})
+              </button>
             </>
           )}
-        </button>
-
-        {/* Mobile dropdown menu */}
-        {mobileMenuOpen && (
-          <div className="mt-2 space-y-1 px-2">
-            <button
-              onClick={() => {
-                setViewMode("grid");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                viewMode === "grid"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Grid View
-            </button>
-            <button
-              onClick={() => {
-                setViewMode("list");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                viewMode === "list"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              List View
-            </button>
-            <button
-              onClick={() => {
-                setShowFilters(!showFilters);
-                setMobileMenuOpen(false);
-              }}
-              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
-            >
-              <Filter size={16} className="inline mr-2" /> Filters
-            </button>
-            <hr className="my-2" />
-            <button
-              onClick={() => {
-                toggleSelectAll();
-                setMobileMenuOpen(false);
-              }}
-              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
-            >
-              {selectAll ? "Deselect All" : "Select All"}
-            </button>
-            {selectedAnimals.length > 0 && (
-              <>
-                <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
-                  <Share size={16} className="inline mr-2" /> Move Selected (
-                  {selectedAnimals.length})
-                </button>
-                <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-700 hover:bg-red-50">
-                  <Trash size={16} className="inline mr-2" /> Remove Selected (
-                  {selectedAnimals.length})
-                </button>
-              </>
-            )}
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Main content */}

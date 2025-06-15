@@ -375,7 +375,7 @@ export default function RoomAnimalsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
               <Link
-                href={`/farms//houses/${room.houseId}/rooms/${room.id}`}
+                href={`/worker/farms//houses/${room.houseId}/rooms/${room.id}`}
                 className="mr-3 sm:mr-4"
               >
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />

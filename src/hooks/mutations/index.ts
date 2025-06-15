@@ -17,3 +17,6 @@ export { default as useUpdateFarm } from "./use-update-farm";
 export { default as useUpdateBarn } from "./use-update-barn";
 export { default as useUpdateLivestock } from "./use-update-livestock";
 export { default as useUpdatePen } from "./use-update-pen";
+export { default as useUpdateWorker } from "./use-update-worker";
+export { default as useUpdateTask } from "./use-update-task";
+export { default as useUpdateLivestockBreedingRecord } from "./use-update-livestock-breeding-record";

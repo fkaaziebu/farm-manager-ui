@@ -1,0 +1,9 @@
+query LivestockBreedingPairPrediction($livestockTag: String!) {
+  livestockBreedingPairPrediction(livestockTag: $livestockTag) {
+    description
+    breedingPairs {
+      id
+      livestock_tag
+    }
+  }
+}

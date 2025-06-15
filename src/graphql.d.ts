@@ -152,6 +152,15 @@ declare module '*/update-farm.graphql' {
 }
     
 
+declare module '*/update-livestock-breeding-record.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdateLivestockBreedingRecord: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/update-livestock.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -165,6 +174,24 @@ declare module '*/update-pen.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const UpdatePen: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/update-task.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdateTask: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/update-worker.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdateWorker: DocumentNode;
 
   export default defaultDocument;
 }
@@ -246,6 +273,15 @@ declare module '*/list-task.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const ListTask: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/predict-livestock-breeding-pairs.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const LivestockBreedingPairPrediction: DocumentNode;
 
   export default defaultDocument;
 }

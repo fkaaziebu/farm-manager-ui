@@ -1,6 +1,8 @@
 "use client";
 import { Toaster } from "@/components/ui/sonner";
+
 import { Geist, Geist_Mono } from "next/font/google";
+
 import "./globals.css";
 import { ModalProvider } from "@/components/providers/modal-provider";
 import { apolloClient } from "@/config";
@@ -24,7 +26,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
-
   useEffect(() => {
     const token = sessionStorage.getItem("token");
     if (!token) {

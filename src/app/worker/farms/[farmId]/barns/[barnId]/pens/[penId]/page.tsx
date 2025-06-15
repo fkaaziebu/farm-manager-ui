@@ -315,7 +315,7 @@ export default function RoomDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
               <Link
-                href={`/farms/${farmId}/barns/${barnId}/pens`}
+                href={`/worker/farms/${farmId}/barns/${barnId}/pens`}
                 className="mr-3 sm:mr-4"
               >
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
@@ -348,7 +348,7 @@ export default function RoomDetailPage() {
                 Edit
               </button>
               <Link
-                href={`/farms/${farmId}/barns/${barnId}/pens/${pen?.unit_id}/animals`}
+                href={`/worker/farms/${farmId}/barns/${barnId}/pens/${pen?.unit_id}/animals`}
                 className="inline-flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700"
               >
                 <Users size={14} className="mr-1.5 sm:mr-2" />
@@ -647,7 +647,7 @@ export default function RoomDetailPage() {
                       Animal Types
                     </dt>
                     <dd className="mt-1 text-xs sm:text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      {pen?.livestock?.length 
+                      {pen?.livestock?.length
                         ? Array.from(
                             new Set(
                               pen?.livestock?.map(
@@ -1184,13 +1184,13 @@ export default function RoomDetailPage() {
                               <td className="px-3 py-2 sm:px-6 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
                                 <div className="flex justify-end space-x-2 sm:space-x-3">
                                   <Link
-                                    href={`/farms/${farmId}/livestock/${livestock.livestock_tag}`}
+                                    href={`/worker/farms/${farmId}/livestock/${livestock.livestock_tag}`}
                                     className="text-green-600 hover:text-green-900"
                                   >
                                     View
                                   </Link>
                                   <Link
-                                    href={`/farms/${farmId}/livestock/${livestock.livestock_tag}/edit`}
+                                    href={`/worker/farms/${farmId}/livestock/${livestock.livestock_tag}/edit`}
                                     className="text-indigo-600 hover:text-indigo-900"
                                   >
                                     Edit

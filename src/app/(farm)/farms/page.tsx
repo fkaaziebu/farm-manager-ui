@@ -5,13 +5,14 @@ import {
   SearchBar,
 } from "@/components/pages/farms";
 import { useFetchFarms } from "@/hooks/queries";
-import { Menu, Plus, X } from "lucide-react";
-import Link from "next/link";
+import { Plus } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useModal } from "@/hooks/use-modal-store";
 import { Button } from "@/components/ui/button";
+import LoadingState from "@/components/pages/loading-state";
 
 export default function FarmsListingPage() {
   const { farms, fetchFarms, fetchMoreFarms, loadingFarms, loadingMoreFarms } =
@@ -21,7 +22,6 @@ export default function FarmsListingPage() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { onOpen, data } = useModal();
 
@@ -53,7 +53,7 @@ export default function FarmsListingPage() {
           }
         }
       },
-      { threshold: 1 },
+      { threshold: 1 }
     );
 
     if (observerTarget.current) {
@@ -77,7 +77,14 @@ export default function FarmsListingPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 Farms
               </h1>
-              <div className="sm:hidden">
+              <Button
+                className="w-fit flex  md:hidden items:center bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+                onClick={() => onOpen("add-farm")}
+                type="button"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add New Farm
+              </Button>
+              {/* <div className="sm:hidden">
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -89,11 +96,11 @@ export default function FarmsListingPage() {
                     <Menu className="block h-6 w-6" aria-hidden="true" />
                   )}
                 </button>
-              </div>
+              </div> */}
             </div>
 
             <Button
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+              className="w-full hidden md:flex sm:w-auto bg-green-600 hover:bg-green-700 text-white cursor-pointer"
               onClick={() => onOpen("add-farm")}
               type="button"
             >
@@ -102,7 +109,7 @@ export default function FarmsListingPage() {
           </div>
 
           {/* Mobile menu */}
-          {mobileMenuOpen && (
+          {/* {mobileMenuOpen && (
             <div className="sm:hidden mt-4 pt-4 border-t border-gray-200">
               <nav className="flex flex-col space-y-3">
                 <Link
@@ -137,7 +144,7 @@ export default function FarmsListingPage() {
                 </Link>
               </nav>
             </div>
-          )}
+          )} */}
         </div>
       </header>
 
@@ -159,35 +166,7 @@ export default function FarmsListingPage() {
         />
       )}
 
-      {loadingFarms && (
-        <div className="max-w-7xl mx-auto pb-6 sm:pb-12 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((val) => (
-              <div
-                key={val}
-                className="flex flex-col gap-5 justify-center p-5 rounded-lg border bg-white animate-pulse"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="h-5 w-3/5 rounded-lg bg-gray-100 border" />
-                  <div className="h-5 w-5 rounded-full bg-gray-100 border" />
-                </div>
-                <div className="flex flex-col gap-5">
-                  <div className="h-3 w-2/5 rounded-lg bg-gray-100 border" />
-                  <div className="flex items-center gap-5">
-                    <div className="h-20 w-full rounded-lg bg-gray-100 border" />
-                    <div className="h-20 w-full rounded-lg bg-gray-100 border" />
-                  </div>
-                </div>
-                <div className="h-16 w-full rounded-lg bg-gray-100 border" />
-                <div className="flex items-center gap-5 mt-3">
-                  <div className="h-10 w-full rounded-lg bg-gray-100 border" />
-                  <div className="h-10 w-full rounded-lg bg-gray-100 border" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {loadingFarms && <LoadingState />}
     </div>
   );
 }

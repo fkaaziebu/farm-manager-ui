@@ -246,7 +246,7 @@ export default function HouseListingPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
-              <Link href={`/farms/${farmId}`} className="mr-3 sm:mr-4">
+              <Link href={`/worker/farms/${farmId}`} className="mr-3 sm:mr-4">
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
               </Link>
               <div>
@@ -681,7 +681,7 @@ export default function HouseListingPage() {
 
                   <div className="mt-4 sm:mt-5">
                     <Link
-                      href={`/farms/${farmId}/barns/${barn.unit_id}`}
+                      href={`/worker/farms/${farmId}/barns/${barn.unit_id}`}
                       className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                     >
                       View Rooms
@@ -700,7 +700,7 @@ export default function HouseListingPage() {
               {farmBarns.map((barn) => (
                 <li key={barn.id}>
                   <Link
-                    href={`/farms/${farmId}/barns/${barn.id}`}
+                    href={`/worker/farms/${farmId}/barns/${barn.id}`}
                     className="block hover:bg-gray-50"
                   >
                     <div className="px-3 py-3 sm:px-4 sm:py-4">

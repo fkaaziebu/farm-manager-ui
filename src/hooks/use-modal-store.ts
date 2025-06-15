@@ -1,6 +1,26 @@
-import { Farm, Livestock, Pen, Task } from "@/graphql/generated/graphql";
+import {
+  BreedingStatus,
+  Farm,
+  Livestock,
+  Pen,
+  Task,
+} from "@/graphql/generated/graphql";
 import { create } from "zustand";
 import { Worker, Barn } from "@/graphql/generated/graphql";
+
+type LivestockBreedingRecord = {
+  id: string;
+  breedingMethod: string;
+  matingDate: string;
+  expectedDelivery: string;
+  actualDelivery: string;
+  notes: string;
+  status: BreedingStatus;
+  cost: number;
+  offspringCountMale: number;
+  offspringCountFemale: number;
+};
+
 export type ModalType =
   | "notification"
   | "add-health-record"
@@ -20,7 +40,9 @@ export type ModalType =
   | "update-farm"
   | "update-barn"
   | "update-livestock"
-  | "update-worker";
+  | "update-worker"
+  | "update-task"
+  | "update-livestock-breeding-record";
 
 interface ModalData {
   notificationType?: "success" | "error" | "info";
@@ -40,9 +62,11 @@ interface ModalData {
   workerTag?: string;
   farmWorkers?: Worker[];
   taskList?: Task[];
+  task?: Task;
   farm?: Farm[];
   barn?: Barn;
   pen?: Pen;
+  taskId?: string;
   livestock?: Livestock;
   createFarmEvent?: string;
   addWorkersToFarmEvent?: string;
@@ -50,6 +74,8 @@ interface ModalData {
   addPensToBarnEvent?: string;
   addLivestockToPenEvent?: string;
   farmWorker?: Worker;
+  breedingRecordId?: string;
+  breedingRecord?: LivestockBreedingRecord;
 }
 
 interface ModalStore {

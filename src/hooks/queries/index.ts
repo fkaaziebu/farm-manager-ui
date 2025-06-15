@@ -19,3 +19,4 @@ export {
   useFetchTasks,
 };
 
+export { default as usePredictLuvestockBreedingPair } from "./use-predict-livestock-breeding-pairs";

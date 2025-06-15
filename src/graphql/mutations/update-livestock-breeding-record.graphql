@@ -1,0 +1,11 @@
+mutation UpdateLivestockBreedingRecord(
+  $breedingRecordId: Float!
+  $breedingRecord: UpdateBreedingRecordInput!
+) {
+  updateLivestockBreedingRecord(
+    breedingRecordId: $breedingRecordId
+    breedingRecord: $breedingRecord
+  ) {
+    id
+  }
+}

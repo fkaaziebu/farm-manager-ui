@@ -17,15 +17,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import { WorkerRole } from "@/graphql/generated/graphql";
-
+import { useUpdateWorker } from "@/hooks/mutations";
 // Replace with actual enum or central role list if needed
 
 const updateWorkerSchema = z.object({
@@ -55,7 +48,8 @@ const updateWorkerSchema = z.object({
 });
 
 export const UpdateWorkerModal = () => {
-  const { isOpen, onClose, type, data } = useModal();
+  const { isOpen, onOpen, onClose, type, data } = useModal();
+  const { updateWorker } = useUpdateWorker();
   const isModalOpen = isOpen && type === "update-worker";
   const worker: {
     name: string;
@@ -66,6 +60,7 @@ export const UpdateWorkerModal = () => {
     roles: string[];
     skills: string[];
     achievements: string[];
+    workerTag: string;
   } = {
     name: data?.farmWorker?.name ?? "",
     phone: data?.farmWorker?.phone ?? "",
@@ -75,6 +70,7 @@ export const UpdateWorkerModal = () => {
     roles: data?.farmWorker?.roles ?? [],
     skills: data?.farmWorker?.skills ?? [],
     achievements: data?.farmWorker?.achievements ?? [],
+    workerTag: data.farmWorker?.worker_tag ?? "",
   };
 
   const form = useForm<z.infer<typeof updateWorkerSchema>>({
@@ -116,7 +112,24 @@ export const UpdateWorkerModal = () => {
 
   const onSubmit = async (values: z.infer<typeof updateWorkerSchema>) => {
     console.log("Updating worker:", values);
-    // TODO: Call mutation
+    try {
+      await updateWorker({
+        variables: {
+          workerTag: values.workerTag,
+          workerData: values.workerData,
+        },
+      });
+      onClose();
+      onOpen("notification", {
+        notificationType: "success",
+        notificationMessage: "worker updated successfully",
+      });
+    } catch (error) {
+      onOpen("notification", {
+        notificationType: "error",
+        notificationMessage: `unable to update worker:  ${error}`,
+      });
+    }
     onClose();
   };
 
@@ -198,18 +211,20 @@ export const UpdateWorkerModal = () => {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="workerData.bio"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bio</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Brief bio" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <div className="max-h-32 overflow-y-auto">
+                  <FormField
+                    control={form.control}
+                    name="workerData.bio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bio</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Brief bio" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}
@@ -269,21 +284,45 @@ export const UpdateWorkerModal = () => {
                     <FormItem>
                       <FormLabel>Roles</FormLabel>
                       <FormControl>
-                        <Select
-                          onValueChange={(val) => field.onChange([val])}
-                          value={field.value?.[0] ?? ""}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.values(WorkerRole).map((role) => (
-                              <SelectItem key={role} value={role}>
-                                {role}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            WorkerRole.AnimalCaretaker,
+                            WorkerRole.CropSpecialist,
+                            WorkerRole.FarmManager,
+                            WorkerRole.FeedSpecialist,
+                            WorkerRole.GeneralWorker,
+                            WorkerRole.Maintenance,
+                            WorkerRole.Veterinarian,
+                          ].map((role: WorkerRole) => (
+                            <label
+                              key={role}
+                              className="flex items-center space-x-2 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                // @ts-expect-error error
+                                checked={field.value?.includes(role) ?? false}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    field.onChange([
+                                      ...(field.value ?? []),
+                                      role,
+                                    ]);
+                                  } else {
+                                    field.onChange(
+                                      (field.value ?? []).filter(
+                                        (r) => r !== role
+                                      )
+                                    );
+                                  }
+                                }}
+                              />
+                              <span>
+                                {role.charAt(0) + role.slice(1).toLowerCase()}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
                       </FormControl>
                     </FormItem>
                   )}

@@ -1,8 +1,8 @@
 "use client";
 import {
-  FarmSection,
   OverviewSection,
   SearchBar,
+  WorkerFarmSection,
 } from "@/components/pages/farms";
 import { useFetchFarms } from "@/hooks/queries";
 import { Menu, Plus, X } from "lucide-react";
@@ -28,7 +28,7 @@ export default function FarmsListingPage() {
   useEffect(() => {
     const token = sessionStorage.getItem("token");
     if (!token) {
-      router.push("/auth/admin/login");
+      router.push("/auth/worker/login");
     }
   }, []);
 
@@ -91,14 +91,15 @@ export default function FarmsListingPage() {
                 </button>
               </div>
             </div>
-
-            <Button
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white cursor-pointer"
-              onClick={() => onOpen("add-farm")}
-              type="button"
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add New Farm
-            </Button>
+            {
+              <Button
+                className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+                onClick={() => onOpen("add-farm")}
+                type="button"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add New Farm
+              </Button>
+            }
           </div>
 
           {/* Mobile menu */}
@@ -151,7 +152,7 @@ export default function FarmsListingPage() {
       <OverviewSection />
 
       {!loadingFarms && (
-        <FarmSection
+        <WorkerFarmSection
           farms={farms || []}
           loading={loadingMoreFarms}
           searchTerm={searchTerm}

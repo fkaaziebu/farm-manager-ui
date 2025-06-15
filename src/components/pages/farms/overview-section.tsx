@@ -80,7 +80,7 @@ const OverviewSection = () => {
               Total animals across all farms
             </p>
 
-            <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
+            {/* <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <span>Poultry: </span>
@@ -91,7 +91,7 @@ const OverviewSection = () => {
                   <span className="font-medium text-gray-900">715</span>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Houses Overview Section */}

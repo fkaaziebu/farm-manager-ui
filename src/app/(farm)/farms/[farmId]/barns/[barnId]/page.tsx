@@ -16,8 +16,6 @@ import {
   Filter,
   Maximize2,
   Eye,
-  Menu,
-  X,
 } from "lucide-react";
 import {
   LineChart,
@@ -105,21 +103,18 @@ export default function HouseDetailPage() {
   ];
 
   const animalDistribution =
-    barn?.pens?.reduce(
-      (acc, pen) => {
-        pen.livestock?.forEach((livestock) => {
-          const type = livestock.livestock_type;
-          const existing = acc.find((item) => item.name === type);
-          if (existing) {
-            existing.value += 1;
-          } else {
-            acc.push({ name: type, value: 1 });
-          }
-        });
-        return acc;
-      },
-      [] as { name: string; value: number }[],
-    ) || [];
+    barn?.pens?.reduce((acc, pen) => {
+      pen.livestock?.forEach((livestock) => {
+        const type = livestock.livestock_type;
+        const existing = acc.find((item) => item.name === type);
+        if (existing) {
+          existing.value += 1;
+        } else {
+          acc.push({ name: type, value: 1 });
+        }
+      });
+      return acc;
+    }, [] as { name: string; value: number }[]) || [];
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -179,7 +174,6 @@ export default function HouseDetailPage() {
 
   // Tab navigation
   const [activeTab, setActiveTab] = useState("overview");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Function to get status color
   const getStatusColor = (status: string) => {
@@ -232,35 +226,56 @@ export default function HouseDetailPage() {
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           {!loadingBarn && (
             <div className="flex flex-col sm:flex-row sm:items-center">
-              <div className="flex items-center">
-                <Link href={`/farms/${farmId}/barns`} className="mr-3 sm:mr-4">
-                  <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-                </Link>
-                <div>
-                  <div className="flex flex-col sm:flex-row sm:items-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-                      {barn?.name}
-                    </h1>
-                    <span
-                      className={`mt-1 sm:mt-0 sm:ml-4 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                        barn?.status ?? "unknown",
-                      )}`}
-                    >
-                      {(barn?.status ?? "unknown").charAt(0).toUpperCase() +
-                        barn?.status?.slice(1)}
-                    </span>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <Link
+                    href={`/farms/${farmId}/barns`}
+                    className="mr-3 sm:mr-4"
+                  >
+                    <ArrowLeft className="text-gray-500 hover:text-gray-700" />
+                  </Link>
+                  <div>
+                    <div className="flex flex-col sm:flex-row sm:items-center">
+                      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                        {barn?.name}
+                      </h1>
+                      <span
+                        className={`mt-1 sm:mt-0 sm:ml-4 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                          barn?.status ?? "unknown"
+                        )}`}
+                      >
+                        {(barn?.status ?? "unknown").charAt(0).toUpperCase() +
+                          barn?.status?.slice(1)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs sm:text-sm text-gray-500">
+                      {barn?.pens?.[0]?.livestock?.[0]?.livestock_type} •{" "}
+                      {barn?.area_sqm} • {totalOcupancy} / {barn?.capacity}{" "}
+                      animals
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs sm:text-sm text-gray-500">
-                    {barn?.pens?.[0]?.livestock?.[0]?.livestock_type} •{" "}
-                    {barn?.area_sqm} • {totalOcupancy} / {barn?.capacity}{" "}
-                    animals
-                  </p>
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    className="inline-flex md:hidden items-center justify-center px-3 sm:px-4 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    onClick={() => {
+                      onOpen("update-barn", {
+                        barnUnitId: barn?.unit_id,
+                        // @ts-expect-error error
+                        barn: barn,
+                      });
+                    }}
+                  >
+                    <Edit size={14} className="mr-1 sm:mr-2" />
+                    Edit
+                  </button>
                 </div>
               </div>
               <div className="mt-4 sm:mt-0 sm:ml-auto flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  className="md:inline-flex  hidden items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                   onClick={() => {
                     onOpen("update-barn", {
                       barnUnitId: barn?.unit_id,
@@ -286,84 +301,60 @@ export default function HouseDetailPage() {
 
       {/* Mobile menu button - visible on small screens */}
       <div className="md:hidden bg-white border-t border-gray-200 p-2 sticky top-0 z-10 shadow-sm">
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="flex items-center justify-center w-full p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
-        >
-          {mobileMenuOpen ? (
-            <>
-              <X size={20} className="mr-2" />
-              <span>Close Menu</span>
-            </>
-          ) : (
-            <>
-              <Menu size={20} className="mr-2" />
-              <span>House Menu</span>
-            </>
-          )}
-        </button>
-
-        {/* Mobile dropdown menu */}
-        {mobileMenuOpen && (
-          <div className="mt-2 space-y-1 px-2">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("overview");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                activeTab === "overview"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Overview
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("environment");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                activeTab === "environment"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Environment
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("rooms");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                activeTab === "rooms"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Rooms
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("maintenance");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                activeTab === "maintenance"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Maintenance
-            </button>
-          </div>
-        )}
+        <div className="mt-2 px-2 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("overview");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              activeTab === "overview"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            Overview
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("environment");
+            }}
+            className={`px-2 py-2 rounded-md  text-sm font-normal  whitespace-nowrap ${
+              activeTab === "environment"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            Environment
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("rooms");
+            }}
+            className={`px-2 py-2 rounded-md  text-sm font-normal  whitespace-nowrap ${
+              activeTab === "rooms"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            Rooms
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("maintenance");
+            }}
+            className={`px-2 py-2 rounded-md  text-sm font-normal whitespace-nowrap ${
+              activeTab === "maintenance"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            Maintenance
+          </button>
+        </div>
       </div>
 
       {/* Tab navigation - hidden on small screens */}
@@ -483,7 +474,7 @@ export default function HouseDetailPage() {
                       <dd className="mt-1 text-xs sm:text-sm sm:mt-0 sm:col-span-2">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                            barn?.status || "unknown",
+                            barn?.status || "unknown"
                           )}`}
                         >
                           {(barn?.status || "unknown").charAt(0).toUpperCase() +
@@ -538,7 +529,7 @@ export default function HouseDetailPage() {
                           <dd className="text-lg sm:text-2xl md:text-3xl font-semibold text-gray-900">
                             {calculateOccupancy(
                               totalOcupancy,
-                              barn?.capacity || 0,
+                              barn?.capacity || 0
                             )}
                             %
                           </dd>
@@ -681,7 +672,7 @@ export default function HouseDetailPage() {
                             <div className="text-xs sm:text-sm font-medium text-gray-900">
                               {calculateOccupancy(
                                 totalOcupancy,
-                                barn?.capacity || 0,
+                                barn?.capacity || 0
                               )}
                               %
                             </div>
@@ -692,7 +683,7 @@ export default function HouseDetailPage() {
                               style={{
                                 width: `${calculateOccupancy(
                                   totalOcupancy,
-                                  barn?.capacity || 0,
+                                  barn?.capacity || 0
                                 )}%`,
                               }}
                             ></div>
@@ -764,7 +755,7 @@ export default function HouseDetailPage() {
                                       year: "numeric",
                                       month: "short",
                                       day: "numeric",
-                                    },
+                                    }
                                   )}
                                 </div>
                               </div>
@@ -798,7 +789,7 @@ export default function HouseDetailPage() {
                         </h4>
                         <ThermometerSnowflake
                           className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
-                            house.temperatureStatus,
+                            house.temperatureStatus
                           )}`}
                         />
                       </div>
@@ -832,7 +823,7 @@ export default function HouseDetailPage() {
                         </h4>
                         <Droplets
                           className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
-                            house.humidityStatus,
+                            house.humidityStatus
                           )}`}
                         />
                       </div>
@@ -866,7 +857,7 @@ export default function HouseDetailPage() {
                         </h4>
                         <Wind
                           className={`h-4 w-4 sm:h-5 sm:w-5 ${getAlertColor(
-                            house.ventilationStatus,
+                            house.ventilationStatus
                           )}`}
                         />
                       </div>
@@ -1096,7 +1087,7 @@ export default function HouseDetailPage() {
                             </div>
                             <span
                               className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                                pen.status,
+                                pen.status
                               )}`}
                             >
                               {pen.status.charAt(0).toUpperCase() +
@@ -1130,7 +1121,7 @@ export default function HouseDetailPage() {
                                 {house?.temperature}°C
                                 <ThermometerSnowflake
                                   className={`ml-1 h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(
-                                    house?.temperatureStatus,
+                                    house?.temperatureStatus
                                   )}`}
                                 />
                               </dd>
@@ -1143,7 +1134,7 @@ export default function HouseDetailPage() {
                                 {house.humidity}%
                                 <Droplets
                                   className={`ml-1 h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(
-                                    house.humidityStatus,
+                                    house.humidityStatus
                                   )}`}
                                 />
                               </dd>
@@ -1163,9 +1154,9 @@ export default function HouseDetailPage() {
                                             .toUpperCase() +
                                           livestock?.livestock_type
                                             ?.slice(1)
-                                            .toLowerCase(),
-                                      ),
-                                    ),
+                                            .toLowerCase()
+                                      )
+                                    )
                                   ).join(", ")
                                 ) : (
                                   <div className="flex flex-col items-start">
@@ -1241,7 +1232,7 @@ export default function HouseDetailPage() {
                           <dd className="mt-1 text-xs sm:text-sm text-gray-900 flex items-center">
                             <span
                               className={`mr-1 ${getAlertColor(
-                                house.maintenanceStatus,
+                                house.maintenanceStatus
                               )}`}
                             >
                               {house.maintenanceStatus.charAt(0).toUpperCase() +
@@ -1249,7 +1240,7 @@ export default function HouseDetailPage() {
                             </span>
                             <PenTool
                               className={`h-3 w-3 sm:h-4 sm:w-4 ${getAlertColor(
-                                house.maintenanceStatus,
+                                house.maintenanceStatus
                               )}`}
                             />
                           </dd>
@@ -1265,7 +1256,7 @@ export default function HouseDetailPage() {
                                 year: "numeric",
                                 month: "short",
                                 day: "numeric",
-                              },
+                              }
                             )}
                           </dd>
                         </div>
@@ -1280,7 +1271,7 @@ export default function HouseDetailPage() {
                                 year: "numeric",
                                 month: "short",
                                 day: "numeric",
-                              },
+                              }
                             )}
                           </dd>
                         </div>
@@ -1292,7 +1283,7 @@ export default function HouseDetailPage() {
                             {Math.ceil(
                               (new Date(house.nextInspection).valueOf() -
                                 new Date().valueOf()) /
-                                (1000 * 60 * 60 * 24),
+                                (1000 * 60 * 60 * 24)
                             )}{" "}
                             days
                           </dd>

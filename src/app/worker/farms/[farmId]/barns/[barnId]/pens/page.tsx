@@ -318,7 +318,7 @@ export default function RoomListingPage() {
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex items-center">
               <Link
-                href={`/farms/${farmId}/barns/${barnId}`}
+                href={`/worker/farms/${farmId}/barns/${barnId}`}
                 className="mr-3 sm:mr-4"
               >
                 <ArrowLeft className="text-gray-500 hover:text-gray-700" />
@@ -801,7 +801,7 @@ export default function RoomListingPage() {
                   {/* Footer with link */}
                   <div className="mt-5 pt-4 border-t border-gray-100 flex justify-between items-center">
                     <Link
-                      href={`/farms/${farmId}/barns/${barnId}/pens/${pen.unit_id}`}
+                      href={`/worker/farms/${farmId}/barns/${barnId}/pens/${pen.unit_id}`}
                       className="text-sm font-medium text-green-600 hover:text-green-800"
                     >
                       View Details
@@ -858,7 +858,7 @@ export default function RoomListingPage() {
               {farmPens?.map((pen) => (
                 <li key={pen.id}>
                   <Link
-                    href={`/farms/${farmId}/barns/${barnId}/pens/${pen.unit_id}`}
+                    href={`/worker/farms/${farmId}/barns/${barnId}/pens/${pen.unit_id}`}
                     className="block hover:bg-gray-50"
                   >
                     <div className="px-3 py-3 sm:px-4 sm:py-4">

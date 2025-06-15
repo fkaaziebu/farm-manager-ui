@@ -10,8 +10,6 @@ import {
   Calendar,
   Users,
   Download,
-  Menu,
-  X,
 } from "lucide-react";
 import {
   BarChart,
@@ -227,7 +225,6 @@ export default function RoomDetailPage() {
 
   // Tab navigation
   const [activeTab, setActiveTab] = useState("overview");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Function to get status color
   const getStatusColor = (status: string) => {
@@ -313,36 +310,52 @@ export default function RoomDetailPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center">
-            <div className="flex items-center">
-              <Link
-                href={`/farms/${farmId}/barns/${barnId}/pens`}
-                className="mr-3 sm:mr-4"
-              >
-                <ArrowLeft className="text-gray-500 hover:text-gray-700" />
-              </Link>
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center">
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-                    {pen?.name}
-                  </h1>
-                  <span
-                    className={`mt-1 sm:mt-0 sm:ml-4 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                      pen?.status || "unknown"
-                    )}`}
-                  >
-                    {(pen?.status || "unknown")?.charAt(0).toUpperCase() +
-                      (pen?.status || "unknown").slice(1)}
-                  </span>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <Link
+                  href={`/farms/${farmId}/barns/${barnId}/pens`}
+                  className="mr-3 sm:mr-4"
+                >
+                  <ArrowLeft className="text-gray-500 hover:text-gray-700" />
+                </Link>
+                <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                      {pen?.name}
+                    </h1>
+                    <span
+                      className={`mt-1 sm:mt-0 sm:ml-4 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                        pen?.status || "unknown"
+                      )}`}
+                    >
+                      {(pen?.status || "unknown")?.charAt(0).toUpperCase() +
+                        (pen?.status || "unknown").slice(1)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs sm:text-sm text-gray-500">
+                    {pen?.area_sqm}sqm • {penOccupancy} / {pen?.capacity}{" "}
+                    animals
+                  </p>
                 </div>
-                <p className="mt-1 text-xs sm:text-sm text-gray-500">
-                  {pen?.area_sqm}sqm • {penOccupancy} / {pen?.capacity} animals
-                </p>
               </div>
+              <button
+                type="button"
+                className="inline-flex md:hidden items-center justify-center px-3 py-3 sm:px-4 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                onClick={() => {
+                  onOpen("update-pen", {
+                    penUnitId: penUnitId,
+                    pen: pen,
+                  });
+                }}
+              >
+                <Edit size={14} className="mr-1.5 sm:mr-2" />
+                Edit
+              </button>
             </div>
             <div className="mt-4 sm:mt-0 sm:ml-auto flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 type="button"
-                className="inline-flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                className="md:inline-flex hidden items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                 onClick={() => {
                   onOpen("update-pen", {
                     penUnitId: penUnitId,
@@ -366,72 +379,51 @@ export default function RoomDetailPage() {
       </header>
 
       {/* Mobile menu button - visible on small screens */}
-      <div className="md:hidden bg-white border-t border-gray-200 p-2 sticky top-0 z-10 shadow-sm">
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="flex items-center justify-center w-full p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
-        >
-          {mobileMenuOpen ? (
-            <>
-              <X size={20} className="mr-2" />
-              <span>Close Menu</span>
-            </>
-          ) : (
-            <>
-              <Menu size={20} className="mr-2" />
-              <span>Room Menu</span>
-            </>
-          )}
-        </button>
-
+      <div className="md:hidden bg-white border-t  border-gray-200 p-2 sticky top-0 z-10 shadow-sm">
         {/* Mobile dropdown menu */}
-        {mobileMenuOpen && (
-          <div className="mt-2 space-y-1 px-2">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("overview");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                activeTab === "overview"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Overview
-            </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("animals");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                activeTab === "animals"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Animals
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("maintenance");
-                setMobileMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                activeTab === "maintenance"
-                  ? "bg-green-100 text-green-800"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Maintenance
-            </button>
-          </div>
-        )}
+        <div className="mt-2 space-y-1 px-2 flex flex-row flex-wrap gap-2 justify-around">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("overview");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              activeTab === "overview"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            Overview
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("animals");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              activeTab === "animals"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            Animals
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("maintenance");
+            }}
+            className={`px-2 py-2 rounded-md text-sm font-normal whitespace-nowrap ${
+              activeTab === "maintenance"
+                ? "bg-green-100 text-green-800"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            Maintenance
+          </button>
+        </div>
       </div>
 
       {/* Tab navigation - hidden on small screens */}
