@@ -681,7 +681,7 @@ enum LivestockGender {
 }
 
 input LivestockInput {
-  livestockTag: String!
+  livestockTag: String
   birthDate: DateTime!
   breed: String!
   weight: Float!
@@ -730,7 +730,7 @@ type Mutation {
   resetAdminPassword(email: String!, password: String!, resetCode: String!): ResetResponse!
   resetWorkerPassword(email: String!, password: String!, resetCode: String!): ResetResponse!
   createFarm(name: String!, location: String!, area: String!, latitude: Float!, longitude: Float!, farmType: FarmType!): Farm!
-  updateFarm(farmTag: String!, name: String, location: String, area: String, farmType: FarmType): Farm!
+  updateFarm(farmTag: String!, name: String, location: String, area: String, defaultStartTag: String, farmType: FarmType): Farm!
   assignWorkersToFarm(farmTag: String!, workerTags: [String!]!): Farm!
   addWorkersToFarm(farmTag: String!, workers: [WorkerInput!]!): Farm!
   updateWorker(workerTag: String!, workerData: UpdateWorkerInput!): Worker!
@@ -765,6 +765,13 @@ type Mutation {
   verifyReport(reportId: String!, verificationCode: String!, coordinate: CoordinatesInput!): Report!
   updateReport(reportId: String!, reportData: UpdateReportInput!): Report!
   completeReport(reportId: String!): Report!
+}
+
+input Offspring {
+  livestockTag: String
+  breed: String!
+  weight: Float!
+  gender: LivestockGender!
 }
 
 type PageInfo {
@@ -951,6 +958,7 @@ type Query {
   listReports(filter: ReportFilterInput, pagination: PaginationInput, sort: [ReportSortInput!]): ReportConnection!
   getReport(reportId: String!): Report!
   livestockBreedingPairPrediction(livestockTag: String!): BreedingPairPredictionResponse!
+  mcpRequest(query: String!): String!
 }
 
 type Report {
@@ -1138,8 +1146,7 @@ input UpdateBreedingRecordInput {
   actualDelivery: DateTime
   breedingMethod: JSON
   notes: String
-  offspringCountMale: Float
-  offspringCountFemale: Float
+  offsprings: [Offspring!]
   status: BreedingStatus
 }
 

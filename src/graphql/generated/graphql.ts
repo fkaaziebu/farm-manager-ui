@@ -712,7 +712,7 @@ export type LivestockInput = {
   birthDate: Scalars['DateTime']['input'];
   breed: Scalars['String']['input'];
   gender: LivestockGender;
-  livestockTag: Scalars['String']['input'];
+  livestockTag?: InputMaybe<Scalars['String']['input']>;
   livestockType: LivestockType;
   weight: Scalars['Float']['input'];
 };
@@ -982,6 +982,7 @@ export type MutationUpdateBarnArgs = {
 
 export type MutationUpdateFarmArgs = {
   area?: InputMaybe<Scalars['String']['input']>;
+  defaultStartTag?: InputMaybe<Scalars['String']['input']>;
   farmTag: Scalars['String']['input'];
   farmType?: InputMaybe<FarmType>;
   location?: InputMaybe<Scalars['String']['input']>;
@@ -1059,6 +1060,13 @@ export type MutationVerifyReportArgs = {
   coordinate: CoordinatesInput;
   reportId: Scalars['String']['input'];
   verificationCode: Scalars['String']['input'];
+};
+
+export type Offspring = {
+  breed: Scalars['String']['input'];
+  gender: LivestockGender;
+  livestockTag?: InputMaybe<Scalars['String']['input']>;
+  weight: Scalars['Float']['input'];
 };
 
 export type PageInfo = {
@@ -1254,6 +1262,7 @@ export type Query = {
   listTask: Array<Task>;
   listWorkers: WorkerConnection;
   livestockBreedingPairPrediction: BreedingPairPredictionResponse;
+  mcpRequest: Scalars['String']['output'];
 };
 
 
@@ -1358,6 +1367,11 @@ export type QueryListWorkersArgs = {
 
 export type QueryLivestockBreedingPairPredictionArgs = {
   livestockTag: Scalars['String']['input'];
+};
+
+
+export type QueryMcpRequestArgs = {
+  query: Scalars['String']['input'];
 };
 
 export type Report = {
@@ -1555,8 +1569,7 @@ export type UpdateBreedingRecordInput = {
   expectedDelivery?: InputMaybe<Scalars['DateTime']['input']>;
   matingDate?: InputMaybe<Scalars['DateTime']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
-  offspringCountFemale?: InputMaybe<Scalars['Float']['input']>;
-  offspringCountMale?: InputMaybe<Scalars['Float']['input']>;
+  offsprings?: InputMaybe<Array<Offspring>>;
   status?: InputMaybe<BreedingStatus>;
 };
 

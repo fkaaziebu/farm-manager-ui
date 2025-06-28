@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useModal } from "@/hooks/use-modal-store";
-import { Calendar, Info, Edit } from "lucide-react";
+import { Calendar, Info, Edit, Plus, Trash2, Baby } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -24,13 +24,28 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { useUpdateLivestockBreedingRecord } from "@/hooks/mutations";
-import { BreedingStatus } from "@/graphql/generated/graphql";
+import {
+  BreedingStatus,
+  Livestock,
+  LivestockGender,
+} from "@/graphql/generated/graphql";
+
+// Schema for individual offspring
+const offspringSchema = z.object({
+  breed: z.string().optional().nullable(),
+  gender: z
+    .enum([LivestockGender.Male, LivestockGender.Female])
+    .optional()
+    .nullable(),
+  livestockTag: z.string().optional().nullable(),
+  weight: z.string().optional().nullable(),
+});
 
 // Form schema for updating breeding record
 const updateFormSchema = z.object({
@@ -49,8 +64,7 @@ const updateFormSchema = z.object({
     ])
     .default(BreedingStatus.Planned),
   cost: z.string().optional().nullable(),
-  offspringCountMale: z.string().optional().nullable(),
-  offspringCountFemale: z.string().optional().nullable(),
+  offsprings: z.array(offspringSchema).optional(),
 });
 
 export const UpdateBreedingRecordModal = () => {
@@ -71,9 +85,14 @@ export const UpdateBreedingRecordModal = () => {
       notes: "",
       status: BreedingStatus.Planned,
       cost: "",
-      offspringCountMale: "",
-      offspringCountFemale: "",
+      offsprings: [],
     },
+  });
+
+  // Use field array for managing offspring
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "offsprings",
   });
 
   // Set form values when modal opens or data changes
@@ -83,8 +102,9 @@ export const UpdateBreedingRecordModal = () => {
       type === "update-livestock-breeding-record" &&
       breedingRecord
     ) {
-      form.reset({
-        breedingMethod: breedingRecord.breedingMethod || "",
+      const formData = {
+        breedingMethod:
+          breedingRecord.breedingMethod || breedingRecord.breedingMethod || "",
         matingDate: breedingRecord.matingDate
           ? format(new Date(breedingRecord.matingDate), "yyyy-MM-dd")
           : "",
@@ -97,13 +117,20 @@ export const UpdateBreedingRecordModal = () => {
         notes: breedingRecord.notes || "",
         status: breedingRecord.status || BreedingStatus.Planned,
         cost: breedingRecord.cost ? breedingRecord.cost.toString() : "",
-        offspringCountMale: breedingRecord.offspringCountMale
-          ? breedingRecord.offspringCountMale.toString()
-          : "",
-        offspringCountFemale: breedingRecord.offspringCountFemale
-          ? breedingRecord.offspringCountFemale.toString()
-          : "",
-      });
+        offsprings: Array.isArray(breedingRecord.offsprings)
+          ? breedingRecord.offsprings.map((offspring: Livestock) => ({
+              breed: offspring.breed ?? "",
+              livestockTag: offspring.livestock_tag ?? "",
+              gender: (offspring.gender as LivestockGender) ?? null,
+              weight:
+                offspring.weight !== undefined && offspring.weight !== null
+                  ? offspring.weight.toString()
+                  : null,
+            }))
+          : [],
+      };
+
+      form.reset(formData);
     }
   }, [isOpen, breedingRecord, form, type]);
 
@@ -135,9 +162,33 @@ export const UpdateBreedingRecordModal = () => {
 
   const isModalOpen = isOpen && type === "update-livestock-breeding-record";
 
+  // Add new offspring
+  const addOffspring = () => {
+    append({
+      breed: "",
+      gender: null,
+      livestockTag: "",
+      weight: "",
+    });
+  };
+
+  // Remove offspring
+  const removeOffspring = (index: number) => {
+    remove(index);
+  };
+
   async function onSubmit(data: z.infer<typeof updateFormSchema>) {
     try {
       console.log("Updating breeding record:", data);
+
+      // Format offspring data for API
+      const formattedOffsprings =
+        data.offsprings?.map((offspring) => ({
+          breed: offspring.breed ?? "",
+          gender: (offspring.gender as LivestockGender) ?? "",
+          livestockTag: offspring.livestockTag ?? "",
+          weight: offspring.weight ? Number(offspring.weight) : null,
+        })) || [];
 
       await updateLivestockBreedingRecord({
         variables: {
@@ -150,12 +201,8 @@ export const UpdateBreedingRecordModal = () => {
             notes: data.notes || undefined,
             status: data.status,
             cost: data.cost ? Number(data.cost) : undefined,
-            offspringCountMale: data.offspringCountMale
-              ? Number(data.offspringCountMale)
-              : undefined,
-            offspringCountFemale: data.offspringCountFemale
-              ? Number(data.offspringCountFemale)
-              : undefined,
+            // @ts-expect-error err
+            offsprings: formattedOffsprings,
           },
         },
       });
@@ -188,15 +235,15 @@ export const UpdateBreedingRecordModal = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -5 }}
           transition={{ duration: 0.2 }}
-          className="backdrop-blur-sm bg-gray-400/60 fixed inset-0 z-50 flex items-center justify-center"
+          className="backdrop-blur-sm bg-gray-400/60 fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
           onClick={() => onClose()}
         >
           <div className="flex items-center justify-center w-full h-full">
             <div
-              className="w-full max-w-2xl bg-white rounded-lg shadow-xl overflow-hidden items-center justify-center m-auto"
+              className="w-full max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-blue-50 p-4 border-b border-blue-200">
+              <div className="bg-blue-50 p-4 sm:p-6 border-b border-blue-200">
                 <div className="text-xl font-semibold text-blue-800 flex items-center">
                   <Edit className="h-5 w-5 mr-2 text-blue-600" />
                   Update Breeding Record
@@ -206,7 +253,7 @@ export const UpdateBreedingRecordModal = () => {
                 </div>
               </div>
 
-              <div className="p-6 max-h-[70vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 max-h-[80vh] overflow-y-auto">
                 <Form {...form}>
                   <form
                     id="update-breeding-form"
@@ -352,47 +399,164 @@ export const UpdateBreedingRecordModal = () => {
                       />
                     )}
 
+                    {/* Offspring Section */}
                     {isSuccessful && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                          control={form.control}
-                          name="offspringCountMale"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Male Offspring Count</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  {...field}
-                                  value={field.value || ""}
-                                  placeholder="0"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <Baby className="h-5 w-5 mr-2 text-green-600" />
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              Offspring Details
+                            </h3>
+                          </div>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {fields.length}{" "}
+                            {fields.length === 1 ? "offspring" : "offsprings"}
+                          </span>
+                        </div>
 
-                        <FormField
-                          control={form.control}
-                          name="offspringCountFemale"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Female Offspring Count</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  {...field}
-                                  value={field.value || ""}
-                                  placeholder="0"
+                        <div className="space-y-4">
+                          {fields.map((field, index) => (
+                            <div
+                              key={field.id}
+                              className="p-4 border border-gray-200 rounded-lg bg-gray-50"
+                            >
+                              <div className="flex items-center justify-between mb-4">
+                                <h4 className="text-sm font-medium text-gray-700">
+                                  Offspring {index + 1}
+                                </h4>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeOffspring(index)}
+                                  className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="sr-only">
+                                    Remove offspring
+                                  </span>
+                                </Button>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name={`offsprings.${index}.livestockTag`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-sm">
+                                        Livestock Tag
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Auto-generated if empty"
+                                          {...field}
+                                          value={field.value || ""}
+                                          className="text-sm"
+                                        />
+                                      </FormControl>
+                                      <FormDescription className="text-xs">
+                                        Leave empty for auto-generation
+                                      </FormDescription>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
                                 />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+
+                                <FormField
+                                  control={form.control}
+                                  name={`offsprings.${index}.gender`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-sm">
+                                        Gender
+                                      </FormLabel>
+                                      <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value || ""}
+                                      >
+                                        <FormControl>
+                                          <SelectTrigger className="text-sm">
+                                            <SelectValue placeholder="Select gender" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem
+                                            value={LivestockGender.Male}
+                                          >
+                                            Male
+                                          </SelectItem>
+                                          <SelectItem
+                                            value={LivestockGender.Female}
+                                          >
+                                            Female
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name={`offsprings.${index}.breed`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-sm">
+                                        Breed
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="e.g. Holstein"
+                                          {...field}
+                                          value={field.value || ""}
+                                          className="text-sm"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name={`offsprings.${index}.weight`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-sm">
+                                        Weight (kg)
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          step="0.1"
+                                          min="0"
+                                          placeholder="0.0"
+                                          {...field}
+                                          value={field.value || ""}
+                                          className="text-sm"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          ))}
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            onClick={addOffspring}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Offspring
+                          </Button>
+                        </div>
                       </div>
                     )}
 
@@ -444,7 +608,7 @@ export const UpdateBreedingRecordModal = () => {
                       <Info className="h-4 w-4 text-blue-600" />
                       <AlertDescription className="text-blue-700 text-sm">
                         {isSuccessful
-                          ? "Record offspring counts when breeding is successful. Update actual delivery date once births occur."
+                          ? "Add detailed information for each offspring. Livestock tags will be auto-generated if left empty using your system settings."
                           : "Update the breeding status to track progress. Set to 'Successful' to record offspring details."}
                       </AlertDescription>
                     </Alert>
@@ -452,18 +616,19 @@ export const UpdateBreedingRecordModal = () => {
                 </Form>
               </div>
 
-              <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
+              <div className="p-4 border-t border-gray-200 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => onClose()}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   form="update-breeding-form"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={loading}
                 >
                   {loading ? "Updating..." : "Update Breeding Record"}

@@ -2,6 +2,7 @@ import {
   BreedingStatus,
   Farm,
   Livestock,
+  LivestockGender,
   Pen,
   Task,
 } from "@/graphql/generated/graphql";
@@ -17,8 +18,12 @@ type LivestockBreedingRecord = {
   notes: string;
   status: BreedingStatus;
   cost: number;
-  offspringCountMale: number;
-  offspringCountFemale: number;
+  offsprings: {
+    breed: string;
+    livestockTag: string | null;
+    gender: LivestockGender;
+    weight: number | null;
+  };
 };
 
 export type ModalType =

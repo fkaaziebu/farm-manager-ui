@@ -42,7 +42,7 @@ export default function HouseDetailPage() {
   const { onOpen, data } = useModal();
   const { barn, loadingBarn, fetchBarn } = useFetchBarn();
   const pathname = usePathname();
-  const barnUnitId = pathname.split("/").pop() ?? "";
+  const barnUnitId = decodeURIComponent(pathname.split("/").pop() ?? "");
   const farmId = pathname.split("/")[pathname.split("/").length - 3];
 
   const totalOcupancy = barn?.pens
@@ -218,6 +218,8 @@ export default function HouseDetailPage() {
   useEffect(() => {
     fetchBarn({ barnUnitId: barnUnitId });
   }, [data.addPensToBarnEvent, data.addLivestockToPenEvent]);
+
+  console.log("barn", barnUnitId, barn);
 
   return (
     <div className="min-h-screen bg-gray-50">
