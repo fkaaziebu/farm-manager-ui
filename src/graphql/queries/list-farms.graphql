@@ -59,6 +59,17 @@ query ListFarms(
           type
           completion_date
         }
+        fields {
+          area_hectares
+          id
+          name
+          crop_batches {
+            id
+            name
+            status
+            crop_type
+          }
+        }
       }
     }
     pageInfo {

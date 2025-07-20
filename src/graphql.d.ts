@@ -8,6 +8,33 @@ declare module '*/add-barns-to-farm.graphql' {
 }
     
 
+declare module '*/add-crop-batches-to-field.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const AddCropBatchesToField: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/add-field-to-farm.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const AddFieldsToFarm: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/add-greenhouse-to-farm.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const AddGreenhousesToFarm: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/add-livestock-breeding-record.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -134,6 +161,15 @@ declare module '*/register-admin.graphql' {
 }
     
 
+declare module '*/submit-crop-prediction-feedback.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const SubmitPredictionFeedback: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/update-barn.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -206,6 +242,15 @@ declare module '*/get-barn.graphql' {
 }
     
 
+declare module '*/get-field.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetField: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/get-livestock.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -251,6 +296,15 @@ declare module '*/list-farms.graphql' {
 }
     
 
+declare module '*/list-fields.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const ListFields: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/list-livestock.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -273,6 +327,15 @@ declare module '*/list-task.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const ListTask: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/mcp-request.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const McpRequest: DocumentNode;
 
   export default defaultDocument;
 }

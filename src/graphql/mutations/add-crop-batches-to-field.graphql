@@ -1,0 +1,8 @@
+mutation AddCropBatchesToField(
+  $fieldUnitId: String!
+  $cropBatches: [CropBatchInput!]!
+) {
+  addCropBatchesToField(fieldUnitId: $fieldUnitId, cropBatches: $cropBatches) {
+    id
+  }
+}

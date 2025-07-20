@@ -236,7 +236,7 @@ input CoordinatesInput {
 
 type CropBatch {
   id: ID!
-  batch_id: String!
+  crop_batch_tag: String!
   name: String!
   crop_type: CropType!
   variety: String!
@@ -248,10 +248,11 @@ type CropBatch {
   area_unit: String!
   plants_count: Float!
   seed_amount: Float!
-  seed_unit: String!
+  seed_unit: String
   expected_yield: Float!
   actual_yield: Float!
-  yield_unit: String!
+  yield_unit: String
+  gps_coordinates: JSON
   fertilizer_applications: JSON
   pesticide_applications: JSON
   weather_conditions: JSON
@@ -263,6 +264,54 @@ type CropBatch {
   sales_records: [SalesRecord!]
   inserted_at: DateTime!
   updated_at: DateTime!
+}
+
+type CropBatchConnection {
+  edges: [CropBatchTypeEdge!]!
+  pageInfo: PageInfo!
+  count: Int!
+}
+
+input CropBatchFilterInput {
+  crop_type: CropType
+}
+
+input CropBatchInput {
+  name: String!
+  cropType: CropType!
+  variety: String!
+  plantingDate: DateTime!
+  harvestDate: DateTime
+  plantingMethod: PlantingMethod
+  irrigationMethod: IrrigationMethod
+  gpsCoordinates: JSON!
+  areaPlanted: Float
+  areaUnit: String
+  plantsCount: Float!
+}
+
+enum CropBatchSortField {
+  ID
+  NAME
+  STATUS
+}
+
+input CropBatchSortInput {
+  field: CropBatchSortField!
+  direction: SortDirection!
+}
+
+type CropBatchTypeEdge {
+  cursor: String!
+  node: CropBatch!
+}
+
+"""Status of a housing unit for crops"""
+enum CropHousingStatus {
+  ACTIVE
+  FALLOW
+  PREPARATION
+  MAINTENANCE
 }
 
 """Growth status of a crop"""
@@ -296,6 +345,28 @@ enum CropType {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+"""Type of disease affecting crop"""
+enum DiseaseType {
+  ANTHRACNOSE
+  GUMOSIS
+  HEALTHY
+  LEAF_MINER
+  RED_RUST
+  BACTERIAL_BLIGHT
+  BROWN_SPOT
+  GREEN_MITE
+  MOSAIC
+  FALL_ARMYWORM
+  GRASSHOPER
+  LEAF_BEETLE
+  LEAF_BLIGHT
+  LEAF_SPOT
+  STREAK_VIRUS
+  LEAF_CURL
+  SEPTORIA_LEAF_SPOT
+  VERTICILLIUM_WILT
+}
 
 """Category of farm expense"""
 enum ExpenseCategory {
@@ -381,6 +452,7 @@ type Farm {
   hives: [Hive!]
   tasks: [Task!]
   reports: [Report!]
+  predictions: [Prediction!]
 }
 
 type FarmConnection {
@@ -419,12 +491,19 @@ type FarmTypeClassEdge {
   node: Farm!
 }
 
+type Feedback {
+  id: ID!
+  actual_disease: DiseaseType!
+  user_feedback: String
+  prediction: [Prediction!]!
+}
+
 type Field {
   id: ID!
   unit_id: String!
   name: String!
   capacity: Float!
-  status: HousingStatus!
+  status: CropHousingStatus!
   area_hectares: Float!
   soil_type: String
   irrigation_type: String
@@ -432,10 +511,43 @@ type Field {
   drainage: String
   soil_test_results: JSON
   previous_crop: String
-  gps_coordinates: JSON
   crop_batches: [CropBatch!]
   farm: Farm
   expense_records: [ExpenseRecord!]
+}
+
+type FieldConnection {
+  edges: [FieldTypeEdge!]!
+  pageInfo: PageInfo!
+  count: Int!
+}
+
+input FieldInput {
+  unitId: String!
+  name: String!
+  capacity: Float!
+  areaHectares: Float!
+  soilType: String
+  irrigationType: String
+  slope: String
+  drainage: String
+  soilTestResults: JSON
+}
+
+enum FieldSortField {
+  ID
+  NAME
+  STATUS
+}
+
+input FieldSortInput {
+  field: FieldSortField!
+  direction: SortDirection!
+}
+
+type FieldTypeEdge {
+  cursor: String!
+  node: Field!
 }
 
 type Greenhouse {
@@ -443,7 +555,7 @@ type Greenhouse {
   unit_id: String!
   name: String!
   capacity: Float!
-  status: HousingStatus!
+  status: CropHousingStatus!
   area_sqm: Float!
   construction_date: DateTime
   covering_material: String
@@ -455,6 +567,42 @@ type Greenhouse {
   crop_batches: [CropBatch!]
   farm: Farm
   expense_records: [ExpenseRecord!]
+}
+
+type GreenhouseConnection {
+  edges: [GreenhouseTypeEdge!]!
+  pageInfo: PageInfo!
+  count: Int!
+}
+
+input GreenhouseInput {
+  unitId: String!
+  name: String!
+  capacity: Float!
+  areaSqm: Float!
+  constructionDate: DateTime
+  coveringMaterial: String
+  temperatureControl: String
+  lightingSystem: String
+  irrigationSystem: String
+  climateControlled: Boolean
+  ventilationSystem: String
+}
+
+enum GreenhouseSortField {
+  ID
+  NAME
+  STATUS
+}
+
+input GreenhouseSortInput {
+  field: GreenhouseSortField!
+  direction: SortDirection!
+}
+
+type GreenhouseTypeEdge {
+  cursor: String!
+  node: Greenhouse!
 }
 
 type Group {
@@ -616,6 +764,12 @@ enum HousingStatus {
   FULL
 }
 
+"""Whether it's a field of a greenhouse"""
+enum HousingUnit {
+  FIELD
+  GREENHOUSE
+}
+
 """Method used for irrigation"""
 enum IrrigationMethod {
   DRIP
@@ -630,6 +784,24 @@ enum IrrigationMethod {
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
+
+type LeafDetection {
+  id: ID!
+  bbox: JSON!
+  detection_confidence: Float!
+  predicted_disease: DiseaseType
+  confidence: Float!
+  top3_predictions: JSON
+  prediction: [Prediction!]!
+}
+
+input LeafDetectionInput {
+  bbox: JSON!
+  detection_confidence: Float!
+  predicted_disease: DiseaseType!
+  confidence: Float!
+  top3_predictions: JSON!
+}
 
 type Livestock {
   id: ID!
@@ -721,6 +893,12 @@ enum LivestockUnavailabilityReason {
   SOLD
 }
 
+"""Model for the prediction"""
+enum ModelType {
+  ENHANCED_MOBILENETV2
+  ENHANCED_RESNET50
+}
+
 type Mutation {
   registerAdmin(name: String!, email: String!, password: String!): Admin!
   loginAdmin(email: String!, password: String!): AdminAuthResponse!
@@ -765,6 +943,19 @@ type Mutation {
   verifyReport(reportId: String!, verificationCode: String!, coordinate: CoordinatesInput!): Report!
   updateReport(reportId: String!, reportData: UpdateReportInput!): Report!
   completeReport(reportId: String!): Report!
+  addFieldsToFarm(farmTag: String!, fields: [FieldInput!]!): Farm!
+  addGreenhousesToFarm(farmTag: String!, greenhouses: [GreenhouseInput!]!): Farm!
+  addCropBatchesToField(fieldUnitId: String!, cropBatches: [CropBatchInput!]!): Field!
+  addCropBatchesToGreenhouse(greenhouseUnitId: String!, cropBatches: [CropBatchInput!]!): Greenhouse!
+  addCropBatchExpenseRecord(cropBatchTag: String!, expenseRecord: ExpenseRecordInput!): ExpenseRecord!
+  addCropBatchSalesRecord(cropBatchTag: String!, salesRecord: SalesRecordInput!): SalesRecord!
+  updateField(fieldUnitId: String!, field: UpdateFieldInput!): Field!
+  updateGreenhouse(greenhouseUnitId: String!, greenhouse: UpdateGreenhouseInput!): Greenhouse!
+  updateCropBatch(cropBatchTag: String!, cropBatch: UpdateCropBatchInput!): CropBatch!
+  updateCropBatchExpenseRecord(expenseRecordId: Float!, expenseRecord: UpdateExpenseRecordInput!): ExpenseRecord!
+  updateCropBatchSalesRecord(salesRecordId: Float!, salesRecord: UpdateSalesRecordInput!): SalesRecord!
+  submitPredictionFeedback(predictionId: String!, userFeedback: String!, actualDisease: DiseaseType!): Prediction!
+  createPrediction(farmTag: String!, cropType: PredictionCropType!, modelUsed: ModelType!, leafDetections: [LeafDetectionInput!]!, imagePath: String!, processingTimeMs: Float!): Prediction!
 }
 
 input Offspring {
@@ -924,6 +1115,53 @@ enum PoultryType {
   OTHER
 }
 
+type Prediction {
+  id: ID!
+  crop_type: PredictionCropType!
+  model_used: ModelType!
+  image_path: String!
+  processing_time_ms: Float!
+  inserted_at: DateTime!
+  updated_at: DateTime!
+  feedback: Feedback
+  leaf_detections: [LeafDetection!]
+  farm: Farm!
+}
+
+type PredictionConnection {
+  edges: [PredictionTypeEdge!]!
+  pageInfo: PageInfo!
+  count: Int!
+}
+
+"""Type of crop we are predicting for"""
+enum PredictionCropType {
+  MAIZE
+  CASSAVA
+  CASHEW
+  TOMATO
+}
+
+input PredictionFilterInput {
+  modelUsed: ModelType
+  cropType: PredictionCropType
+  predictedDisease: DiseaseType
+}
+
+enum PredictionSortField {
+  INSERTED_AT
+}
+
+input PredictionSortInput {
+  field: PredictionSortField!
+  direction: SortDirection!
+}
+
+type PredictionTypeEdge {
+  cursor: String!
+  node: Prediction!
+}
+
 """Type of product being sold"""
 enum ProductType {
   LIVESTOCK
@@ -957,8 +1195,16 @@ type Query {
   listGroups: GroupConnection!
   listReports(filter: ReportFilterInput, pagination: PaginationInput, sort: [ReportSortInput!]): ReportConnection!
   getReport(reportId: String!): Report!
+  getField(fieldUnitId: String!): Field!
+  getGreenhouse(greenhouseUnitId: String!): Greenhouse!
+  getCropBatch(cropBatchTag: String!, housingUnit: HousingUnit!): CropBatch!
+  listFields(searchTerm: String!, pagination: PaginationInput, sort: [FieldSortInput!]): FieldConnection!
+  listGreenhouses(searchTerm: String!, pagination: PaginationInput, sort: [GreenhouseSortInput!]): GreenhouseConnection!
+  listCropBatches(searchTerm: String!, housingUnit: HousingUnit!, filter: CropBatchFilterInput, pagination: PaginationInput, sort: [CropBatchSortInput!]): CropBatchConnection!
   livestockBreedingPairPrediction(livestockTag: String!): BreedingPairPredictionResponse!
   mcpRequest(query: String!): String!
+  listPredictions(filter: PredictionFilterInput, pagination: PaginationInput, sort: [PredictionSortInput!]): PredictionConnection!
+  getPrediction(predictionId: String!): Prediction!
 }
 
 type Report {
@@ -1150,11 +1396,62 @@ input UpdateBreedingRecordInput {
   status: BreedingStatus
 }
 
+input UpdateCropBatchInput {
+  name: String
+  cropType: CropType
+  variety: String
+  plantingDate: DateTime
+  harvestDate: DateTime
+  plantingMethod: PlantingMethod
+  irrigationMethod: IrrigationMethod
+  areaPlanted: Float
+  areaUnit: String
+  plantsCount: Float
+  seedAmount: Float
+  seedUnit: String
+  expectedYield: Float
+  actualYield: Float
+  yieldUnit: String
+  fertilizerApplications: JSON
+  pesticideApplications: JSON
+  weatherConditions: JSON
+  status: CropStatus
+  gpsCoordinates: JSON
+}
+
 input UpdateExpenseRecordInput {
   amount: Float!
   expenseDate: DateTime!
   category: ExpenseCategory!
   notes: String!
+}
+
+input UpdateFieldInput {
+  name: String
+  capacity: Float
+  areaHectares: Float
+  soilType: String
+  irrigationType: String
+  slope: String
+  drainage: String
+  previousCrop: String
+  status: CropHousingStatus
+  soilTestResults: JSON
+  gpsCoordinates: JSON
+}
+
+input UpdateGreenhouseInput {
+  name: String
+  capacity: Float
+  areaSqm: Float
+  constructionDate: DateTime
+  coveringMaterial: String
+  temperatureControl: String
+  lightingSystem: String
+  irrigationSystem: String
+  climateControlled: Boolean
+  ventilationSystem: String
+  status: CropHousingStatus
 }
 
 input UpdateGrowthRecordInput {

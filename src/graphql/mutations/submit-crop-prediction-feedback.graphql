@@ -1,0 +1,13 @@
+mutation SubmitPredictionFeedback(
+  $predictionId: String!
+  $userFeedback: String!
+  $actualDisease: DiseaseType!
+) {
+  submitPredictionFeedback(
+    predictionId: $predictionId
+    userFeedback: $userFeedback
+    actualDisease: $actualDisease
+  ) {
+    id
+  }
+}

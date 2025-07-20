@@ -1,0 +1,37 @@
+query GetField($fieldUnitId: String!) {
+  getField(fieldUnitId: $fieldUnitId) {
+    area_hectares
+    capacity
+    farm {
+      farm_tag
+    }
+    crop_batches {
+      actual_yield
+      area_unit
+      crop_type
+      expected_yield
+      gps_coordinates
+      greenhouse {
+        id
+      }
+      id
+      irrigation_method
+      name
+      planting_date
+      planting_method
+      plants_count
+      seed_amount
+      seed_unit
+      status
+      variety
+      area_planted
+    }
+    status
+    soil_type
+    name
+    id
+    irrigation_type
+    soil_test_results
+    drainage
+  }
+}

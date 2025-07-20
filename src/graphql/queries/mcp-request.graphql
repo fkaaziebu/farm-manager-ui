@@ -1,0 +1,3 @@
+query McpRequest($query: String!) {
+  mcpRequest(query: $query)
+}

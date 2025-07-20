@@ -1,0 +1,34 @@
+query ListFields(
+  $searchTerm: String!
+  $pagination: PaginationInput
+  $sort: [FieldSortInput!]
+) {
+  listFields(searchTerm: $searchTerm, pagination: $pagination, sort: $sort) {
+    edges {
+      node {
+        name
+        capacity
+        area_hectares
+        farm {
+          farm_tag
+        }
+        crop_batches {
+          id
+          name
+          crop_type
+          status
+        }
+        id
+        status
+        unit_id
+      }
+    }
+    pageInfo {
+      startCursor
+      endCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+# This query fetches a list of fields with pagination and sorting options.

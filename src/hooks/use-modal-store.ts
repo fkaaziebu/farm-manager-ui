@@ -1,5 +1,6 @@
 import {
   BreedingStatus,
+  CropBatch,
   Farm,
   Livestock,
   LivestockGender,
@@ -47,7 +48,10 @@ export type ModalType =
   | "update-livestock"
   | "update-worker"
   | "update-task"
-  | "update-livestock-breeding-record";
+  | "update-livestock-breeding-record"
+  | "add-field-or-greenhouse"
+  | "crop-disease-classification"
+  | "add-crop-batch-to-field";
 
 interface ModalData {
   notificationType?: "success" | "error" | "info";
@@ -81,6 +85,9 @@ interface ModalData {
   farmWorker?: Worker;
   breedingRecordId?: string;
   breedingRecord?: LivestockBreedingRecord;
+  cropInfo?: CropBatch;
+  fieldId?: string;
+  fieldUnitId?: string;
 }
 
 interface ModalStore {

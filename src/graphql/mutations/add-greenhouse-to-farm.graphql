@@ -1,0 +1,8 @@
+mutation AddGreenhousesToFarm(
+  $farmTag: String!
+  $greenhouses: [GreenhouseInput!]!
+) {
+  addGreenhousesToFarm(farmTag: $farmTag, greenhouses: $greenhouses) {
+    id
+  }
+}

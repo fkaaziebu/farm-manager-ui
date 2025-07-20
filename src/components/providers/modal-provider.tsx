@@ -19,6 +19,9 @@ import { UpdatePenModal } from "../modals/update-pen-modal";
 import { UpdateWorkerModal } from "../modals/update-worker-modal";
 import UpdateTaskModal from "../modals/update-task-modal";
 import UpdateBreedingRecordModal from "../modals/update-livestock-breeding-record-modal";
+import AddFieldModal from "../modals/add-field-or-greenhouse-modal";
+import CropDiseaseClassificationModal from "../modals/classify-crop-disease.modal";
+import AddCropBatchModal from "../modals/add-crop-batches-to-field-modal";
 
 export const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -51,6 +54,9 @@ export const ModalProvider = () => {
       <UpdateWorkerModal />
       <UpdateTaskModal />
       <UpdateBreedingRecordModal />
+      <AddFieldModal />
+      <CropDiseaseClassificationModal />
+      <AddCropBatchModal />
     </>
   );
 };

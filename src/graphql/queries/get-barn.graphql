@@ -5,6 +5,9 @@ query GetBarn($barnUnitId: String!) {
     construction_date
     id
     name
+    farm {
+      farm_tag
+    }
     unit_id
     pens {
       area_sqm
