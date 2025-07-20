@@ -22,6 +22,7 @@ import UpdateBreedingRecordModal from "../modals/update-livestock-breeding-recor
 import AddFieldModal from "../modals/add-field-or-greenhouse-modal";
 import CropDiseaseClassificationModal from "../modals/classify-crop-disease.modal";
 import AddCropBatchModal from "../modals/add-crop-batches-to-field-modal";
+import PredictionDetailModal from "../modals/prediction-list-modal";
 
 export const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -57,6 +58,7 @@ export const ModalProvider = () => {
       <AddFieldModal />
       <CropDiseaseClassificationModal />
       <AddCropBatchModal />
+      <PredictionDetailModal />
     </>
   );
 };

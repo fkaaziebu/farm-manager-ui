@@ -1,0 +1,31 @@
+query ListPredictions(
+  $pagination: PaginationInput
+  $sort: [PredictionSortInput!]
+  $filter: PredictionFilterInput
+) {
+  listPredictions(pagination: $pagination, sort: $sort, filter: $filter) {
+    count
+    edges {
+      node {
+        processing_time_ms
+        crop_type
+        id
+        processing_time_ms
+        model_used
+        image_path
+        leaf_detections {
+          id
+          bbox
+          detection_confidence
+          predicted_disease
+          confidence
+          top3_predictions
+        }
+        feedback {
+          actual_disease
+          user_feedback
+        }
+      }
+    }
+  }
+}

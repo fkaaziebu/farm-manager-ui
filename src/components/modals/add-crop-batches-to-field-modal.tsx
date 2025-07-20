@@ -34,6 +34,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAddCropBatchesToField } from "@/hooks/mutations";
+import { CropType, CropKind } from "@/graphql/generated/graphql";
+
+export const cropKindValues = ["MAIZE", "CASSAVA", "CASHEW", "TOMATO"] as const;
+export const cropTypeValues = [
+  "GRAIN",
+  "VEGETABLE",
+  "FRUIT",
+  "LEGUME",
+  "ROOT",
+  "TUBER",
+  "FODDER",
+  "FIBER",
+  "OIL",
+  "HERB",
+  "SPICE",
+  "OTHER",
+] as const;
 
 // Form schema
 const createCropBatchFormSchema = z.object({
@@ -41,7 +58,6 @@ const createCropBatchFormSchema = z.object({
   cropBatches: z.array(
     z.object({
       name: z.string().min(1, "Crop batch name is required"),
-      cropType: z.string().min(1, "Crop type is required"),
       variety: z.string().optional(),
       areaPlanted: z
         .number()
@@ -57,6 +73,8 @@ const createCropBatchFormSchema = z.object({
       plantingMethod: z.string().optional(),
       irrigationMethod: z.string().optional(),
       gpsCoordinates: z.string().optional(),
+      cropKind: z.enum(cropKindValues),
+      cropType: z.enum(cropTypeValues),
     })
   ),
 });
@@ -70,43 +88,10 @@ export const AddCropBatchModal = () => {
 
   const isModalOpen = isOpen && type === "add-crop-batch-to-field";
 
-  // Predefined options
-  const cropTypes = [
-    "Rice",
-    "Wheat",
-    "Corn",
-    "Soybean",
-    "Cotton",
-    "Sugarcane",
-    "Barley",
-    "Oats",
-    "Sorghum",
-    "Millet",
-    "Beans",
-    "Peas",
-    "Lentils",
-    "Chickpeas",
-    "Sunflower",
-    "Canola",
-    "Potato",
-    "Sweet Potato",
-    "Cassava",
-    "Tomato",
-    "Pepper",
-    "Cucumber",
-    "Lettuce",
-    "Cabbage",
-    "Carrot",
-    "Onion",
-    "Garlic",
-    "Other",
-  ];
-
   const areaUnits = ["hectares", "acres", "square meters", "square feet"];
 
   const plantingMethods = [
-    "Direct Seeding",
-    "Transplanting",
+    "DIRECT_SEEDING",
     "Broadcasting",
     "Drilling",
     "Precision Planting",
@@ -124,7 +109,7 @@ export const AddCropBatchModal = () => {
     "Flood Irrigation",
     "Subsurface Drip",
     "Center Pivot",
-    "Rain-fed",
+    "RAIN_FED",
     "Manual Watering",
     "Micro-sprinkler",
     "Surface Irrigation",
@@ -137,7 +122,6 @@ export const AddCropBatchModal = () => {
       cropBatches: [
         {
           name: "",
-          cropType: "",
           variety: "",
           areaPlanted: undefined,
           areaUnit: "",
@@ -147,6 +131,8 @@ export const AddCropBatchModal = () => {
           plantingMethod: "",
           irrigationMethod: "",
           gpsCoordinates: "",
+          cropType: CropType.Grain,
+          cropKind: CropKind.Maize,
         },
       ],
     },
@@ -179,6 +165,7 @@ export const AddCropBatchModal = () => {
             plantingMethod: batch.plantingMethod || null,
             irrigationMethod: batch.irrigationMethod || null,
             gpsCoordinates: batch.gpsCoordinates || null,
+            cropKind: batch.cropKind || null,
           })),
         },
       });
@@ -219,7 +206,7 @@ export const AddCropBatchModal = () => {
       ...currentBatches,
       {
         name: "",
-        cropType: "",
+        cropType: CropType.Grain,
         variety: "",
         areaPlanted: undefined,
         areaUnit: "",
@@ -229,6 +216,7 @@ export const AddCropBatchModal = () => {
         plantingMethod: "",
         irrigationMethod: "",
         gpsCoordinates: "",
+        cropKind: CropKind.Maize,
       },
     ]);
   };
@@ -381,9 +369,40 @@ export const AddCropBatchModal = () => {
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                        {cropTypes.map((type) => (
+                                        {cropTypeValues.map((type) => (
                                           <SelectItem key={type} value={type}>
                                             {type}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name={`cropBatches.${index}.cropKind`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>
+                                      Crop Kind
+                                      <span className="text-red-500">*</span>
+                                    </FormLabel>
+                                    <Select
+                                      onValueChange={field.onChange}
+                                      value={field.value}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select crop kind" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {cropKindValues.map((kind) => (
+                                          <SelectItem key={kind} value={kind}>
+                                            {kind}
                                           </SelectItem>
                                         ))}
                                       </SelectContent>

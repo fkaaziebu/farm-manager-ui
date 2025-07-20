@@ -239,6 +239,7 @@ type CropBatch {
   crop_batch_tag: String!
   name: String!
   crop_type: CropType!
+  crop_kind: CropKind
   variety: String!
   planting_date: DateTime!
   harvest_date: DateTime
@@ -279,6 +280,7 @@ input CropBatchFilterInput {
 input CropBatchInput {
   name: String!
   cropType: CropType!
+  cropKind: CropKind!
   variety: String!
   plantingDate: DateTime!
   harvestDate: DateTime
@@ -312,6 +314,14 @@ enum CropHousingStatus {
   FALLOW
   PREPARATION
   MAINTENANCE
+}
+
+"""Kind of crop"""
+enum CropKind {
+  MAIZE
+  CASHEW
+  CASSAVA
+  TOMATO
 }
 
 """Growth status of a crop"""
@@ -1143,6 +1153,7 @@ enum PredictionCropType {
 }
 
 input PredictionFilterInput {
+  farmTag: String
   modelUsed: ModelType
   cropType: PredictionCropType
   predictedDisease: DiseaseType
@@ -1399,6 +1410,7 @@ input UpdateBreedingRecordInput {
 input UpdateCropBatchInput {
   name: String
   cropType: CropType
+  cropKind: CropKind
   variety: String
   plantingDate: DateTime
   harvestDate: DateTime

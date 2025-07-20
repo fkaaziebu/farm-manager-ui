@@ -34,9 +34,9 @@ import {
 import Link from "next/link";
 import { useGetAField } from "@/hooks/queries";
 import { usePathname } from "next/navigation";
-import EmptyStateFarmField from "@/components/pages/farms/crops/empty-state-farm-field";
 import { useModal } from "@/hooks/use-modal-store";
 import { Button } from "@/components/ui/button";
+import EmptyStateCropBatch from "@/components/pages/farms/crops/empty-state-crop-batch";
 
 export default function FieldDetailPage() {
   const { onOpen } = useModal();
@@ -245,6 +245,7 @@ export default function FieldDetailPage() {
   };
 
   console.log("Field Unit ID:", field);
+  const farmTag = sessionStorage.getItem("farm_Tag");
 
   useEffect(() => {
     fetchField({ fieldUnitId: fieldUnitId });
@@ -309,12 +310,6 @@ export default function FieldDetailPage() {
                   type="button"
                   className="md:inline-flex hidden items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                   onClick={() => {
-                    onOpen("crop-disease-classification", {
-                      fieldId: field?.id,
-                      farmTag: field?.farm?.farm_tag,
-                      // @ts-expect-error err
-                      cropInfo: field?.crop_batches?.[0],
-                    });
                     console.log("Edit field clicked");
                   }}
                 >
@@ -1091,7 +1086,9 @@ export default function FieldDetailPage() {
                       </div>
                     </div>
                     <Button
-                      //   onClick={() => onOpen("add-crop-batch", { fieldUnitId })}
+                      onClick={() =>
+                        onOpen("add-crop-batch-to-field", { fieldUnitId })
+                      }
                       className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700"
                     >
                       <Plus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
@@ -1186,7 +1183,7 @@ export default function FieldDetailPage() {
                             Method: {crop.planting_method || "Not specified"}
                           </div>
                           <Link
-                            href={`/farms/${farmId}/fields/${field.id}/crops/${crop.id}`}
+                            href={`/farms/f${farmTag}/fields/${fieldUnitId}/crop-batches/${crop.crop_batch_tag}?cropType=${crop.crop_kind}`}
                             className="inline-flex items-center justify-center px-2 sm:px-3 py-1 border border-transparent text-xs sm:text-sm leading-5 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                           >
                             <Eye className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
@@ -1198,9 +1195,8 @@ export default function FieldDetailPage() {
                   </div>
                 </div>
               ) : (
-                <EmptyStateFarmField
-                  farmTag="1"
-                  //   fieldUnitId={fieldUnitId || ""}
+                <EmptyStateCropBatch
+                  fieldUnitId={fieldUnitId || ""}
                   //   fieldName={field?.name || ""}
                   //   farmId={farmId}
                 />

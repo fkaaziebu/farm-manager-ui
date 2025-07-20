@@ -10,6 +10,8 @@ import useFetchTasks from "./custom/use-fetch-tasks";
 import useFetchFields from "./custom/use-fetch-fields";
 import useGetAField from "./custom/use-get-a-field";
 import useMcpRequest from "./use-mcp-request";
+import useGetCropBatch from "./use-get-crop-batch";
+import useGetCropBatchWithPredictions from "./custom/use-get-crop-batch-with-prediction";
 export {
   useFetchFarms,
   useFetchBarn,
@@ -23,6 +25,8 @@ export {
   useFetchFields,
   useGetAField,
   useMcpRequest,
+  useGetCropBatch,
+  useGetCropBatchWithPredictions,
 };
 
 export { default as usePredictLuvestockBreedingPair } from "./use-predict-livestock-breeding-pairs";

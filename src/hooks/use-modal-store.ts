@@ -5,6 +5,7 @@ import {
   Livestock,
   LivestockGender,
   Pen,
+  Prediction,
   Task,
 } from "@/graphql/generated/graphql";
 import { create } from "zustand";
@@ -51,7 +52,8 @@ export type ModalType =
   | "update-livestock-breeding-record"
   | "add-field-or-greenhouse"
   | "crop-disease-classification"
-  | "add-crop-batch-to-field";
+  | "add-crop-batch-to-field"
+  | "view-prediction-details";
 
 interface ModalData {
   notificationType?: "success" | "error" | "info";
@@ -88,6 +90,7 @@ interface ModalData {
   cropInfo?: CropBatch;
   fieldId?: string;
   fieldUnitId?: string;
+  predictions?: Prediction;
 }
 
 interface ModalStore {

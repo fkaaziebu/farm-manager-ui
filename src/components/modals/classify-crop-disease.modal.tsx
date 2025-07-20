@@ -87,20 +87,24 @@ const feedbackFormSchema = z.object({
 
 // Mock diseases list for feedback
 const COMMON_DISEASES = [
+  "Anthracnose",
+  "Gummosis",
   "Healthy",
+  "Leaf Miner",
+  "Red Rust",
   "Bacterial Blight",
   "Brown Spot",
-  "Leaf Blast",
-  "Tungro",
-  "Bacterial Leaf Streak",
-  "False Smut",
-  "Downy Mildew",
-  "Powdery Mildew",
-  "Rust",
-  "Anthracnose",
-  "Blight",
-  "Mosaic Virus",
-  "Other (specify in comments)",
+  "Green Mite",
+  "Mosaic",
+  "Fall Armyworm",
+  "Grasshopper",
+  "Leaf Beetle",
+  "Leaf Blight",
+  "Leaf Spot",
+  "Streak Virus",
+  "Leaf Curl",
+  "Septoria Leaf Spot",
+  "Verticillium Wilt",
 ];
 
 export const CropDiseaseClassificationModal = () => {
@@ -264,12 +268,16 @@ export const CropDiseaseClassificationModal = () => {
       }, 200);
 
       const response = await axios.post(
-        "http://ec2-16-170-249-2.eu-north-1.compute.amazonaws.com:3000/v1/images/upload",
+        "https://uzuznia502.execute-api.eu-north-1.amazonaws.com/v1/images/upload",
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            // "Content-Type":
+            //   "multipart/form-data; boundary=--------------------------878396315719284920595894",
             Authorization: `Bearer ${token}`,
+            // Accept: "*/*",
+            // Host: "uzuznia502.execute-api.eu-north-1.amazonaws.com",
           },
         }
       );

@@ -20,7 +20,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useFetchFields } from "@/hooks/queries";
 import { useRouter } from "next/navigation";
-import fieldPic from "@/../public/images/ann-ann-kxxNn15lXoM-unsplash.jpg";
+import fieldPic from "@/../public/images/field_image.avif";
 import { useFetchFarms } from "@/hooks/queries";
 import { useModal } from "@/hooks/use-modal-store";
 import LoadingState from "@/components/pages/loading-state";

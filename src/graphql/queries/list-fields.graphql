@@ -17,6 +17,8 @@ query ListFields(
           name
           crop_type
           status
+          crop_batch_tag
+          crop_kind
         }
         id
         status

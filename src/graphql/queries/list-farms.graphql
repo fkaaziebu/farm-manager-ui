@@ -63,13 +63,16 @@ query ListFarms(
           area_hectares
           id
           name
+          unit_id
           crop_batches {
+            crop_batch_tag
             id
             name
             status
             crop_type
           }
         }
+        farm_type
       }
     }
     pageInfo {

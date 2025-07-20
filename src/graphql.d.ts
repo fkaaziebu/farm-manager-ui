@@ -242,6 +242,15 @@ declare module '*/get-barn.graphql' {
 }
     
 
+declare module '*/get-crop-batch.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetCropBatch: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/get-field.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -318,6 +327,15 @@ declare module '*/list-pens.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const ListPens: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/list-predictions.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const ListPredictions: DocumentNode;
 
   export default defaultDocument;
 }

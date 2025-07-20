@@ -1,0 +1,29 @@
+query GetCropBatch($cropBatchTag: String!, $housingUnit: HousingUnit!) {
+  getCropBatch(cropBatchTag: $cropBatchTag, housingUnit: $housingUnit) {
+    id
+    crop_batch_tag
+    name
+    crop_type
+    crop_kind
+    variety
+    planting_date
+    harvest_date
+    planting_method
+    irrigation_method
+    area_planted
+    area_unit
+    plants_count
+    seed_amount
+    seed_unit
+    expected_yield
+    actual_yield
+    yield_unit
+    gps_coordinates
+    fertilizer_applications
+    pesticide_applications
+    weather_conditions
+    status
+    inserted_at
+    updated_at
+  }
+}
