@@ -1,85 +1,108 @@
 query ListFarms(
-  $pagination: PaginationInput
-  $sort: [FarmSortInput!]
-  $searchTerm: String!
-  $filter: FarmFilterInput
+    $pagination: PaginationInput
+    $sort: [FarmSortInput!]
+    $searchTerm: String!
+    $filter: FarmFilterInput
 ) {
-  listFarms(
-    pagination: $pagination
-    sort: $sort
-    searchTerm: $searchTerm
-    filter: $filter
-  ) {
-    edges {
-      node {
-        barns {
-          capacity
-          pens {
-            livestock {
-              breed
-              weight
-              updated_at
-              birth_date
-              id
+    listFarms(
+        pagination: $pagination
+        sort: $sort
+        searchTerm: $searchTerm
+        filter: $filter
+    ) {
+        edges {
+            node {
+                barns {
+                    capacity
+                    pens {
+                        livestock {
+                            breed
+                            weight
+                            updated_at
+                            birth_date
+                            id
+                        }
+                        id
+                        unit_id
+                        area_sqm
+                        status
+                    }
+                    id
+                    status
+                    name
+                    area_sqm
+                    unit_id
+                }
+                name
+                performance
+                area
+                location
+                livestock {
+                    id
+                    health_status
+                    livestock_tag
+                    livestock_type
+                    breed
+                }
+                workers {
+                    id
+                    name
+                    roles
+                    worker_tag
+                }
+                farm_tag
+                id
+                tasks {
+                    id
+                    starting_date
+                    status
+                    type
+                    completion_date
+                }
+                fields {
+                    area_hectares
+                    id
+                    name
+                    unit_id
+                    crop_batches {
+                        crop_batch_tag
+                        id
+                        name
+                        status
+                        crop_type
+                    }
+                }
+                farm_type
+                crop_batches {
+                    actual_yield
+                    area_planted
+                    area_unit
+                    crop_batch_tag
+                    crop_kind
+                    crop_type
+                    expected_yield
+                    harvest_date
+                    id
+                    irrigation_method
+                    name
+                    planting_date
+                    planting_method
+                    plants_count
+                    seed_amount
+                    seed_unit
+                    status
+                    updated_at
+                    variety
+                    weather_conditions
+                    yield_unit
+                }
             }
-            id
-            unit_id
-            area_sqm
-            status
-          }
-          id
-          status
-          name
-          area_sqm
-          unit_id
         }
-        name
-        performance
-        area
-        location
-        livestock {
-          id
-          health_status
-          livestock_tag
-          livestock_type
-          breed
+        pageInfo {
+            endCursor
+            hasNextPage
+            hasPreviousPage
+            startCursor
         }
-        workers {
-          id
-          name
-          roles
-          worker_tag
-        }
-        farm_tag
-        id
-        tasks {
-          id
-          starting_date
-          status
-          type
-          completion_date
-        }
-        fields {
-          area_hectares
-          id
-          name
-          unit_id
-          crop_batches {
-            crop_batch_tag
-            id
-            name
-            status
-            crop_type
-          }
-        }
-        farm_type
-      }
     }
-    pageInfo {
-      endCursor
-      hasNextPage
-      hasPreviousPage
-      startCursor
-    }
-  }
 }

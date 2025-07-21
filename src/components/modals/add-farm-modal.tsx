@@ -62,11 +62,11 @@ export const AddFarmModal = () => {
         },
         (err) => {
           console.error("Geolocation error:", err);
-          onOpen("notification", {
-            notificationType: "error",
-            notificationMessage: "Failed to retrieve browser location.",
-          });
-        }
+          // onOpen("notification", {
+          //   notificationType: "error",
+          //   notificationMessage: "Failed to retrieve browser location.",
+          // });
+        },
       );
     }
   }, [useManualLocation, type]);
@@ -77,8 +77,8 @@ export const AddFarmModal = () => {
       const coords = useManualLocation
         ? { latitude, longitude }
         : autoCoords
-        ? { latitude: autoCoords.lat, longitude: autoCoords.lng }
-        : { latitude: undefined, longitude: undefined };
+          ? { latitude: autoCoords.lat, longitude: autoCoords.lng }
+          : { latitude: undefined, longitude: undefined };
 
       if (!coords.latitude || !coords.longitude) {
         return onOpen("notification", {
@@ -103,6 +103,7 @@ export const AddFarmModal = () => {
       onOpen("notification", {
         notificationType: "success",
         notificationMessage: "Farm created successfully",
+        createFarmEvent: `${Math.random()}`,
       });
     } catch (error) {
       onOpen("notification", {
