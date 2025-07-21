@@ -11,7 +11,7 @@ import { RegisterHeader } from "@/components/pages/admin/register/register-heade
 import { SocialRegister } from "@/components/pages/admin/register/social-register";
 import { RegisterForm } from "@/components/pages/admin/register/register-form";
 import { BackgroundPattern } from "@/components/pages/admin/background-pattern";
-import axios from "axios";
+// import axios from "axios";
 
 type RegisterFormInput = {
   name: string;
@@ -72,14 +72,16 @@ export default function AuthRegister() {
   const handleGoogleRegister = async () => {
     try {
       setOauthLoading(true);
+      setRegisterError("");
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
       // const baseUrl = "http://localhost:3007/v1";
-      await axios.get(`${baseUrl}/auth/google/login`);
+      // await axios.get(`${baseUrl}/auth/google/login`);
+      router.push(`${baseUrl}/auth/google/login`);
     } catch (error) {
       // @ts-expect-error error
-      setLoginError(error.message);
+      setRegisterError(error.message);
     } finally {
-      setOauthLoading(true);
+      setOauthLoading(false);
     }
   };
 
@@ -99,6 +101,7 @@ export default function AuthRegister() {
             />
             <RegisterForm
               form={form}
+              // @ts-expect-error error
               onSubmit={onSubmit}
               loading={loading}
               error={registerError}

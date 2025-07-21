@@ -11,7 +11,7 @@ import { LoginHeader } from "@/components/pages/admin/login/login-header";
 import { SocialLogin } from "@/components/pages/admin/login/social-login";
 import { LoginForm } from "@/components/pages/admin/login/login-form";
 import { BackgroundPattern } from "@/components/pages/admin/background-pattern";
-import axios from "axios";
+// import axios from "axios";
 
 type LoginFormInput = {
   email: string;
@@ -74,14 +74,16 @@ export default function AuthLogin() {
   const handleGoogleLogin = async () => {
     try {
       setOauthLoading(true);
+      setLoginError("");
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
       // const baseUrl = "http://localhost:3007/v1";
-      await axios.get(`${baseUrl}/auth/google/login`);
+      // await axios.get(`${baseUrl}/auth/google/login`);
+      router.push(`${baseUrl}/auth/google/login`);
     } catch (error) {
       // @ts-expect-error error
       setLoginError(error.message);
     } finally {
-      setOauthLoading(true);
+      setOauthLoading(false);
     }
   };
 
@@ -108,6 +110,7 @@ export default function AuthLogin() {
             />
             <LoginForm
               form={form}
+              // @ts-expect-error error
               onSubmit={onSubmit}
               loading={loading}
               error={loginError}
@@ -115,7 +118,7 @@ export default function AuthLogin() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                   href="/auth/admin/register"
                   className="font-medium text-green-600 hover:text-green-500"

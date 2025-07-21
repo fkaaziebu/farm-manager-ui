@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import {
   Plus,
   Search,
@@ -28,7 +28,15 @@ import { useSearchParams } from "next/navigation";
 
 type AnimalProp = NonNullable<Livestock>;
 
-export default function AnimalsListingPage() {
+export default function LivestockDetailPage() {
+  return (
+    <Suspense fallback={<p>Loading ...</p>}>
+      <Page />
+    </Suspense>
+  );
+}
+
+function Page() {
   const router = useRouter();
   const {
     fetchLivestocks,
@@ -108,10 +116,10 @@ export default function AnimalsListingPage() {
     treated: farmAnimals.filter((a) => a.health_status === HealthStatus.Treated)
       .length,
     recovering: farmAnimals.filter(
-      (a) => a.health_status === HealthStatus.Recovering
+      (a) => a.health_status === HealthStatus.Recovering,
     ).length,
     critical: farmAnimals.filter(
-      (a) => a.health_status === HealthStatus.Critical
+      (a) => a.health_status === HealthStatus.Critical,
     ).length,
     needsCheck: farmAnimals.filter((a) => {
       const lastCheck = new Date(a.updated_at).valueOf();
@@ -133,8 +141,8 @@ export default function AnimalsListingPage() {
           (livestock) =>
             livestockType === null ||
             livestock.livestock_type.toLowerCase() ===
-              livestockType?.toLowerCase()
-        )
+              livestockType?.toLowerCase(),
+        ),
       );
     }
   }, [livestocks]);
@@ -494,14 +502,14 @@ export default function AnimalsListingPage() {
                 (livestock) =>
                   livestockType === null ||
                   livestock.livestock_type.toLowerCase() ===
-                    livestockType?.toLowerCase()
+                    livestockType?.toLowerCase(),
               ).length
             }{" "}
             {livestocks?.filter(
               (livestock) =>
                 livestockType === null ||
                 livestock.livestock_type.toLowerCase() ===
-                  livestockType?.toLowerCase()
+                  livestockType?.toLowerCase(),
             ).length === 1
               ? "animal"
               : "animals"}{" "}
@@ -517,7 +525,7 @@ export default function AnimalsListingPage() {
                 (livestock) =>
                   livestockType === null ||
                   livestock.livestock_type.toLowerCase() ===
-                    livestockType?.toLowerCase()
+                    livestockType?.toLowerCase(),
               )
               ?.map((livestock) => (
                 <div
@@ -530,14 +538,14 @@ export default function AnimalsListingPage() {
                         <div className="flex items-center">
                           <span
                             className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTagColorClass(
-                              "green"
+                              "green",
                             )}`}
                           >
                             {livestock?.livestock_tag}
                           </span>
                           <span
                             className={`ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColorClass(
-                              livestock?.health_status
+                              livestock?.health_status,
                             )}`}
                           >
                             {livestock?.health_status[0].toUpperCase()}
@@ -611,7 +619,7 @@ export default function AnimalsListingPage() {
                   (livestock) =>
                     livestockType === null ||
                     livestock.livestock_type.toLowerCase() ===
-                      livestockType?.toLowerCase()
+                      livestockType?.toLowerCase(),
                 )
                 .map((livestock) => (
                   <li key={livestock.id}>
@@ -624,7 +632,7 @@ export default function AnimalsListingPage() {
                           <div className="flex items-center">
                             <span
                               className={`px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getTagColorClass(
-                                "green"
+                                "green",
                               )}`}
                             >
                               {livestock.livestock_tag}
@@ -634,7 +642,7 @@ export default function AnimalsListingPage() {
                             </p>
                             <span
                               className={`ml-2 px-2 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColorClass(
-                                livestock.health_status
+                                livestock.health_status,
                               )}`}
                             >
                               {livestock.health_status[0].toUpperCase()}

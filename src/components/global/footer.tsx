@@ -50,8 +50,8 @@ export const Footer = () => {
             </div>
             <p className="text-green-700 text-sm leading-relaxed">
               Empowering farmers with intelligent solutions for modern
-              grasscutter farming. Monitor, manage, and maximize your farm's
-              potential with our comprehensive platform.
+              grasscutter farming. Monitor, manage, and maximize your
+              farm&apos;s potential with our comprehensive platform.
             </p>
             <div className="flex space-x-3">
               <Button

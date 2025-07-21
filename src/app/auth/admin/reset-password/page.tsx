@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -67,7 +67,15 @@ const SuccessState = ({ onGoToLogin }: { onGoToLogin: () => void }) => (
   </div>
 );
 
-export default function AuthResetPassword() {
+export default function AuthResetPasswordPage() {
+  return (
+    <Suspense fallback={<p>Loading ...</p>}>
+      <Page />
+    </Suspense>
+  );
+}
+
+function Page() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -111,6 +119,7 @@ export default function AuthResetPassword() {
   const passwordStrength = getPasswordStrength(password);
 
   const onSubmit: SubmitHandler<ResetFormInput> = async (data) => {
+    console.log(data);
     setIsLoading(true);
     setError(undefined);
 

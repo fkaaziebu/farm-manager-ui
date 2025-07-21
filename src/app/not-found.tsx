@@ -50,8 +50,9 @@ export default function NotFound() {
               Oops! This page seems to have wandered off the farm
             </h2>
             <p className="text-lg text-green-700 max-w-2xl mx-auto">
-              The page you're looking for doesn't exist or may have been moved.
-              Let's get you back to managing your agricultural operations.
+              The page you&apos;re looking for doesn&apos;t exist or may have
+              been moved. Let&apos;s get you back to managing your agricultural
+              operations.
             </p>
           </div>
 

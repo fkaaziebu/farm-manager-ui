@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import {
   ArrowRight,
   ArrowLeft,
 } from "lucide-react";
+import axios from "axios";
 
 // Background Pattern Component
 const BackgroundPattern = () => (
@@ -41,7 +42,15 @@ const Logo = () => (
   </div>
 );
 
-export default function ConsentPage() {
+export default function ContentPage() {
+  return (
+    <Suspense fallback={<p>Loading ...</p>}>
+      <Page />
+    </Suspense>
+  );
+}
+
+function Page() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -70,32 +79,15 @@ export default function ConsentPage() {
     setError(undefined);
 
     try {
-      // TODO: Implement API call to create user account with Google OAuth
-      const response = await fetch("/api/auth/oauth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          firstName,
-          lastName,
-          provider: "google",
-        }),
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const response = await axios.post(`${baseUrl}/auth/consent`, {
+        consent: "yes",
+        email,
+        firstName,
+        lastName,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to create account");
-      }
-
-      // Redirect to OAuth login page with access token
-      if (data.access_token) {
-        router.push(`/oauth/${data.access_token}`);
-      } else {
-        throw new Error("No access token received");
-      }
+      router.replace(response.data.redirectUrl);
     } catch (error) {
       // @ts-expect-error ignore
       setError(error.message || "Failed to create account. Please try again.");
