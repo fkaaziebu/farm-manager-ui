@@ -19,14 +19,32 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { ChevronDown, Loader2, X, Info } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, "Farm name must be at least 2 characters."),
   location: z.string().min(2, "Location must be at least 2 characters."),
-  area: z.string().min(1, "Area is required."),
-  farmType: z.enum(Object.values(FarmType) as [string, ...string[]]),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
+  area: z
+    .number({
+      required_error: "Area is required.",
+      invalid_type_error: "Area must be a valid number.",
+    })
+    .min(0.1, "Area must be greater than 0."),
+  farmType: z.enum(Object.values(FarmType) as [string, ...string[]], {
+    required_error: "Please select a farm type.",
+  }),
+  latitude: z
+    .number({
+      required_error: "Latitude is required.",
+      invalid_type_error: "Latitude must be a valid number.",
+    })
+    .optional(),
+  longitude: z
+    .number({
+      required_error: "Longitude is required.",
+      invalid_type_error: "Longitude must be a valid number.",
+    })
+    .optional(),
 });
 
 export const AddFarmModal = () => {
@@ -35,6 +53,7 @@ export const AddFarmModal = () => {
   const isModalOpen = isOpen && type === "add-farm";
 
   const [useManualLocation, setUseManualLocation] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [autoCoords, setAutoCoords] = useState<{
     lat: number;
     lng: number;
@@ -45,8 +64,8 @@ export const AddFarmModal = () => {
     defaultValues: {
       name: "",
       location: "",
-      area: "",
-      farmType: FarmType.Livestock,
+      area: undefined,
+      farmType: undefined,
       latitude: undefined,
       longitude: undefined,
     },
@@ -62,17 +81,15 @@ export const AddFarmModal = () => {
         },
         (err) => {
           console.error("Geolocation error:", err);
-          // onOpen("notification", {
-          //   notificationType: "error",
-          //   notificationMessage: "Failed to retrieve browser location.",
-          // });
         },
       );
     }
-  }, [useManualLocation, type]);
+  }, [useManualLocation, type, isModalOpen]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      setIsSubmitting(true);
+
       const { name, location, area, farmType, latitude, longitude } = values;
       const coords = useManualLocation
         ? { latitude, longitude }
@@ -81,17 +98,18 @@ export const AddFarmModal = () => {
           : { latitude: undefined, longitude: undefined };
 
       if (!coords.latitude || !coords.longitude) {
-        return onOpen("notification", {
+        onOpen("notification", {
           notificationType: "error",
           notificationMessage: "Coordinates are required for farm creation.",
         });
+        return;
       }
 
       await createFarm({
         variables: {
           name,
           location,
-          area,
+          area: `${area} acres`,
           farmType: farmType as FarmType,
           latitude: coords.latitude,
           longitude: coords.longitude,
@@ -113,8 +131,19 @@ export const AddFarmModal = () => {
           error.response?.message || "Unknown error"
         }`,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   }
+
+  const handleClose = () => {
+    if (!isSubmitting) {
+      form.reset();
+      setUseManualLocation(false);
+      setAutoCoords(null);
+      onClose();
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -123,52 +152,69 @@ export const AddFarmModal = () => {
           initial={{ y: 5, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 5, opacity: 0 }}
-          className="fixed inset-0 bg-gray-400/60 backdrop-blur-sm z-50 flex items-center justify-center"
-          onClick={() => onClose()}
+          className="fixed inset-0 bg-gray-400/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={handleClose}
         >
-          <div
-            className="w-full max-w-md bg-white rounded-lg shadow-xl m-auto"
+          <motion.div
+            initial={{ scale: 0.95 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.95 }}
+            className="w-full max-w-lg bg-white rounded-xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-gray-200 relative">
-              <h2 className="text-xl font-semibold">Add New Farm</h2>
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200 relative">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Add New Farm
+              </h2>
               <p className="text-sm text-gray-600 mt-1">
                 Fill in the details below to create a new farm.
               </p>
               <button
-                onClick={onClose}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                onClick={handleClose}
+                disabled={isSubmitting}
+                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
+            {/* Form Content */}
             <div className="p-6">
               <Form {...form}>
                 <form
                   id="farm-form"
                   onSubmit={form.handleSubmit(onSubmit)}
-                  className="grid gap-4"
+                  className="space-y-5"
                 >
-                  {/* Farm Type */}
+                  {/* Farm Type - Enhanced Select */}
                   <FormField
                     control={form.control}
                     name="farmType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Farm Type</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Farm Type *
+                        </FormLabel>
                         <FormControl>
-                          <select
-                            {...field}
-                            className="w-full border-gray-300 rounded-sm shadow-sm focus:ring focus:ring-green-500"
-                          >
-                            <option value="">Select farm type</option>
-                            {Object.entries(FarmType).map(([key, value]) => (
-                              <option key={key} value={value}>
-                                {value.charAt(0) + value.slice(1).toLowerCase()}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="relative">
+                            <select
+                              {...field}
+                              className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                            >
+                              <option value="">Select farm type</option>
+                              {Object.entries(FarmType).map(([key, value]) => (
+                                <option key={key} value={value}>
+                                  {value.charAt(0) +
+                                    value.slice(1).toLowerCase()}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown
+                              size={16}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -181,9 +227,15 @@ export const AddFarmModal = () => {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Farm Name</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Farm Name *
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter farm name" {...field} />
+                          <Input
+                            placeholder="Enter farm name"
+                            className="border-gray-300 focus:ring-green-500 focus:border-green-500"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -196,10 +248,13 @@ export const AddFarmModal = () => {
                     name="location"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Location</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Location *
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Enter address or city"
+                            className="border-gray-300 focus:ring-green-500 focus:border-green-500"
                             {...field}
                           />
                         </FormControl>
@@ -214,9 +269,25 @@ export const AddFarmModal = () => {
                     name="area"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Area (acres)</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Area (acres) *
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. 25" {...field} />
+                          <Input
+                            type="number"
+                            step="0.1"
+                            min="0.1"
+                            placeholder="e.g. 25"
+                            className="border-gray-300 focus:ring-green-500 focus:border-green-500"
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? parseFloat(e.target.value)
+                                  : undefined,
+                              )
+                            }
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -224,37 +295,31 @@ export const AddFarmModal = () => {
                   />
 
                   {/* Toggle for manual coordinates */}
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-3 py-2">
                     <Switch
                       checked={useManualLocation}
                       onCheckedChange={setUseManualLocation}
+                      disabled={isSubmitting}
                     />
                     <span className="text-sm text-gray-700">
-                      Enter coordinates manually?
+                      Enter coordinates manually
                     </span>
                   </div>
 
-                  {/* svg for information */}
-
-                  <span className="border flex gap-3 p-1 bg-red-300 text-gray-800 text-sm text-center items-center rounded-md">
-                    <span className="flex">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 inline-block mr-1"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11a1 1 0 11-2 0V9a1 1 0 112 0v4zm-1-6a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                  {/* Information Banner */}
+                  <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <Info
+                      size={16}
+                      className="text-blue-600 mt-0.5 flex-shrink-0"
+                    />
+                    <span className="text-sm text-blue-800">
+                      {useManualLocation
+                        ? "Please enter the latitude and longitude coordinates for your farm location."
+                        : "Your browser location will be used automatically for farm coordinates."}
                     </span>
-                    Location will be auto-filled if not checked.
-                  </span>
+                  </div>
 
+                  {/* Manual Coordinates */}
                   {useManualLocation && (
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
@@ -262,15 +327,22 @@ export const AddFarmModal = () => {
                         name="latitude"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Latitude</FormLabel>
+                            <FormLabel className="text-sm font-medium text-gray-700">
+                              Latitude *
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
                                 step="any"
                                 placeholder="e.g. 5.6589"
+                                className="border-gray-300 focus:ring-green-500 focus:border-green-500"
                                 value={field.value ?? ""}
                                 onChange={(e) =>
-                                  field.onChange(parseFloat(e.target.value))
+                                  field.onChange(
+                                    e.target.value
+                                      ? parseFloat(e.target.value)
+                                      : undefined,
+                                  )
                                 }
                               />
                             </FormControl>
@@ -284,15 +356,22 @@ export const AddFarmModal = () => {
                         name="longitude"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Longitude</FormLabel>
+                            <FormLabel className="text-sm font-medium text-gray-700">
+                              Longitude *
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
                                 step="any"
                                 placeholder="e.g. 7.4583"
+                                className="border-gray-300 focus:ring-green-500 focus:border-green-500"
                                 value={field.value ?? ""}
                                 onChange={(e) =>
-                                  field.onChange(parseFloat(e.target.value))
+                                  field.onChange(
+                                    e.target.value
+                                      ? parseFloat(e.target.value)
+                                      : undefined,
+                                  )
                                 }
                               />
                             </FormControl>
@@ -306,19 +385,34 @@ export const AddFarmModal = () => {
               </Form>
             </div>
 
-            <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
-              <Button type="button" variant="outline" onClick={onClose}>
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isSubmitting}
+                className="px-6"
+              >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 form="farm-form"
-                className="bg-green-600 hover:bg-green-700 text-white"
+                disabled={isSubmitting}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 min-w-[120px]"
               >
-                Create Farm
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 size={16} className="animate-spin" />
+                    Creating...
+                  </div>
+                ) : (
+                  "Create Farm"
+                )}
               </Button>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

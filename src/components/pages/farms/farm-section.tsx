@@ -13,21 +13,16 @@ import {
   Droplets,
 } from "lucide-react";
 import Link from "next/link";
-import type { Ref } from "react";
+import { useEffect, useRef } from "react";
 import EmptyStateFarms from "./empty-farm-state";
-import EmptyFarmSearchState from "./empty-farm-search-state";
+import { useFetchFarms } from "@/hooks/queries";
+import { useModal } from "@/hooks/use-modal-store";
+import LoadingState from "../loading-state";
 
-const FarmSection = ({
-  farms,
-  loading,
-  searchTerm,
-  observerTarget,
-}: {
-  farms: Array<Farm>;
-  loading: boolean;
-  searchTerm: string;
-  observerTarget: Ref<HTMLDivElement> | undefined;
-}) => {
+const FarmSection = () => {
+  const { farms, fetchFarms, fetchMoreFarms, loadingFarms, loadingMoreFarms } =
+    useFetchFarms();
+  const observerTarget = useRef<HTMLDivElement | null>(null);
   const MAX_HOUSES_DISPLAY = 2;
 
   const getPerformanceConfig = (performance: number) => {
@@ -195,6 +190,7 @@ const FarmSection = ({
     farm: Farm,
     config: ReturnType<typeof getFarmTypeConfig>,
   ) => {
+    console.log(config);
     if (farm.farm_type === "CROP") {
       return (
         farm.fields?.reduce(
@@ -357,6 +353,37 @@ const FarmSection = ({
     );
   };
 
+  const { data } = useModal();
+
+  useEffect(() => {
+    fetchFarms({ searchTerm: "" });
+  }, [data.createFarmEvent]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          // Check if the entry is intersecting the viewport
+          if (entry.isIntersecting) {
+            // Load more content
+            fetchMoreFarms({ searchTerm: "", pagination: { first: 5 } });
+          }
+        }
+      },
+      { threshold: 1 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
+  }, [observerTarget]);
+
   return (
     <>
       {farms?.length ? (
@@ -495,16 +522,16 @@ const FarmSection = ({
               );
             })}
           </div>
-          {loading ? (
+          {loadingMoreFarms ? (
             <div className="flex items-center justify-center">
               <Loader size={30} className="text-gray-400 animate-spin" />
             </div>
           ) : null}
         </div>
-      ) : searchTerm ? (
-        <EmptyFarmSearchState />
-      ) : (
+      ) : !(loadingMoreFarms || loadingFarms) ? (
         <EmptyStateFarms />
+      ) : (
+        <LoadingState />
       )}
       <div id="scroll-sentinel" ref={observerTarget} />
     </>
