@@ -5,8 +5,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useLoginAdmin } from "@/hooks/mutations";
-import { classname } from "@/components/common";
 import { useModal } from "@/hooks/use-modal-store";
+import { BrandingSide } from "@/components/pages/admin/login/branding-side";
+import { LoginHeader } from "@/components/pages/admin/login/login-header";
+import { SocialLogin } from "@/components/pages/admin/login/social-login";
+import { LoginForm } from "@/components/pages/admin/login/login-form";
+import { BackgroundPattern } from "@/components/pages/admin/background-pattern";
+import axios from "axios";
+
 type LoginFormInput = {
   email: string;
   password: string;
@@ -15,14 +21,11 @@ type LoginFormInput = {
 export default function AuthLogin() {
   const router = useRouter();
   const [loginError, setLoginError] = useState<string>();
+  const [oauthLoading, setOauthLoading] = useState<boolean>(false);
   const { loginAdmin, loading } = useLoginAdmin();
   const { onOpen } = useModal();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormInput>({
+  const form = useForm<LoginFormInput>({
     defaultValues: {
       email: "",
       password: "",
@@ -50,6 +53,7 @@ export default function AuthLogin() {
 
       setLoginError("");
       sessionStorage.setItem("token", response.data.loginAdmin.token);
+      sessionStorage.setItem("role", "admin");
       sessionStorage.setItem("id", response.data.loginAdmin.id);
       onOpen("notification", {
         notificationType: "success",
@@ -67,6 +71,20 @@ export default function AuthLogin() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      setOauthLoading(true);
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      // const baseUrl = "http://localhost:3007/v1";
+      await axios.get(`${baseUrl}/auth/google/login`);
+    } catch (error) {
+      // @ts-expect-error error
+      setLoginError(error.message);
+    } finally {
+      setOauthLoading(true);
+    }
+  };
+
   useEffect(() => {
     const token = sessionStorage.getItem("token");
     if (token) {
@@ -75,138 +93,39 @@ export default function AuthLogin() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            FarmManager
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Sign in to your account
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-amber-50/30">
+      <BackgroundPattern />
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
-          <div className="rounded-md -space-y-px">
-            <div className="mb-4">
-              <label
-                htmlFor="email-address"
-                className="text-lg font-medium text-gray-700 space-y-2"
-              >
-                Email address:
-              </label>
-              <input
-                id="email-address"
-                type="email"
-                {...register("email", {
-                  required: {
-                    value: true,
-                    message: "Email is required",
-                  },
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Invalid email address",
-                  },
-                  maxLength: 256,
-                })}
-                className={classname(
-                  "appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm",
-                  errors.email &&
-                    "border-[#e4515180] outline-offset-0 outline-2 outline-[#e4515180]"
-                )}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-base ">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+      <div className="relative flex min-h-screen">
+        <BrandingSide />
 
-            <div className="mb-4">
-              <label
-                htmlFor="password"
-                className="text-lg font-medium text-gray-700"
-              >
-                Password:
-              </label>
-              <input
-                id="password"
-                type="password"
-                {...register("password", {
-                  required: {
-                    value: true,
-                    message: "Password is required",
-                  },
-                  minLength: {
-                    value: 8,
-                    message: "Password must be at least 8 characters",
-                  },
-                })}
-                className={classname(
-                  "appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm",
-                  errors.password &&
-                    "border-[#e4515180] outline-offset-0 outline-2 outline-[#e4515180]"
-                )}
-              />
-              {errors.password && (
-                <p className="text-red-500 text-base ">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+        <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-16 xl:px-20">
+          <div className="mx-auto w-full max-w-md">
+            <LoginHeader />
+            <SocialLogin
+              onGoogleLogin={handleGoogleLogin}
+              loading={oauthLoading}
+            />
+            <LoginForm
+              form={form}
+              onSubmit={onSubmit}
+              loading={loading}
+              error={loginError}
+            />
 
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-lg font-medium text-gray-700"
-                >
-                  Remember me:
-                </label>
-              </div>
-
-              <div className="text-sm">
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Don't have an account?{" "}
                 <Link
-                  href="/auth/admin/request-password-reset"
+                  href="/auth/admin/register"
                   className="font-medium text-green-600 hover:text-green-500"
                 >
-                  Forgot your password?
+                  Sign up here
                 </Link>
-              </div>
-            </div>
-
-            {loginError && (
-              <p className="text-red-500 text-base mb-4">{loginError}</p>
-            )}
-
-            <div className="mb-4">
-              <button
-                type="submit"
-                className={classname(
-                  "group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500",
-                  loading && "cursor-none"
-                )}
-              >
-                {!loading ? "Sign in" : "Signing in..."}
-              </button>
-            </div>
-
-            <div className="text-center">
-              <Link
-                href="/auth/admin/register"
-                className="font-medium text-green-600 hover:text-green-500"
-              >
-                Don&apos;t have an account? Sign up
-              </Link>
+              </p>
             </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
