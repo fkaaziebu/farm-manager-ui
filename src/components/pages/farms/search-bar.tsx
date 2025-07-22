@@ -186,6 +186,7 @@ const SearchBar = () => {
                     return (
                       <button
                         key={farm.id}
+                        // @ts-expect-error error
                         onClick={() => handleFarmClick(farm)}
                         className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50 cursor-pointer"
                       >
@@ -235,7 +236,7 @@ const SearchBar = () => {
             ) : debouncedSearchTerm.trim().length > 0 ? (
               <div className="p-4 text-center">
                 <p className="text-sm text-gray-500">
-                  No farms found matching "{debouncedSearchTerm}"
+                  No farms found matching &quot;{debouncedSearchTerm}&quot;
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
                   Try searching by name, location, or farm type

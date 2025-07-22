@@ -20,7 +20,6 @@ export default function FarmsListingPage() {
   const observerTarget = useRef<HTMLDivElement | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { onOpen, data } = useModal();
@@ -38,9 +37,9 @@ export default function FarmsListingPage() {
     }
 
     typingTimeoutRef.current = setTimeout(async () => {
-      fetchFarms({ searchTerm });
+      fetchFarms({ searchTerm: "" });
     }, 500);
-  }, [data.createFarmEvent, searchTerm]);
+  }, [data.createFarmEvent]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -49,11 +48,11 @@ export default function FarmsListingPage() {
           // Check if the entry is intersecting the viewport
           if (entry.isIntersecting) {
             // Load more content
-            fetchMoreFarms({ searchTerm, pagination: { first: 5 } });
+            fetchMoreFarms({ searchTerm: "", pagination: { first: 5 } });
           }
         }
       },
-      { threshold: 1 }
+      { threshold: 1 },
     );
 
     if (observerTarget.current) {
@@ -143,11 +142,7 @@ export default function FarmsListingPage() {
       </header>
 
       {/* Responsive Search */}
-      <SearchBar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        loading={loadingFarms}
-      />
+      <SearchBar />
 
       <OverviewSection />
 
@@ -155,7 +150,7 @@ export default function FarmsListingPage() {
         <WorkerFarmSection
           farms={farms || []}
           loading={loadingMoreFarms}
-          searchTerm={searchTerm}
+          searchTerm={""}
           observerTarget={observerTarget}
         />
       )}

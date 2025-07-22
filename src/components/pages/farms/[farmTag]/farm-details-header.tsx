@@ -56,12 +56,6 @@ export default function FarmDetailsHeader({
     return colors[type as keyof typeof colors] || "text-gray-600 bg-gray-50";
   };
 
-  const getPerformanceColor = (performance: number) => {
-    if (performance >= 80) return "text-green-600 bg-green-100";
-    if (performance >= 60) return "text-yellow-600 bg-yellow-100";
-    return "text-red-600 bg-red-100";
-  };
-
   const handleLogout = () => {
     sessionStorage.clear();
     router.push("/");
@@ -109,7 +103,6 @@ export default function FarmDetailsHeader({
 
   const IconComponent = getFarmTypeIcon(farm.farm_type);
   const colorClass = getFarmTypeColor(farm.farm_type);
-  const performanceClass = getPerformanceColor(farm.performance || 0);
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-200 w-full">

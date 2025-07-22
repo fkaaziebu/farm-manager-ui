@@ -47,7 +47,7 @@ export default function FarmHouseEmptyState({
 
           <Button
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            onClick={() => onOpen("add-house-to-farm", { farmId, farmTag })}
+            onClick={() => onOpen("add-barns-to-farm", { farmId, farmTag })}
           >
             <Plus className="mr-2 h-4 w-4" /> Add house to Farm
           </Button>

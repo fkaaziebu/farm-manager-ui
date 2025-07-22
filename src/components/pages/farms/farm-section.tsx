@@ -528,7 +528,7 @@ const FarmSection = () => {
             </div>
           ) : null}
         </div>
-      ) : !(loadingMoreFarms || loadingFarms) ? (
+      ) : !loadingFarms ? (
         <EmptyStateFarms />
       ) : (
         <LoadingState />
