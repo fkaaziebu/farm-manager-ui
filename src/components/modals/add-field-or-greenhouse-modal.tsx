@@ -282,6 +282,7 @@ export const AddFieldModal = () => {
       onOpen("notification", {
         notificationType: "success",
         notificationMessage: "Field created successfully!",
+        addFieldsToFarmEvent: `${Math.random()}`,
       });
     } catch (error) {
       console.error("Error creating field:", error);
@@ -297,7 +298,7 @@ export const AddFieldModal = () => {
   };
 
   const onGreenhouseSubmit = async (
-    data: z.infer<typeof createGreenhouseFormSchema>
+    data: z.infer<typeof createGreenhouseFormSchema>,
   ) => {
     setIsLoading(true);
     try {
@@ -462,7 +463,7 @@ export const AddFieldModal = () => {
                                             .slice(-4)}`;
                                           fieldForm.setValue(
                                             "field.unitId",
-                                            generatedId
+                                            generatedId,
                                           );
                                         }
                                       }}
@@ -511,7 +512,7 @@ export const AddFieldModal = () => {
                                       {...field}
                                       onChange={(e) =>
                                         field.onChange(
-                                          parseFloat(e.target.value) || 0
+                                          parseFloat(e.target.value) || 0,
                                         )
                                       }
                                     />
@@ -538,7 +539,7 @@ export const AddFieldModal = () => {
                                       {...field}
                                       onChange={(e) =>
                                         field.onChange(
-                                          parseFloat(e.target.value) || 0
+                                          parseFloat(e.target.value) || 0,
                                         )
                                       }
                                     />
@@ -710,7 +711,7 @@ export const AddFieldModal = () => {
                                           onChange={(e) =>
                                             field.onChange(
                                               parseFloat(e.target.value) ||
-                                                undefined
+                                                undefined,
                                             )
                                           }
                                         />
@@ -737,7 +738,7 @@ export const AddFieldModal = () => {
                                           onChange={(e) =>
                                             field.onChange(
                                               parseFloat(e.target.value) ||
-                                                undefined
+                                                undefined,
                                             )
                                           }
                                         />
@@ -764,7 +765,7 @@ export const AddFieldModal = () => {
                                           onChange={(e) =>
                                             field.onChange(
                                               parseFloat(e.target.value) ||
-                                                undefined
+                                                undefined,
                                             )
                                           }
                                         />
@@ -791,7 +792,7 @@ export const AddFieldModal = () => {
                                           onChange={(e) =>
                                             field.onChange(
                                               parseFloat(e.target.value) ||
-                                                undefined
+                                                undefined,
                                             )
                                           }
                                         />
@@ -818,7 +819,7 @@ export const AddFieldModal = () => {
                                           onChange={(e) =>
                                             field.onChange(
                                               parseFloat(e.target.value) ||
-                                                undefined
+                                                undefined,
                                             )
                                           }
                                         />
@@ -872,7 +873,7 @@ export const AddFieldModal = () => {
                       <form
                         id="create-greenhouse-form"
                         onSubmit={greenhouseForm.handleSubmit(
-                          onGreenhouseSubmit
+                          onGreenhouseSubmit,
                         )}
                         className="space-y-6"
                       >
@@ -922,7 +923,7 @@ export const AddFieldModal = () => {
                                             .slice(-4)}`;
                                           greenhouseForm.setValue(
                                             "greenhouse.unitId",
-                                            generatedId
+                                            generatedId,
                                           );
                                         }
                                       }}
@@ -971,7 +972,7 @@ export const AddFieldModal = () => {
                                       {...field}
                                       onChange={(e) =>
                                         field.onChange(
-                                          parseFloat(e.target.value) || 0
+                                          parseFloat(e.target.value) || 0,
                                         )
                                       }
                                     />
@@ -996,7 +997,7 @@ export const AddFieldModal = () => {
                                       onChange={(e) =>
                                         field.onChange(
                                           parseFloat(e.target.value) ||
-                                            undefined
+                                            undefined,
                                         )
                                       }
                                     />

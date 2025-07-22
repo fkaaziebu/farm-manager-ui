@@ -1,12 +1,12 @@
 "use client";
 
 import { AddFarmModal } from "@/components/modals/add-farm-modal";
-import { AddLivestockModal } from "@/components/modals/add-animals-to-farm-modal";
+import { AddLivestockToPenModal } from "@/components/modals/add-livestock-to-pen-modal";
 import { HealthRecordModal } from "@/components/modals/add-health-record-modal";
 import { FarmWorkersModal } from "@/components/modals/add-workers-to-farm-modal";
 import { AddHouseModal } from "@/components/modals/add-barns-to-farm-modal";
 import { useEffect, useState } from "react";
-import { AddPensModal } from "../modals/add-pens-to-barns-modal";
+import { AddPensToBarnModal } from "../modals/add-pens-to-barn-modal";
 import { NotificationModal } from "../modals/notification-modal";
 import { BreedingRecordModal } from "../modals/add-livestock-breeding-record-modal";
 import { GrowthRecordModal } from "../modals/add-livestock-growth-record-modal";
@@ -41,9 +41,9 @@ export const ModalProvider = () => {
       <HealthRecordModal />
       <FarmWorkersModal />
       <AddHouseModal />
-      <AddPensModal />
+      <AddPensToBarnModal />
       <NotificationModal />
-      <AddLivestockModal />
+      <AddLivestockToPenModal />
       <BreedingRecordModal />
       <GrowthRecordModal />
       <ExpenseRecordModal />

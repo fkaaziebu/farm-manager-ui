@@ -251,6 +251,15 @@ declare module '*/get-crop-batch.graphql' {
 }
     
 
+declare module '*/get-farm.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetFarm: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/get-field.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;

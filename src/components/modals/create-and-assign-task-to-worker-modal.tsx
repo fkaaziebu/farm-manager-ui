@@ -89,7 +89,7 @@ const TaskSelectionField = ({
   // Get the currently selected task
   const selectedTaskId = form.watch("taskId");
   const selectedTask = tasks.find(
-    (task) => task.id.toString() === selectedTaskId
+    (task) => task.id.toString() === selectedTaskId,
   );
 
   // Filter tasks based on search and type filter
@@ -316,6 +316,7 @@ export const TaskModal = () => {
     onOpen("notification", {
       notificationType: "success",
       notificationMessage: `Task created successfully!`,
+      createTaskEvent: `${Math.random()}`,
     });
   };
 

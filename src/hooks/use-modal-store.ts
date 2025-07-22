@@ -35,7 +35,7 @@ export type ModalType =
   | "house"
   | "event-scheduler"
   | "add-animals-to-farm"
-  | "add-house-to-farm"
+  | "add-barns-to-farm"
   | "add-workers-to-farm"
   | "add-pens-to-barn"
   | "add-livestock-to-pen"
@@ -65,6 +65,7 @@ interface ModalData {
   barnName?: string;
   penUnitId?: string;
   penName?: string;
+  pens?: Pen[];
   farmName?: string;
   livestockTag?: string;
   livestockGender?: string;
@@ -74,16 +75,20 @@ interface ModalData {
   farmWorkers?: Worker[];
   taskList?: Task[];
   task?: Task;
-  farm?: Farm[];
+  farm?: Farm;
   barn?: Barn;
+  barns?: Barn[];
   pen?: Pen;
   taskId?: string;
   livestock?: Livestock;
   createFarmEvent?: string;
   addWorkersToFarmEvent?: string;
   addBansToFarmEvent?: string;
+  addFieldsToFarmEvent?: string;
   addPensToBarnEvent?: string;
+  createTaskEvent?: string;
   addLivestockToPenEvent?: string;
+  updateFarmEvent?: string;
   farmWorker?: Worker;
   breedingRecordId?: string;
   breedingRecord?: LivestockBreedingRecord;

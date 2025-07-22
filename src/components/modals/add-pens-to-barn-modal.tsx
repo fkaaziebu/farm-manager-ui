@@ -96,7 +96,7 @@ const formSchema = z.object({
   pens: z.array(penSchema).min(1, { message: "At least one pen is required" }),
 });
 
-export const AddPensModal = () => {
+export const AddPensToBarnModal = () => {
   const { isOpen, onClose, onOpen, type, data } = useModal();
   const { addPensToBarn, loading } = useAddPensToBarn();
 
@@ -548,4 +548,4 @@ export const AddPensModal = () => {
   );
 };
 
-export default AddPensModal;
+export default AddPensToBarnModal;

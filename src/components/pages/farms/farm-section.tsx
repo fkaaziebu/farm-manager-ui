@@ -505,13 +505,13 @@ const FarmSection = () => {
 
                     <div className="mt-auto flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
                       <Link
-                        href={`/farms/${farm.id}`}
+                        href={`/farms/${farm.farm_tag}`}
                         className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
                       >
                         View Details
                       </Link>
                       <Link
-                        href={`/farms/${farm.id}/${config.structurePath}`}
+                        href={`/farms/${farm.farm_tag}/${config.structurePath}`}
                         className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                       >
                         Manage {config.structureLabel}
